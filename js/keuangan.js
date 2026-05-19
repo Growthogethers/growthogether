@@ -1,4 +1,4 @@
-// js/keuangan.js - Per User & Fix Update (tidak double data)
+// js/keuangan.js - Per User (Otomatis berdasarkan session login)
 import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
 import { showNotif, formatNumberRp, escapeHtml } from './utils.js';
 
@@ -9,7 +9,17 @@ let editTransaksiId = null;
 
 export function initKeuangan() {
   currentUser = sessionStorage.getItem("progrowth_user");
-  if (!currentUser) return;
+  if (!currentUser) {
+    console.log("No user logged in");
+    return;
+  }
+  
+  // Update header to show current user
+  const keuanganUserName = document.getElementById('keuanganUserName');
+  if (keuanganUserName) {
+    const displayName = currentUser === "FACHMI" ? "Fachmi" : "Azizah";
+    keuanganUserName.innerHTML = `Keuangan ${displayName}`;
+  }
   
   loadTargetTabungan();
   loadTransaksi();
@@ -120,6 +130,7 @@ window.openTransaksiModal = function(editId = null) {
                 <option value="Tabungan">🏦 Tabungan</option>
                 <option value="Hiburan">🎬 Hiburan</option>
                 <option value="Kesehatan">🏥 Kesehatan</option>
+                <option value="Pendidikan">📚 Pendidikan</option>
                 <option value="Lainnya">📝 Lainnya</option>
               </select>
             </div>
@@ -151,7 +162,6 @@ window.openTransaksiModal = function(editId = null) {
     modal = document.getElementById('transaksiModal');
   }
   
-  // If edit, load data
   if (editId) {
     loadTransaksiData(editId);
   }
@@ -184,20 +194,20 @@ window.saveTransaksi = async function() {
     return;
   }
   
-  const currentUser = sessionStorage.getItem("progrowth_user");
-  if (!currentUser) return;
+  if (!currentUser) {
+    showNotif("User tidak terdeteksi", true, 'error');
+    return;
+  }
   
   const transaksiData = {
     tipe, kategori, nominal, tanggal: new Date(tanggal).getTime(), catatan, updatedAt: Date.now()
   };
   
   if (editTransaksiId) {
-    // UPDATE existing data
     await update(ref(db, `data/keuangan/${currentUser}/transaksi/${editTransaksiId}`), transaksiData);
     showNotif("Transaksi berhasil diupdate", false, 'success');
     editTransaksiId = null;
   } else {
-    // CREATE new data
     transaksiData.createdAt = Date.now();
     await push(ref(db, `data/keuangan/${currentUser}/transaksi`), transaksiData);
     showNotif("Transaksi berhasil ditambahkan", false, 'success');
@@ -212,7 +222,7 @@ window.editTransaksi = function(id) {
 };
 
 window.deleteTransaksi = async function(id) {
-  const currentUser = sessionStorage.getItem("progrowth_user");
+  if (!currentUser) return;
   await remove(ref(db, `data/keuangan/${currentUser}/transaksi/${id}`));
   showNotif("Transaksi dihapus", false, 'warning');
 };
@@ -223,12 +233,12 @@ window.setTargetTabungan = function() {
       <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content rounded-4">
           <div class="modal-header border-0">
-            <h5 class="fw-bold">Target Tabungan</h5>
+            <h5 class="fw-bold">Target Tabungan Saya</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
             <input type="number" id="targetInput" class="form-control" placeholder="Masukkan target" value="${targetTabungan}">
-            <small class="text-muted">Target tabungan untuk pernikahan / bersama</small>
+            <small class="text-muted">Target tabungan pribadi Anda</small>
           </div>
           <div class="modal-footer border-0">
             <button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Batal</button>
@@ -251,7 +261,6 @@ window.setTargetTabungan = function() {
 
 window.saveTarget = async function() {
   const target = parseInt(document.getElementById('targetInput').value);
-  const currentUser = sessionStorage.getItem("progrowth_user");
   
   if (target && currentUser) {
     await set(ref(db, `data/keuangan/${currentUser}/target`), target);
@@ -265,4 +274,3 @@ window.saveTarget = async function() {
 };
 
 window.initKeuangan = initKeuangan;
-window.editTransaksi = editTransaksi;
