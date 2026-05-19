@@ -1,7 +1,7 @@
-// js/app.js - Tanpa Fitur Lupa Password
+// js/app.js - Dengan Fitur Profile
 import { db, ref, onValue, set } from './firebase-config.js';
 import { masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser } from './utils.js';
-import { handleLogin, updateCloudPassword, confirmLogout, handleLogout } from './auth.js';
+import { handleLogin, updateCloudPassword, confirmLogout, handleLogout, openProfileModal, updateStatus, handleProfilePhotoUpload, openChangePasswordFromProfile } from './auth.js';
 import { renderDashboard } from './dashboard.js';
 import { renderCalendar, renderMomentsList, saveMoment, viewMomentDetail, deleteMomentFromDetail, changeMonth, selectMomentDate, openMomentModal, handleMultiplePhotos, removePhotoAtIndex, editMomentFromDetail } from './moment.js';
 
@@ -48,11 +48,22 @@ function initDarkMode() {
 function initMenuToggle() {
   const menuToggle = document.getElementById("menuToggleHp");
   const sidebar = document.getElementById("app-sidebar");
+  const closeBtn = document.getElementById("closeSidebarBtn");
+  
   if (menuToggle && sidebar) {
     menuToggle.addEventListener("click", () => {
       isSidebarOpen = !isSidebarOpen;
       sidebar.classList.toggle("open");
     });
+    
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => {
+        sidebar.classList.remove("open");
+        isSidebarOpen = false;
+      });
+    }
+    
+    // Close on outside click
     document.addEventListener('click', (e) => {
       if (window.innerWidth <= 768 && isSidebarOpen && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
         sidebar.classList.remove('open');
@@ -63,6 +74,14 @@ function initMenuToggle() {
 }
 
 function attachEventListeners() {
+  // Profile trigger
+  const profileTrigger = document.getElementById("profileTrigger");
+  if (profileTrigger) {
+    profileTrigger.addEventListener("click", () => {
+      openProfileModal();
+    });
+  }
+  
   // Privacy toggle
   document.querySelectorAll("#privacyToggleDash").forEach(btn => {
     if (btn) btn.addEventListener("click", () => {
@@ -96,8 +115,11 @@ function showPage(pageId) {
   document.querySelectorAll(`[data-page="${pageId}"]`).forEach(el => el.classList.add("active"));
   
   if (window.innerWidth <= 768) {
-    document.getElementById("app-sidebar")?.classList.remove("open");
-    isSidebarOpen = false;
+    const sidebar = document.getElementById("app-sidebar");
+    if (sidebar) {
+      sidebar.classList.remove("open");
+      isSidebarOpen = false;
+    }
   }
   
   if (pageId === "moment") {
@@ -113,14 +135,22 @@ function showPage(pageId) {
 }
 
 function setupAppSession(u) {
-  document.getElementById("login-screen").style.display = "none";
-  document.getElementById("app-sidebar").style.display = "flex";
-  document.getElementById("app-content").style.display = "block";
+  const loginScreen = document.getElementById("login-screen");
+  const sidebar = document.getElementById("app-sidebar");
+  const appContent = document.getElementById("app-content");
+  
+  if (loginScreen) loginScreen.style.display = "none";
+  if (sidebar) sidebar.style.display = "flex";
+  if (appContent) appContent.style.display = "block";
+  
+  const displayName = u === "FACHMI" ? "Fachmi" : "Azizah";
   
   const badge = document.getElementById("activeUserBadge");
-  if (badge) badge.innerText = u;
+  if (badge) badge.innerText = displayName;
   
-  document.getElementById("userGreet").innerText = u;
+  const userGreet = document.getElementById("userGreet");
+  if (userGreet) userGreet.innerText = displayName;
+  
   renderDashboard();
   showPage('dashboard');
 }
@@ -136,7 +166,7 @@ function checkAuth() {
 function initFirebaseListener() {
   if (!firebaseListener) {
     firebaseListener = onValue(ref(db, "data/"), (snapshot) => {
-      const data = snapshot.val() || { dreams: {}, plans: {}, finances: {}, settings: {}, moments: {}, vendors: {} };
+      const data = snapshot.val() || { dreams: {}, plans: {}, finances: {}, settings: {}, moments: {}, vendors: {}, profiles: {} };
       setMasterData(data);
       
       if (!data.auth) set(ref(db, "data/auth"), { FACHMI: "gokil223", AZIZAH: "1234" });
@@ -182,6 +212,10 @@ window.showPage = showPage;
 window.renderDashboard = renderDashboard;
 window.togglePrivacy = togglePrivacy;
 window.updateCloudPassword = updateCloudPassword;
+window.openProfileModal = openProfileModal;
+window.openChangePasswordFromProfile = openChangePasswordFromProfile;
+window.handleProfilePhotoUpload = handleProfilePhotoUpload;
+window.updateStatus = updateStatus;
 
 // Moment functions
 window.renderCalendar = renderCalendar;
