@@ -1,4 +1,4 @@
-// js/pengingat.js - Fix Update (tidak double data)
+// js/pengingat.js - Dengan Kategori Ulang Tahun
 import { db, ref, push, onValue, remove, update, get } from './firebase-config.js';
 import { showNotif, escapeHtml } from './utils.js';
 
@@ -9,26 +9,8 @@ export function initPengingat() {
   currentUser = sessionStorage.getItem("progrowth_user");
   if (!currentUser) return;
   
-  loadBirthday();
   loadPengingat();
 }
-
-function loadBirthday() {
-  const saved = localStorage.getItem(`partnerBirthday_${currentUser}`);
-  const birthdayInput = document.getElementById('birthdayInput');
-  if (birthdayInput && saved) {
-    birthdayInput.value = saved;
-  }
-}
-
-window.saveBirthday = function() {
-  const date = document.getElementById('birthdayInput').value;
-  if (date && currentUser) {
-    localStorage.setItem(`partnerBirthday_${currentUser}`, date);
-    showNotif("Ulang tahun partner disimpan", false, 'success');
-    if (typeof renderDashboard === 'function') renderDashboard();
-  }
-};
 
 function loadPengingat() {
   onValue(ref(db, `data/pengingat/${currentUser}`), (snapshot) => {
@@ -44,7 +26,6 @@ function renderPengingat(pengingatList) {
   if (!container) return;
   
   const today = new Date().toISOString().split('T')[0];
-  const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
   
   if (pengingatList.length === 0) {
     container.innerHTML = `
@@ -59,9 +40,11 @@ function renderPengingat(pengingatList) {
     return;
   }
   
-  container.innerHTML = pengingatList.sort((a, b) => a.tanggal.localeCompare(b.tanggal)).map(p => {
+  container.innerHTML = pengingatList.sort((a, b) => (a.tanggal || '').localeCompare(b.tanggal || '')).map(p => {
     let statusClass = '';
     let statusText = '';
+    const isBirthday = p.isBirthday === true;
+    
     if (p.tanggal === today) {
       statusClass = 'today';
       statusText = 'Hari ini!';
@@ -70,26 +53,31 @@ function renderPengingat(pengingatList) {
       statusText = 'Terlewat';
     }
     
+    const displayDate = p.tanggal ? formatDate(p.tanggal) : 'Tanggal tidak valid';
+    
     return `
       <div class="pengingat-card ${statusClass} d-flex justify-content-between align-items-center p-3 border-bottom">
         <div class="d-flex align-items-center gap-3">
           <div class="rounded-circle p-2 ${statusClass === 'today' ? 'bg-warning bg-opacity-10' : statusClass === 'overdue' ? 'bg-danger bg-opacity-10' : 'bg-secondary bg-opacity-10'}" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
-            <i class="bi ${p.icon || 'bi-bell-fill'} fs-5 ${statusClass === 'today' ? 'text-warning' : statusClass === 'overdue' ? 'text-danger' : 'text-muted'}"></i>
+            <i class="bi ${p.icon || (isBirthday ? 'bi-gift-fill' : 'bi-bell-fill')} fs-5 ${statusClass === 'today' ? 'text-warning' : statusClass === 'overdue' ? 'text-danger' : 'text-muted'}"></i>
           </div>
           <div>
             <div class="fw-medium">${escapeHtml(p.judul)}</div>
-            <small class="pengingat-date text-muted">${formatDate(p.tanggal)}</small>
+            <small class="pengingat-date text-muted">${displayDate}</small>
+            ${isBirthday ? '<span class="badge bg-pink ms-2">🎂 Ulang Tahun</span>' : ''}
             ${statusText ? `<span class="badge ${statusClass === 'today' ? 'bg-warning' : 'bg-danger'} ms-2">${statusText}</span>` : ''}
           </div>
         </div>
-        <div class="d-flex gap-2">
-          <button class="btn-icon btn-sm" onclick="editPengingat('${p.id}')">
-            <i class="bi bi-pencil"></i>
-          </button>
-          <button class="btn-icon btn-sm" onclick="deletePengingat('${p.id}')">
-            <i class="bi bi-trash3"></i>
-          </button>
-        </div>
+        ${!isBirthday ? `
+          <div class="d-flex gap-2">
+            <button class="btn-icon btn-sm" onclick="editPengingat('${p.id}')">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn-icon btn-sm" onclick="deletePengingat('${p.id}')">
+              <i class="bi bi-trash3"></i>
+            </button>
+          </div>
+        ` : ''}
       </div>
     `;
   }).join('');
@@ -107,8 +95,8 @@ function formatDate(dateStr) {
 
 function checkReminders(pengingatList) {
   const today = new Date().toISOString().split('T')[0];
-  const todayReminders = pengingatList.filter(p => p.tanggal === today && !p.notified);
   
+  const todayReminders = pengingatList.filter(p => p.tanggal === today && !p.notified);
   todayReminders.forEach(async (p) => {
     showNotif(`🔔 ${p.judul} - Hari ini!`, false, 'warning');
     await update(ref(db, `data/pengingat/${currentUser}/${p.id}`), { notified: true });
@@ -128,12 +116,38 @@ window.openPengingatModal = function(editId = null) {
           </div>
           <div class="modal-body modal-form p-4">
             <div class="mb-3">
-              <label class="fw-semibold">Judul</label>
-              <input type="text" id="pengingatJudul" class="form-control" placeholder="Contoh: Bayar Tagihan">
+              <label class="fw-semibold">Jenis Pengingat</label>
+              <select id="pengingatJenis" class="form-select" onchange="togglePengingatJenis()">
+                <option value="custom">📝 Pengingat Biasa</option>
+                <option value="ulangtahun">🎂 Ulang Tahun Partner</option>
+              </select>
             </div>
-            <div class="mb-3">
-              <label class="fw-semibold">Tanggal</label>
-              <input type="date" id="pengingatTanggal" class="form-control">
+            <div id="customFields">
+              <div class="mb-3">
+                <label class="fw-semibold">Judul</label>
+                <input type="text" id="pengingatJudul" class="form-control" placeholder="Contoh: Bayar Tagihan">
+              </div>
+              <div class="mb-3">
+                <label class="fw-semibold">Tanggal</label>
+                <input type="date" id="pengingatTanggal" class="form-control">
+              </div>
+            </div>
+            <div id="ulangtahunFields" style="display: none;">
+              <div class="mb-3">
+                <label class="fw-semibold">Untuk User</label>
+                <select id="pengingatUser" class="form-select">
+                  <option value="FACHMI">✨ Fachmi</option>
+                  <option value="AZIZAH">🌸 Azizah</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="fw-semibold">Tanggal Ulang Tahun</label>
+                <input type="date" id="pengingatTanggalUlangtahun" class="form-control">
+              </div>
+              <div class="alert alert-info small">
+                <i class="bi bi-info-circle me-1"></i>
+                Pengingat ulang tahun akan muncul setiap tahun otomatis.
+              </div>
             </div>
             <div class="mb-3">
               <label class="fw-semibold">Icon</label>
@@ -165,12 +179,30 @@ window.openPengingatModal = function(editId = null) {
   
   if (editId) {
     loadPengingatData(editId);
+    document.getElementById('pengingatJenis').value = 'custom';
+    togglePengingatJenis();
   } else {
+    document.getElementById('pengingatJenis').value = 'custom';
+    togglePengingatJenis();
     document.getElementById('pengingatTanggal').value = new Date().toISOString().split('T')[0];
   }
   
   const bsModal = new bootstrap.Modal(modal);
   bsModal.show();
+};
+
+window.togglePengingatJenis = function() {
+  const jenis = document.getElementById('pengingatJenis').value;
+  const customFields = document.getElementById('customFields');
+  const ulangtahunFields = document.getElementById('ulangtahunFields');
+  
+  if (jenis === 'ulangtahun') {
+    customFields.style.display = 'none';
+    ulangtahunFields.style.display = 'block';
+  } else {
+    customFields.style.display = 'block';
+    ulangtahunFields.style.display = 'none';
+  }
 };
 
 async function loadPengingatData(id) {
@@ -185,26 +217,52 @@ async function loadPengingatData(id) {
 }
 
 window.savePengingat = async function() {
-  const judul = document.getElementById('pengingatJudul').value;
-  const tanggal = document.getElementById('pengingatTanggal').value;
+  const jenis = document.getElementById('pengingatJenis').value;
   const icon = document.getElementById('pengingatIcon').value;
   
-  if (!judul || !tanggal) {
-    showNotif("Judul dan tanggal harus diisi", true, 'error');
-    return;
-  }
-  
-  const data = { judul, tanggal, icon, updatedAt: Date.now() };
-  
-  if (editPengingatId) {
-    await update(ref(db, `data/pengingat/${currentUser}/${editPengingatId}`), data);
-    showNotif("Pengingat berhasil diupdate", false, 'success');
-    editPengingatId = null;
+  if (jenis === 'ulangtahun') {
+    const targetUser = document.getElementById('pengingatUser').value;
+    const tanggalUlangtahun = document.getElementById('pengingatTanggalUlangtahun').value;
+    
+    if (!tanggalUlangtahun) {
+      showNotif("Tanggal ulang tahun harus diisi", true, 'error');
+      return;
+    }
+    
+    const targetName = targetUser === "FACHMI" ? "Fachmi" : "Azizah";
+    const currentUserName = currentUser === "FACHMI" ? "Fachmi" : "Azizah";
+    const relation = targetUser === currentUser ? "ulang tahun saya" : `ulang tahun ${targetName}`;
+    
+    // Simpan ke localStorage untuk user yang bersangkutan
+    localStorage.setItem(`partnerBirthday_${targetUser}`, tanggalUlangtahun);
+    
+    showNotif(`✅ Pengingat ${relation} (${formatDate(tanggalUlangtahun)}) disimpan`, false, 'success');
+    
+    // Refresh dashboard jika perlu
+    if (typeof renderDashboard === 'function') renderDashboard();
+    
   } else {
-    data.createdAt = Date.now();
-    data.notified = false;
-    await push(ref(db, `data/pengingat/${currentUser}`), data);
-    showNotif("Pengingat berhasil ditambahkan", false, 'success');
+    // Custom reminder
+    const judul = document.getElementById('pengingatJudul').value;
+    const tanggal = document.getElementById('pengingatTanggal').value;
+    
+    if (!judul || !tanggal) {
+      showNotif("Judul dan tanggal harus diisi", true, 'error');
+      return;
+    }
+    
+    const data = { judul, tanggal, icon, updatedAt: Date.now() };
+    
+    if (editPengingatId) {
+      await update(ref(db, `data/pengingat/${currentUser}/${editPengingatId}`), data);
+      showNotif("Pengingat berhasil diupdate", false, 'success');
+      editPengingatId = null;
+    } else {
+      data.createdAt = Date.now();
+      data.notified = false;
+      await push(ref(db, `data/pengingat/${currentUser}`), data);
+      showNotif("Pengingat berhasil ditambahkan", false, 'success');
+    }
   }
   
   const modal = bootstrap.Modal.getInstance(document.getElementById('pengingatModal'));
