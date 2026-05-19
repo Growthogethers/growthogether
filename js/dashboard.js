@@ -1,19 +1,22 @@
-// js/dashboard.js
+// js/dashboard.js - Dengan Layout Grid yang Rapi
 import { masterData, formatNumberRp, showNotif } from './utils.js';
 import { db, ref, get, set } from './firebase-config.js';
 
 let weddingDate = null;
-let anniversaryDate = null;
+let currentUser = null;
 
 export async function renderDashboard() {
   if (!masterData) return;
+  
+  currentUser = sessionStorage.getItem("progrowth_user");
+  if (!currentUser) return;
   
   const moments = masterData.moments || {};
   const momentsArray = Object.values(moments);
   const totalMoments = momentsArray.length;
   const specialMoments = momentsArray.filter(m => m.isSpecial).length;
   
-  // Load saved dates
+  // Load saved dates for this user
   await loadSavedDates();
   
   // Hitung hari bersama (dari momen pertama atau default)
@@ -34,38 +37,50 @@ export async function renderDashboard() {
     const today = new Date();
     const wedding = new Date(weddingDate);
     daysToWedding = Math.ceil((wedding - today) / (1000 * 60 * 60 * 24));
+    if (daysToWedding < 0) daysToWedding = 0;
   }
   
-  // Render Ringkasan Hubungan
+  // Hitung countdown ulang tahun
+  const birthdayCountdown = getBirthdayCountdown();
+  
+  // Render Ringkasan Hubungan dengan Grid yang Rapi
   const summaryContainer = document.getElementById('relationshipSummary');
   if (summaryContainer) {
     summaryContainer.innerHTML = `
-      <div class="col-md-3 col-6">
-        <div class="card p-3 text-center hover-card">
-          <i class="bi bi-calendar-heart-fill fs-2 text-danger mb-2"></i>
-          <h2 class="fw-bold mb-0">${daysTogether}</h2>
+      <div class="col-6 col-md-3 mb-3">
+        <div class="card p-3 text-center h-100 hover-card">
+          <div class="mb-2">
+            <i class="bi bi-calendar-heart-fill fs-1 text-danger"></i>
+          </div>
+          <h2 class="fw-bold mb-0 fs-3">${daysTogether}</h2>
           <small class="text-muted">Hari Bersama</small>
         </div>
       </div>
-      <div class="col-md-3 col-6">
-        <div class="card p-3 text-center hover-card" onclick="openWeddingDateModal()">
-          <i class="bi bi-ring-fill fs-2 text-purple mb-2"></i>
-          <h2 class="fw-bold mb-0">${daysToWedding !== null ? daysToWedding : '?'}</h2>
-          <small class="text-muted">${daysToWedding !== null ? 'Menuju Pernikahan' : 'Klik atur tanggal'}</small>
+      <div class="col-6 col-md-3 mb-3">
+        <div class="card p-3 text-center h-100 hover-card" style="cursor: pointer;" onclick="openWeddingDateModal()">
+          <div class="mb-2">
+            <i class="bi bi-ring-fill fs-1 text-purple"></i>
+          </div>
+          <h2 class="fw-bold mb-0 fs-3">${daysToWedding !== null ? daysToWedding : '?'}</h2>
+          <small class="text-muted">${daysToWedding !== null ? 'Menuju Pernikahan' : 'Klik atur'}</small>
         </div>
       </div>
-      <div class="col-md-3 col-6">
-        <div class="card p-3 text-center hover-card" onclick="openBirthdayModal()">
-          <i class="bi bi-gift-fill fs-2 text-pink mb-2"></i>
-          <h2 class="fw-bold mb-0">${getBirthdayCountdown()}</h2>
+      <div class="col-6 col-md-3 mb-3">
+        <div class="card p-3 text-center h-100 hover-card" style="cursor: pointer;" onclick="openBirthdayModal()">
+          <div class="mb-2">
+            <i class="bi bi-gift-fill fs-1 text-pink"></i>
+          </div>
+          <h2 class="fw-bold mb-0 fs-3">${birthdayCountdown}</h2>
           <small class="text-muted">Menuju Ulang Tahun</small>
         </div>
       </div>
-      <div class="col-md-3 col-6">
-        <div class="card p-3 text-center hover-card">
-          <i class="bi bi-star-fill fs-2 text-warning mb-2"></i>
-          <h2 class="fw-bold mb-0">${totalMoments}</h2>
-          <small class="text-muted">Total Momen (${specialMoments} spesial)</small>
+      <div class="col-6 col-md-3 mb-3">
+        <div class="card p-3 text-center h-100 hover-card">
+          <div class="mb-2">
+            <i class="bi bi-star-fill fs-1 text-warning"></i>
+          </div>
+          <h2 class="fw-bold mb-0 fs-3">${totalMoments}</h2>
+          <small class="text-muted">Total Momen (${specialMoments}⭐)</small>
         </div>
       </div>
     `;
@@ -77,16 +92,16 @@ export async function renderDashboard() {
     const recentMoments = momentsArray.sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 3);
     
     if (recentMoments.length === 0) {
-      recentContainer.innerHTML = `<div class="col-12 text-center text-muted py-3">Belum ada momen. Yuk tambah momen spesial!</div>`;
+      recentContainer.innerHTML = `<div class="col-12 text-center text-muted py-4">Belum ada momen. Yuk tambah momen spesial!</div>`;
     } else {
       recentContainer.innerHTML = recentMoments.map(moment => `
-        <div class="col-md-4 col-6">
-          <div class="moment-card h-100" onclick="window.selectMomentDate('${moment.date}')">
+        <div class="col-4">
+          <div class="moment-card h-100" onclick="window.selectMomentDate('${moment.date}')" style="cursor: pointer;">
             ${moment.photos && moment.photos[0] 
-              ? `<img src="${moment.photos[0]}" class="moment-image" style="height: 120px;">` 
-              : `<div class="moment-image-placeholder" style="height: 120px;"><i class="bi bi-camera-fill"></i></div>`}
-            <div class="p-2">
-              <h6 class="fw-bold mb-0 small">${escapeHtml(moment.title || 'Momen')}</h6>
+              ? `<img src="${moment.photos[0]}" class="moment-image" style="height: 100px; width: 100%; object-fit: cover;">` 
+              : `<div class="moment-image-placeholder" style="height: 100px;"><i class="bi bi-camera-fill"></i></div>`}
+            <div class="p-2 text-center">
+              <small class="fw-bold d-block text-truncate">${escapeHtml(moment.title || 'Momen')}</small>
               <small class="text-muted">${moment.date || ''}</small>
             </div>
           </div>
@@ -97,21 +112,19 @@ export async function renderDashboard() {
 }
 
 async function loadSavedDates() {
-  const currentUser = sessionStorage.getItem("progrowth_user");
   if (!currentUser) return;
   
   try {
     const snapshot = await get(ref(db, `data/settings/${currentUser}`));
     const settings = snapshot.val() || {};
     weddingDate = settings.weddingDate || null;
-    anniversaryDate = settings.anniversaryDate || null;
   } catch (err) {
     console.error("Error loading dates:", err);
   }
 }
 
 function getBirthdayCountdown() {
-  const birthday = localStorage.getItem('partnerBirthday');
+  const birthday = localStorage.getItem(`partnerBirthday_${currentUser}`);
   if (!birthday) return '?';
   
   const today = new Date();
@@ -127,6 +140,11 @@ function getBirthdayCountdown() {
   return diffDays;
 }
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 // Modal functions
 window.openWeddingDateModal = function() {
   const modalHtml = `
@@ -139,6 +157,7 @@ window.openWeddingDateModal = function() {
           </div>
           <div class="modal-body">
             <input type="date" id="weddingDateInput" class="form-control rounded-3" value="${weddingDate || ''}">
+            <small class="text-muted">Masukkan tanggal pernikahan yang direncanakan</small>
           </div>
           <div class="modal-footer border-0">
             <button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Batal</button>
@@ -174,7 +193,8 @@ window.saveWeddingDate = async function() {
 };
 
 window.openBirthdayModal = function() {
-  const currentBirthday = localStorage.getItem('partnerBirthday') || '';
+  const currentUser = sessionStorage.getItem("progrowth_user");
+  const currentBirthday = localStorage.getItem(`partnerBirthday_${currentUser}`) || '';
   const modalHtml = `
     <div class="modal fade" id="birthdayModal" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered modal-sm">
@@ -185,6 +205,7 @@ window.openBirthdayModal = function() {
           </div>
           <div class="modal-body">
             <input type="date" id="birthdayModalInput" class="form-control rounded-3" value="${currentBirthday}">
+            <small class="text-muted">Masukkan tanggal ulang tahun pasangan Anda</small>
           </div>
           <div class="modal-footer border-0">
             <button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Batal</button>
@@ -207,8 +228,9 @@ window.openBirthdayModal = function() {
 
 window.saveBirthdayFromModal = function() {
   const date = document.getElementById('birthdayModalInput').value;
-  if (date) {
-    localStorage.setItem('partnerBirthday', date);
+  const currentUser = sessionStorage.getItem("progrowth_user");
+  if (date && currentUser) {
+    localStorage.setItem(`partnerBirthday_${currentUser}`, date);
     showNotif("✅ Ulang tahun partner disimpan", false, 'success');
     const modal = bootstrap.Modal.getInstance(document.getElementById('birthdayModal'));
     if (modal) modal.hide();
