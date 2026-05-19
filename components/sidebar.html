@@ -1,20 +1,33 @@
 <div class="sidebar" id="app-sidebar">
-  <!-- Header -->
-  <div class="d-flex align-items-center justify-content-between mb-4 px-2">
-    <div class="d-flex align-items-center gap-2">
-      <i class="bi bi-heart-fill text-danger fs-4"></i>
-      <h5 class="fw-bold m-0">growthogether</h5>
+  
+  <!-- Toggle Button for Desktop Collapse -->
+  <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()">
+    <i class="bi bi-chevron-left"></i>
+  </button>
+
+  <!-- Header - Centered -->
+  <div class="sidebar-header text-center mb-4">
+    <div class="d-flex flex-column align-items-center">
+      <div class="logo-wrapper mb-2">
+        <i class="bi bi-arrow-through-heart-fill text-danger fs-2"></i>
+      </div>
+      <h5 class="fw-bold m-0 app-title">growthogether</h5>
+      <small class="text-muted tagline">jalan bareng, mimpi nyata</small>
     </div>
-    <button class="btn-close btn-close-white d-md-none" id="closeSidebarBtn" style="filter: invert(1);"></button>
   </div>
 
-  <!-- PROFILE SECTION - Klik untuk buka modal -->
+  <!-- Close Button for Mobile -->
+  <button class="mobile-close-btn" id="closeSidebarBtn">
+    <i class="bi bi-x-lg"></i>
+  </button>
+
+  <!-- PROFILE SECTION -->
   <div class="profile-section text-center mb-4" id="profileTrigger" style="cursor: pointer;">
     <div class="position-relative d-inline-block">
       <div class="profile-avatar-wrapper" id="profileAvatarWrapper">
         <img id="profileAvatar" class="profile-avatar" src="https://ui-avatars.com/api/?background=6366f1&color=fff&bold=true&name=User" alt="Profile">
         <div class="profile-status" id="profileStatus">
-          <i class="bi bi-check-circle-fill"></i>
+          <i class="bi bi-calendar-check-fill"></i>
         </div>
       </div>
       <div class="edit-profile-badge">
@@ -25,13 +38,15 @@
     <small class="text-muted status-text" id="profileStatusText">sedang merencanakan</small>
   </div>
 
-  <!-- Navigation Menu -->
+  <!-- Navigation Menu with Hover Effect -->
   <nav class="nav flex-column">
     <a class="nav-link" data-page="dashboard">
-      <i class="bi bi-speedometer2 me-3"></i>Dashboard
+      <i class="bi bi-speedometer2 me-3"></i>
+      <span class="nav-text">Dashboard</span>
     </a>
     <a class="nav-link" data-page="moment">
-      <i class="bi bi-calendar-heart me-3"></i>Moment
+      <i class="bi bi-calendar-heart me-3"></i>
+      <span class="nav-text">Moment</span>
     </a>
   </nav>
 
@@ -39,7 +54,8 @@
   <div class="mt-auto pt-4">
     <div class="d-grid gap-2">
       <button class="btn btn-sm btn-outline-danger" onclick="confirmLogout()">
-        <i class="bi bi-box-arrow-right me-2"></i>Keluar
+        <i class="bi bi-box-arrow-right me-2"></i>
+        <span class="nav-text">Keluar</span>
       </button>
     </div>
   </div>
