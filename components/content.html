@@ -1,4 +1,4 @@
-<!-- DASHBOARD PAGE - Kosong -->
+<!-- DASHBOARD PAGE -->
 <section id="dashboard-page">
   <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
     <h3 class="fw-bold m-0">
@@ -9,10 +9,15 @@
     </button>
   </div>
 
-  <div class="card p-5 text-center">
-    <i class="bi bi-arrow-through-heart-fill fs-1 text-muted mb-3"></i>
-    <h5 class="text-muted">Selamat Datang di Growthogether</h5>
-    <p class="text-muted">Halaman dashboard akan segera hadir</p>
+  <!-- Ringkasan Hubungan -->
+  <div class="row g-3 mb-4" id="relationshipSummary">
+    <!-- Akan diisi JS -->
+  </div>
+
+  <!-- Preview Recent Moments -->
+  <div class="card p-3 mb-4">
+    <h5 class="fw-bold mb-3"><i class="bi bi-clock-history me-2"></i>Momen Terbaru</h5>
+    <div class="row g-3" id="recentMomentsPreview"></div>
   </div>
 </section>
 
@@ -45,4 +50,118 @@
   </div>
 
   <div id="momentsList" class="row g-3"></div>
+</section>
+
+<!-- KEUANGAN PAGE -->
+<section id="keuangan-page" style="display: none">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold"><i class="bi bi-wallet2 me-2 text-success"></i>Keuangan Bersama</h3>
+    <button class="btn btn-success btn-sm rounded-pill" onclick="openTransaksiModal()">
+      <i class="bi bi-plus-lg me-1"></i> Tambah
+    </button>
+  </div>
+
+  <!-- Saldo Card -->
+  <div class="card bg-gradient-success text-white mb-4 p-3" style="background: linear-gradient(135deg, #10b981, #059669);">
+    <small class="opacity-75">Total Saldo</small>
+    <h2 class="fw-bold mb-0" id="totalSaldo">Rp 0</h2>
+    <small id="saldoDetail" class="opacity-75">Pemasukan - Pengeluaran</small>
+  </div>
+
+  <!-- Ringkasan -->
+  <div class="row g-3 mb-4">
+    <div class="col-6">
+      <div class="card p-3 text-center border-success">
+        <i class="bi bi-arrow-up-circle-fill text-success fs-3"></i>
+        <small class="text-muted">Pemasukan</small>
+        <h5 class="fw-bold text-success mb-0" id="totalPemasukan">Rp 0</h5>
+      </div>
+    </div>
+    <div class="col-6">
+      <div class="card p-3 text-center border-danger">
+        <i class="bi bi-arrow-down-circle-fill text-danger fs-3"></i>
+        <small class="text-muted">Pengeluaran</small>
+        <h5 class="fw-bold text-danger mb-0" id="totalPengeluaran">Rp 0</h5>
+      </div>
+    </div>
+  </div>
+
+  <!-- Target Tabungan -->
+  <div class="card p-3 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h6 class="fw-bold mb-0"><i class="bi bi-piggy-bank me-2"></i>Target Tabungan</h6>
+      <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="setTargetTabungan()">Atur Target</button>
+    </div>
+    <div class="progress mb-2" style="height: 10px;">
+      <div id="targetProgress" class="progress-bar bg-success" style="width: 0%"></div>
+    </div>
+    <div class="d-flex justify-content-between small">
+      <span id="terkumpul">Rp 0</span>
+      <span id="targetAmount">Target: Rp 0</span>
+    </div>
+  </div>
+
+  <!-- Riwayat Transaksi -->
+  <h6 class="fw-bold mb-3"><i class="bi bi-list-ul me-2"></i>Riwayat Transaksi</h6>
+  <div id="transaksiList" class="list-group list-group-flush"></div>
+</section>
+
+<!-- CATATAN PAGE -->
+<section id="catatan-page" style="display: none">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold"><i class="bi bi-journal-bookmark-fill me-2 text-warning"></i>Catatan Persiapan</h3>
+    <button class="btn btn-warning btn-sm rounded-pill" onclick="openKategoriModal()">
+      <i class="bi bi-folder-plus me-1"></i> Kategori
+    </button>
+  </div>
+
+  <!-- Progress Overview -->
+  <div class="card p-3 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <span class="fw-bold">Progress Persiapan</span>
+      <span id="progressPercent" class="fw-bold text-warning">0%</span>
+    </div>
+    <div class="progress mb-2" style="height: 8px;">
+      <div id="catatanProgress" class="progress-bar bg-warning" style="width: 0%"></div>
+    </div>
+  </div>
+
+  <!-- Kategori & Checklist -->
+  <div id="kategoriContainer" class="accordion" id="catatanAccordion"></div>
+</section>
+
+<!-- IMPIAN PAGE -->
+<section id="impian-page" style="display: none">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold"><i class="bi bi-stars me-2 text-purple"></i>Impian Kita</h3>
+    <button class="btn btn-purple btn-sm rounded-pill" onclick="openImpianModal()">
+      <i class="bi bi-plus-lg me-1"></i> Tambah Impian
+    </button>
+  </div>
+
+  <div id="impianList" class="row g-3"></div>
+</section>
+
+<!-- PENGINGAT PAGE -->
+<section id="pengingat-page" style="display: none">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold"><i class="bi bi-bell-fill me-2 text-danger"></i>Pengingat</h3>
+    <button class="btn btn-danger btn-sm rounded-pill" onclick="openPengingatModal()">
+      <i class="bi bi-plus-lg me-1"></i> Tambah
+    </button>
+  </div>
+
+  <!-- Ulang Tahun Input -->
+  <div class="card p-3 mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <i class="bi bi-gift-fill text-pink me-2"></i>
+        <span class="fw-bold">Ulang Tahun Partner</span>
+      </div>
+      <input type="date" id="birthdayInput" class="form-control form-control-sm w-auto" onchange="saveBirthday()">
+    </div>
+  </div>
+
+  <!-- Daftar Pengingat -->
+  <div id="pengingatList" class="list-group list-group-flush"></div>
 </section>
