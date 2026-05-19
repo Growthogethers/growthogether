@@ -1,5 +1,5 @@
 // js/auth.js
-import { db, ref, get } from './firebase-config.js';
+import { db, ref, get, update } from './firebase-config.js';
 import { showNotif, setCurrentUser } from './utils.js';
 
 export async function handleLogin() {
@@ -37,6 +37,53 @@ export async function handleLogin() {
   }
 }
 
+export async function updateCloudPassword() {
+  const p1 = document.getElementById("newPass")?.value;
+  const p2 = document.getElementById("confirmPass")?.value;
+  const currentUser = sessionStorage.getItem("progrowth_user");
+  
+  if (!p1 || p1.length < 4) {
+    showNotif("❌ Password minimal 4 karakter", true);
+    return;
+  }
+  
+  if (p1 !== p2) {
+    showNotif("❌ Password baru dan konfirmasi tidak sama", true);
+    return;
+  }
+  
+  try {
+    await update(ref(db), { [`data/auth/${currentUser}`]: p1 });
+    showNotif("✅ Password berhasil diubah!");
+    
+    // Reset form
+    document.getElementById("newPass").value = "";
+    document.getElementById("confirmPass").value = "";
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById("passModal"));
+    if (modal) modal.hide();
+  } catch (err) {
+    console.error(err);
+    showNotif("❌ Gagal mengubah password", true);
+  }
+}
+
+export async function resetPassword() {
+  const user = document.getElementById("resetUserSelect")?.value;
+  const defaultPass = user === "FACHMI" ? "gokil223" : "1234";
+  
+  try {
+    await update(ref(db), { [`data/auth/${user}`]: defaultPass });
+    showNotif(`✅ Password ${user === "FACHMI" ? "Fachmi" : "Azizah"} berhasil direset ke default`);
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById("forgotPassModal"));
+    if (modal) modal.hide();
+  } catch (err) {
+    console.error(err);
+    showNotif("❌ Gagal reset password", true);
+  }
+}
+
 export function confirmLogout() {
   const modalEl = document.getElementById("confirmLogoutModal");
   if (modalEl) new bootstrap.Modal(modalEl).show();
@@ -65,7 +112,22 @@ export function handleLogout() {
   if (modal) modal.hide();
 }
 
+// Tambahkan event listener untuk hint default password
+document.addEventListener("DOMContentLoaded", () => {
+  const userSelect = document.getElementById("resetUserSelect");
+  const defaultPassHint = document.getElementById("defaultPassHint");
+  
+  if (userSelect && defaultPassHint) {
+    userSelect.addEventListener("change", () => {
+      const user = userSelect.value;
+      defaultPassHint.innerText = user === "FACHMI" ? "gokil223" : "1234";
+    });
+  }
+});
+
 // Export ke window
 window.handleLogin = handleLogin;
+window.updateCloudPassword = updateCloudPassword;
+window.resetPassword = resetPassword;
 window.confirmLogout = confirmLogout;
 window.handleLogout = handleLogout;
