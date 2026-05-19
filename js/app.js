@@ -1,14 +1,39 @@
-// js/app.js - Dengan Perbaikan Profile Click
 import { db, ref, onValue, set } from './firebase-config.js';
 import { masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser } from './utils.js';
-import { handleLogin, updateCloudPassword, confirmLogout, handleLogout, openProfileModal, updateStatus, handleProfilePhotoUpload, openChangePasswordFromProfile } from './auth.js';
+import { 
+  handleLogin, 
+  updateCloudPassword, 
+  confirmLogout, 
+  handleLogout, 
+  openProfileModal, 
+  updateStatus, 
+  handleProfilePhotoUpload, 
+  openChangePasswordFromProfile,
+  forceRefreshProfile,
+  updateProfileUI,
+  initProfile
+} from './auth.js';
 import { renderDashboard } from './dashboard.js';
-import { renderCalendar, renderMomentsList, saveMoment, viewMomentDetail, deleteMomentFromDetail, changeMonth, selectMomentDate, openMomentModal, handleMultiplePhotos, removePhotoAtIndex, editMomentFromDetail } from './moment.js';
+import { 
+  renderCalendar, 
+  renderMomentsList, 
+  saveMoment, 
+  viewMomentDetail, 
+  deleteMomentFromDetail, 
+  changeMonth, 
+  selectMomentDate, 
+  openMomentModal, 
+  handleMultiplePhotos, 
+  removePhotoAtIndex, 
+  editMomentFromDetail 
+} from './moment.js';
 
+// ============ GLOBAL STATE ============
 let firebaseListener = null;
 let currentPage = 'dashboard';
 let isSidebarOpen = false;
 
+// ============ LOAD COMPONENTS ============
 async function loadComponents() {
   try {
     console.log("Loading components...");
@@ -25,7 +50,7 @@ async function loadComponents() {
     document.getElementById('app-content').innerHTML = contentHtml;
     document.getElementById('login-screen').innerHTML = loginHtml;
     
-    console.log("Components loaded, attaching listeners...");
+    console.log("Components loaded successfully");
     attachEventListeners();
     initDarkMode();
     initMenuToggle();
@@ -36,6 +61,7 @@ async function loadComponents() {
   }
 }
 
+// ============ INIT DARK MODE ============
 function initDarkMode() {
   const darkFab = document.getElementById("darkModeFab");
   if (darkFab) {
@@ -49,13 +75,13 @@ function initDarkMode() {
   }
 }
 
+// ============ INIT MENU TOGGLE ============
 function initMenuToggle() {
   const menuToggle = document.getElementById("menuToggleHp");
   const sidebar = document.getElementById("app-sidebar");
   const closeBtn = document.getElementById("closeSidebarBtn");
   
   if (menuToggle && sidebar) {
-    // Remove existing listener to avoid duplicates
     menuToggle.removeEventListener("click", menuToggle._listener);
     menuToggle._listener = () => {
       isSidebarOpen = !isSidebarOpen;
@@ -72,7 +98,6 @@ function initMenuToggle() {
       closeBtn.addEventListener("click", closeBtn._listener);
     }
     
-    // Close on outside click
     document.addEventListener('click', (e) => {
       if (window.innerWidth <= 768 && isSidebarOpen && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
         sidebar.classList.remove('open');
@@ -82,13 +107,12 @@ function initMenuToggle() {
   }
 }
 
+// ============ ATTACH EVENT LISTENERS ============
 function attachEventListeners() {
   console.log("Attaching event listeners...");
   
-  // ============ PROFILE TRIGGER - PERBAIKAN UTAMA ============
-  // Gunakan event delegation agar selalu terdeteksi
+  // Profile trigger - Event delegation
   document.body.addEventListener('click', (e) => {
-    // Cek apakah yang diklik adalah profileTrigger atau child di dalamnya
     const profileTrigger = e.target.closest('#profileTrigger');
     if (profileTrigger) {
       e.preventDefault();
@@ -103,7 +127,7 @@ function attachEventListeners() {
     }
   });
   
-  // ============ PRIVACY TOGGLE ============
+  // Privacy toggle
   document.querySelectorAll("#privacyToggleDash").forEach(btn => {
     if (btn) {
       btn.removeEventListener('click', btn._privacyListener);
@@ -115,7 +139,7 @@ function attachEventListeners() {
     }
   });
   
-  // ============ NAVIGATION ============
+  // Navigation
   document.querySelectorAll(".nav-link, .bottom-nav-item").forEach(el => {
     el.removeEventListener('click', el._navListener);
     el._navListener = () => {
@@ -125,7 +149,7 @@ function attachEventListeners() {
     el.addEventListener('click', el._navListener);
   });
   
-  // ============ CONFIRM LOGOUT ============
+  // Confirm logout
   const confirmLogoutBtn = document.getElementById("confirmLogoutBtn");
   if (confirmLogoutBtn) {
     confirmLogoutBtn.removeEventListener('click', confirmLogoutBtn._logoutListener);
@@ -133,7 +157,7 @@ function attachEventListeners() {
     confirmLogoutBtn.addEventListener('click', confirmLogoutBtn._logoutListener);
   }
   
-  // ============ STATUS BADGE CLICK (Event Delegation) ============
+  // Status badge click - Event delegation
   document.body.addEventListener('click', (e) => {
     const statusBadge = e.target.closest('.status-badge');
     if (statusBadge) {
@@ -145,14 +169,36 @@ function attachEventListeners() {
   });
 }
 
+// ============ SHOW PAGE FUNCTION ============
 function showPage(pageId) {
+  console.log("Showing page:", pageId);
   currentPage = pageId;
-  document.querySelectorAll("section").forEach(s => s.style.display = "none");
-  const pageElement = document.getElementById(`${pageId}-page`);
-  if (pageElement) pageElement.style.display = "block";
   
-  document.querySelectorAll(".nav-link, .bottom-nav-item").forEach(el => el.classList.remove("active"));
-  document.querySelectorAll(`[data-page="${pageId}"]`).forEach(el => el.classList.add("active"));
+  document.querySelectorAll("section").forEach(s => {
+    s.style.transition = 'opacity 0.2s';
+    s.style.opacity = '0';
+    setTimeout(() => {
+      s.style.display = "none";
+    }, 150);
+  });
+  
+  setTimeout(() => {
+    const pageElement = document.getElementById(`${pageId}-page`);
+    if (pageElement) {
+      pageElement.style.display = "block";
+      setTimeout(() => {
+        pageElement.style.opacity = "1";
+      }, 10);
+    }
+  }, 150);
+  
+  document.querySelectorAll(".nav-link, .bottom-nav-item").forEach(el => {
+    el.classList.remove("active");
+  });
+  
+  document.querySelectorAll(`[data-page="${pageId}"]`).forEach(el => {
+    el.classList.add("active");
+  });
   
   if (window.innerWidth <= 768) {
     const sidebar = document.getElementById("app-sidebar");
@@ -174,6 +220,7 @@ function showPage(pageId) {
   }
 }
 
+// ============ SETUP APP SESSION ============
 function setupAppSession(u) {
   console.log("Setting up session for user:", u);
   
@@ -181,9 +228,38 @@ function setupAppSession(u) {
   const sidebar = document.getElementById("app-sidebar");
   const appContent = document.getElementById("app-content");
   
-  if (loginScreen) loginScreen.style.display = "none";
-  if (sidebar) sidebar.style.display = "flex";
-  if (appContent) appContent.style.display = "block";
+  if (loginScreen) {
+    loginScreen.style.transition = 'all 0.3s ease-out';
+    loginScreen.style.opacity = '0';
+    loginScreen.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+      loginScreen.style.display = "none";
+    }, 300);
+  }
+  
+  if (sidebar) {
+    sidebar.style.display = "flex";
+    sidebar.style.opacity = '0';
+    sidebar.style.transform = 'translateX(-20px)';
+    setTimeout(() => {
+      if (sidebar) {
+        sidebar.style.opacity = '1';
+        sidebar.style.transform = 'translateX(0)';
+      }
+    }, 50);
+  }
+  
+  if (appContent) {
+    appContent.style.display = "block";
+    appContent.style.opacity = '0';
+    appContent.style.transform = 'translateY(20px)';
+    setTimeout(() => {
+      if (appContent) {
+        appContent.style.opacity = '1';
+        appContent.style.transform = 'translateY(0)';
+      }
+    }, 100);
+  }
   
   const displayName = u === "FACHMI" ? "Fachmi" : "Azizah";
   
@@ -193,17 +269,20 @@ function setupAppSession(u) {
   const userGreet = document.getElementById("userGreet");
   if (userGreet) userGreet.innerText = displayName;
   
-  // Update profile UI
   setTimeout(() => {
+    if (typeof forceRefreshProfile === 'function') {
+      forceRefreshProfile();
+    }
     if (typeof updateProfileUI === 'function') {
       updateProfileUI();
     }
-  }, 100);
+  }, 200);
   
   renderDashboard();
   showPage('dashboard');
 }
 
+// ============ CHECK AUTH ============
 function checkAuth() {
   const savedUser = sessionStorage.getItem("progrowth_user");
   if (savedUser) {
@@ -212,14 +291,25 @@ function checkAuth() {
   }
 }
 
+// ============ FIREBASE LISTENER ============
 function initFirebaseListener() {
   if (!firebaseListener) {
+    console.log("Initializing Firebase listener...");
     firebaseListener = onValue(ref(db, "data/"), (snapshot) => {
       const data = snapshot.val() || { dreams: {}, plans: {}, finances: {}, settings: {}, moments: {}, vendors: {}, profiles: {} };
       setMasterData(data);
       
-      if (!data.auth) set(ref(db, "data/auth"), { FACHMI: "gokil223", AZIZAH: "1234" });
-      if (!data.settings?.weddingTarget) set(ref(db, "data/settings"), { weddingTarget: 50000000 });
+      if (!data.auth) {
+        set(ref(db, "data/auth"), { FACHMI: "gokil223", AZIZAH: "1234" })
+          .then(() => console.log("Default auth created"))
+          .catch(err => console.error("Error creating default auth:", err));
+      }
+      
+      if (!data.settings?.weddingTarget) {
+        set(ref(db, "data/settings"), { weddingTarget: 50000000 })
+          .then(() => console.log("Default settings created"))
+          .catch(err => console.error("Error creating default settings:", err));
+      }
       
       if (sessionStorage.getItem("progrowth_user")) {
         if (currentPage === "dashboard") renderDashboard();
@@ -228,10 +318,16 @@ function initFirebaseListener() {
           renderMomentsList();
         }
       }
+      
+      console.log("Firebase data synced");
+    }, (error) => {
+      console.error("Firebase listener error:", error);
+      showNotif("⚠️ Gagal terhubung ke server", true);
     });
   }
 }
 
+// ============ TOAST NOTIFICATION ============
 function injectToastHTML() {
   if (!document.getElementById('customToast')) {
     const toastHTML = `
@@ -248,16 +344,17 @@ function injectToastHTML() {
   }
 }
 
+// ============ INITIALIZE APP ============
 async function init() {
-  console.log("Initializing app...");
+  console.log("🚀 Initializing Growthogether App...");
   injectToastHTML();
   await loadComponents();
   checkAuth();
   initFirebaseListener();
-  console.log("App initialized");
+  console.log("✅ App initialized successfully");
 }
 
-// Exports
+// ============ EXPORTS ============
 window.setupAppSession = setupAppSession;
 window.showPage = showPage;
 window.renderDashboard = renderDashboard;
@@ -267,6 +364,7 @@ window.openProfileModal = openProfileModal;
 window.openChangePasswordFromProfile = openChangePasswordFromProfile;
 window.handleProfilePhotoUpload = handleProfilePhotoUpload;
 window.updateStatus = updateStatus;
+window.forceRefreshProfile = forceRefreshProfile;
 
 // Moment functions
 window.renderCalendar = renderCalendar;
@@ -281,4 +379,5 @@ window.editMomentFromDetail = editMomentFromDetail;
 window.deleteMomentFromDetail = deleteMomentFromDetail;
 window.changeMonth = changeMonth;
 
+// Start the app
 document.addEventListener("DOMContentLoaded", init);
