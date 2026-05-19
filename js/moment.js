@@ -21,7 +21,7 @@ function renderPhotoGrid() {
   const addButton = currentMomentPhotos.length < 5 ? `
     <div class="photo-upload-item" onclick="document.getElementById('momentPhotoInput').click()">
       <i class="bi bi-plus-circle-fill"></i>
-      <span>Tambah</span>
+      <span>Tambah Foto</span>
     </div>
   ` : '';
   
@@ -64,6 +64,7 @@ export async function handleMultiplePhotos(input) {
 export function removePhotoAtIndex(index) {
   currentMomentPhotos.splice(index, 1);
   renderPhotoGrid();
+  showNotif('🗑️ Foto dihapus');
 }
 
 export function renderCalendar() {
@@ -196,6 +197,7 @@ export function selectMomentDate(dateKey) {
   if (existingEntry) {
     viewMomentDetail(existingEntry[0]);
   } else {
+    // Reset form untuk tambah baru
     document.getElementById('momentEditId').value = '';
     document.getElementById('momentDate').value = dateKey;
     document.getElementById('momentTitle').value = '';
@@ -205,7 +207,7 @@ export function selectMomentDate(dateKey) {
     
     renderPhotoGrid();
     
-    document.getElementById('momentModalTitle').innerText = 'Tambah Momen';
+    document.getElementById('momentModalTitle').innerText = 'Tambah Momen Baru';
     const modal = new bootstrap.Modal(document.getElementById('momentModal'));
     modal.show();
   }
@@ -213,7 +215,8 @@ export function selectMomentDate(dateKey) {
 
 export function openMomentModal(momentId) {
   if (!momentId) {
-    document.getElementById('momentModalTitle').innerText = 'Tambah Momen';
+    // Mode tambah baru
+    document.getElementById('momentModalTitle').innerText = 'Tambah Momen Baru';
     document.getElementById('momentEditId').value = '';
     if (!document.getElementById('momentDate').value) {
       document.getElementById('momentDate').value = new Date().toISOString().split('T')[0];
@@ -224,6 +227,7 @@ export function openMomentModal(momentId) {
     currentMomentPhotos = [];
     renderPhotoGrid();
   } else {
+    // Mode edit
     document.getElementById('momentModalTitle').innerText = 'Edit Momen';
     const data = masterData;
     const moment = data?.moments?.[momentId];
@@ -272,14 +276,16 @@ export async function saveMoment() {
   
   try {
     if (!editId) {
+      // Create new moment
       momentData.createdAt = Date.now();
       await push(ref(db, 'data/moments'), momentData);
       showNotif('✅ Momen berhasil ditambahkan! 🎉');
     } else {
+      // Update existing moment
       const existing = masterData?.moments?.[editId];
       momentData.createdAt = existing?.createdAt || Date.now();
       await update(ref(db, `data/moments/${editId}`), momentData);
-      showNotif('✅ Momen berhasil diupdate! ✨');
+      showNotif('✏️ Momen berhasil diperbarui! ✨');
     }
     
     const modal = bootstrap.Modal.getInstance(document.getElementById('momentModal'));
@@ -304,7 +310,7 @@ export async function viewMomentDetail(momentId) {
   document.getElementById('detailDate').innerHTML = moment.date || '';
   document.getElementById('detailStory').innerHTML = escapeHtml(moment.story || 'Tidak ada cerita.').replace(/\n/g, '<br>');
   document.getElementById('detailAuthor').innerHTML = moment.author || '';
-  document.getElementById('detailMood').innerHTML = '❤️ Momen Spesial';
+  document.getElementById('detailMood').innerHTML = moment.isSpecial ? '⭐ Momen Spesial' : '❤️ Momen Berkesan';
   
   const carouselInner = document.getElementById('detailCarouselInner');
   const photos = moment.photos || [];
@@ -334,9 +340,21 @@ export async function viewMomentDetail(momentId) {
   modal.show();
 }
 
+export function editMomentFromDetail() {
+  // Tutup modal detail, buka modal edit
+  const detailModal = bootstrap.Modal.getInstance(document.getElementById('momentDetailModal'));
+  if (detailModal) detailModal.hide();
+  
+  setTimeout(() => {
+    openMomentModal(currentDetailMomentId);
+  }, 300);
+}
+
 export async function deleteMomentFromDetail() {
   if (!currentDetailMomentId) return;
-  if (confirm('Yakin ingin menghapus momen ini?')) {
+  
+  // Gunakan modal konfirmasi custom (bukan alert browser)
+  showConfirmDialog('Hapus Momen', 'Yakin ingin menghapus momen ini? Data yang dihapus tidak dapat dikembalikan.', async () => {
     try {
       await remove(ref(db, `data/moments/${currentDetailMomentId}`));
       showNotif('🗑️ Momen berhasil dihapus');
@@ -350,7 +368,61 @@ export async function deleteMomentFromDetail() {
       console.error(err);
       showNotif('❌ Gagal menghapus momen', true);
     }
+  });
+}
+
+function showConfirmDialog(title, message, onConfirm) {
+  // Buat modal konfirmasi custom dengan toast style
+  let confirmModal = document.getElementById('customConfirmModal');
+  
+  if (!confirmModal) {
+    const modalHtml = `
+      <div class="modal fade" id="customConfirmModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+          <div class="modal-content rounded-4">
+            <div class="modal-header border-0 pt-4 pb-0">
+              <h5 class="fw-bold mb-0">${title}</h5>
+            </div>
+            <div class="modal-body text-center py-3">
+              <i class="bi bi-question-circle fs-1 text-warning mb-2 d-block"></i>
+              <p class="mb-0">${message}</p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center gap-3 pb-4">
+              <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+              <button id="confirmDeleteActionBtn" class="btn btn-danger rounded-pill px-4">Hapus</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    confirmModal = document.getElementById('customConfirmModal');
   }
+  
+  // Update title dan message
+  confirmModal.querySelector('.modal-header .fw-bold').innerText = title;
+  confirmModal.querySelector('.modal-body p').innerHTML = message;
+  
+  const modal = new bootstrap.Modal(confirmModal);
+  
+  const confirmBtn = document.getElementById('confirmDeleteActionBtn');
+  const handleConfirm = () => {
+    modal.hide();
+    onConfirm();
+    confirmBtn.removeEventListener('click', handleConfirm);
+  };
+  
+  // Remove existing listener and add new one
+  const newConfirmBtn = confirmModal.querySelector('#confirmDeleteActionBtn');
+  newConfirmBtn.replaceWith(confirmBtn.cloneNode(true));
+  const freshConfirmBtn = document.getElementById('confirmDeleteActionBtn');
+  freshConfirmBtn.addEventListener('click', handleConfirm, { once: true });
+  
+  confirmModal.addEventListener('hidden.bs.modal', () => {
+    freshConfirmBtn.removeEventListener('click', handleConfirm);
+  }, { once: true });
+  
+  modal.show();
 }
 
 export function changeMonth(delta) {
@@ -367,5 +439,6 @@ window.handleMultiplePhotos = handleMultiplePhotos;
 window.removePhotoAtIndex = removePhotoAtIndex;
 window.saveMoment = saveMoment;
 window.viewMomentDetail = viewMomentDetail;
+window.editMomentFromDetail = editMomentFromDetail;
 window.deleteMomentFromDetail = deleteMomentFromDetail;
 window.changeMonth = changeMonth;
