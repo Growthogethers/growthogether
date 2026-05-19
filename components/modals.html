@@ -1,0 +1,116 @@
+<!-- MODAL KONFIRMASI LOGOUT -->
+<div class="modal fade" id="confirmLogoutModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="fw-bold mb-0">Keluar Aplikasi</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <i class="bi bi-question-circle fs-1 text-muted mb-3 d-block"></i>
+        <p>Yakin ingin keluar dari aplikasi?</p>
+      </div>
+      <div class="modal-footer border-0 justify-content-center gap-3 pb-4">
+        <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+        <button id="confirmLogoutBtn" class="btn btn-danger rounded-pill px-4">Logout</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TAMBAH/EDIT MOMEN -->
+<div class="modal fade" id="momentModal" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-content rounded-4">
+      <div class="modal-header border-0 bg-gradient bg-danger text-white py-3">
+        <h5 class="fw-bold mb-0">
+          <i class="bi bi-camera-fill me-2"></i>
+          <span id="momentModalTitle">Tambah Momen</span>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto">
+        <input type="hidden" id="momentEditId">
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">📅 Tanggal <span class="text-danger">*</span></label>
+          <input type="date" id="momentDate" class="form-control rounded-3">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">✏️ Judul Momen</label>
+          <input type="text" id="momentTitle" class="form-control rounded-3" placeholder="Misal: Pertama Kali Bertemu">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">📝 Cerita / Deskripsi</label>
+          <textarea id="momentStory" class="form-control rounded-3" rows="3" placeholder="Ceritakan momen spesial ini..."></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">🖼️ Foto (max 5 foto)</label>
+          <div class="photo-upload-grid" id="photoUploadGrid">
+            <div class="photo-upload-item" onclick="document.getElementById('momentPhotoInput').click()">
+              <i class="bi bi-plus-circle-fill"></i>
+              <span>Tambah Foto</span>
+            </div>
+          </div>
+          <input type="file" id="momentPhotoInput" accept="image/jpeg,image/png,image/jpg" multiple style="display: none" onchange="handleMultiplePhotos(this)">
+          <small class="text-muted">Klik untuk upload, maksimal 5 foto (max 2MB per foto)</small>
+        </div>
+
+        <div class="form-check">
+          <input type="checkbox" id="momentIsSpecial" class="form-check-input">
+          <label class="form-check-label">⭐ Jadikan sebagai momen spesial (highlight)</label>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0 pb-4">
+        <button type="button" class="btn btn-secondary rounded-3 px-4" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-danger rounded-3 px-4" onclick="saveMoment()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETAIL MOMEN -->
+<div class="modal fade" id="momentDetailModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-content rounded-4">
+      <div class="modal-header border-0 py-3">
+        <h5 class="fw-bold mb-0" id="detailTitle">Momen Spesial</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div id="detailCarousel" class="carousel slide" data-bs-ride="false">
+          <div class="carousel-inner" id="detailCarouselInner"></div>
+          <button class="carousel-control-prev" type="button" data-bs-target="#detailCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon bg-dark rounded-circle p-2"></span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#detailCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon bg-dark rounded-circle p-2"></span>
+          </button>
+        </div>
+
+        <div class="p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div class="d-flex gap-2">
+              <span class="badge bg-danger px-3 py-2" id="detailMood">❤️ Momen Spesial</span>
+              <span class="badge bg-secondary px-3 py-2" id="detailDate"></span>
+            </div>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteMomentFromDetail()">
+              <i class="bi bi-trash me-1"></i>Hapus
+            </button>
+          </div>
+
+          <p id="detailStory" class="mb-3" style="line-height: 1.6"></p>
+
+          <hr>
+
+          <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted" id="detailAuthor"></small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
