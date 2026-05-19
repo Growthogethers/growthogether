@@ -1,4 +1,4 @@
-// js/dashboard.js - Dengan Layout Grid yang Rapi
+// js/dashboard.js - Dengan Ringkasan Keuangan Per User
 import { masterData, formatNumberRp, showNotif } from './utils.js';
 import { db, ref, get, set } from './firebase-config.js';
 
@@ -16,10 +16,10 @@ export async function renderDashboard() {
   const totalMoments = momentsArray.length;
   const specialMoments = momentsArray.filter(m => m.isSpecial).length;
   
-  // Load saved dates for this user
+  // Load saved dates
   await loadSavedDates();
   
-  // Hitung hari bersama (dari momen pertama atau default)
+  // Hitung hari bersama
   let daysTogether = 0;
   if (momentsArray.length > 0) {
     const sortedMoments = momentsArray.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
@@ -43,7 +43,10 @@ export async function renderDashboard() {
   // Hitung countdown ulang tahun
   const birthdayCountdown = getBirthdayCountdown();
   
-  // Render Ringkasan Hubungan dengan Grid yang Rapi
+  // Ambil data keuangan per user
+  const keuanganData = await getKeuanganPerUser();
+  
+  // Render Ringkasan Hubungan
   const summaryContainer = document.getElementById('relationshipSummary');
   if (summaryContainer) {
     summaryContainer.innerHTML = `
@@ -86,6 +89,57 @@ export async function renderDashboard() {
     `;
   }
   
+  // Render Ringkasan Keuangan Per User
+  const keuanganContainer = document.getElementById('keuanganSummary');
+  if (keuanganContainer && keuanganData) {
+    keuanganContainer.innerHTML = `
+      <div class="row g-3">
+        <div class="col-6">
+          <div class="card p-3 h-100" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white;">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <small class="opacity-75">Tabungan Fachmi</small>
+                <h4 class="fw-bold mb-0">${formatNumberRp(keuanganData.fachmi.saldo)}</h4>
+                <small class="opacity-75">Pemasukan: ${formatNumberRp(keuanganData.fachmi.pemasukan)}</small>
+              </div>
+              <i class="bi bi-person-circle fs-1 opacity-50"></i>
+            </div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="card p-3 h-100" style="background: linear-gradient(135deg, #ec4899, #f43f5e); color: white;">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <small class="opacity-75">Tabungan Azizah</small>
+                <h4 class="fw-bold mb-0">${formatNumberRp(keuanganData.azizah.saldo)}</h4>
+                <small class="opacity-75">Pemasukan: ${formatNumberRp(keuanganData.azizah.pemasukan)}</small>
+              </div>
+              <i class="bi bi-person-circle fs-1 opacity-50"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-3">
+        <div class="card p-3 text-center">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <small class="text-muted">Total Tabungan Bersama</small>
+              <h4 class="fw-bold text-success mb-0">${formatNumberRp(keuanganData.fachmi.saldo + keuanganData.azizah.saldo)}</h4>
+            </div>
+            <div>
+              <small class="text-muted">Target Bersama</small>
+              <h4 class="fw-bold text-primary mb-0">${formatNumberRp(keuanganData.targetBersama)}</h4>
+            </div>
+          </div>
+          <div class="progress mt-2" style="height: 8px;">
+            <div class="progress-bar bg-success" style="width: ${keuanganData.persenProgress}%"></div>
+          </div>
+          <small class="text-muted mt-1">${keuanganData.persenProgress}% menuju target bersama</small>
+        </div>
+      </div>
+    `;
+  }
+  
   // Render Recent Moments
   const recentContainer = document.getElementById('recentMomentsPreview');
   if (recentContainer) {
@@ -108,6 +162,48 @@ export async function renderDashboard() {
         </div>
       `).join('');
     }
+  }
+}
+
+async function getKeuanganPerUser() {
+  try {
+    // Ambil data keuangan Fachmi
+    const fachmiTransaksi = await get(ref(db, `data/keuangan/FACHMI/transaksi`));
+    const fachmiTarget = await get(ref(db, `data/keuangan/FACHMI/target`));
+    const fachmiData = fachmiTransaksi.val() || {};
+    const fachmiList = Object.values(fachmiData);
+    const fachmiPemasukan = fachmiList.filter(t => t.tipe === 'pemasukan').reduce((sum, t) => sum + (t.nominal || 0), 0);
+    const fachmiPengeluaran = fachmiList.filter(t => t.tipe === 'pengeluaran').reduce((sum, t) => sum + (t.nominal || 0), 0);
+    const fachmiSaldo = fachmiPemasukan - fachmiPengeluaran;
+    
+    // Ambil data keuangan Azizah
+    const azizahTransaksi = await get(ref(db, `data/keuangan/AZIZAH/transaksi`));
+    const azizahTarget = await get(ref(db, `data/keuangan/AZIZAH/target`));
+    const azizahData = azizahTransaksi.val() || {};
+    const azizahList = Object.values(azizahData);
+    const azizahPemasukan = azizahList.filter(t => t.tipe === 'pemasukan').reduce((sum, t) => sum + (t.nominal || 0), 0);
+    const azizahPengeluaran = azizahList.filter(t => t.tipe === 'pengeluaran').reduce((sum, t) => sum + (t.nominal || 0), 0);
+    const azizahSaldo = azizahPemasukan - azizahPengeluaran;
+    
+    // Target bersama (ambil target pernikahan atau target bersama)
+    const targetBersama = (fachmiTarget.val() || 0) + (azizahTarget.val() || 0);
+    const totalSaldo = fachmiSaldo + azizahSaldo;
+    const persenProgress = targetBersama > 0 ? (totalSaldo / targetBersama) * 100 : 0;
+    
+    return {
+      fachmi: { saldo: fachmiSaldo, pemasukan: fachmiPemasukan, pengeluaran: fachmiPengeluaran },
+      azizah: { saldo: azizahSaldo, pemasukan: azizahPemasukan, pengeluaran: azizahPengeluaran },
+      targetBersama: targetBersama,
+      persenProgress: Math.round(persenProgress)
+    };
+  } catch (err) {
+    console.error("Error loading keuangan:", err);
+    return {
+      fachmi: { saldo: 0, pemasukan: 0, pengeluaran: 0 },
+      azizah: { saldo: 0, pemasukan: 0, pengeluaran: 0 },
+      targetBersama: 0,
+      persenProgress: 0
+    };
   }
 }
 
