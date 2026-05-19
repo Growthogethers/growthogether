@@ -1,45 +1,59 @@
-// js/utils.js - Full Optimized Version
+// js/utils.js
 export let currentUser = null;
 export let masterData = null;
 export let privacyHidden = false;
 
-// Toast queue
+// ============ CUSTOM TOAST (BUKAN BROWSER DEFAULT) ============
 let toastQueue = [];
 let isToastShowing = false;
 
-export function showNotif(msg, isErr = false) { 
-  const t = document.getElementById("customToast"); 
-  if (!t) return;
+export function showNotif(msg, isErr = false, type = 'success') {
+  let toastContainer = document.getElementById('customToastContainer');
+  
+  if (!toastContainer) {
+    toastContainer = document.createElement('div');
+    toastContainer.id = 'customToastContainer';
+    toastContainer.style.position = 'fixed';
+    toastContainer.style.bottom = '80px';
+    toastContainer.style.left = '50%';
+    toastContainer.style.transform = 'translateX(-50%)';
+    toastContainer.style.zIndex = '9999';
+    toastContainer.style.pointerEvents = 'none';
+    document.body.appendChild(toastContainer);
+  }
   
   if (isToastShowing) {
-    toastQueue.push({ msg, isErr });
+    toastQueue.push({ msg, isErr, type });
     return;
   }
   
   isToastShowing = true;
-  const toastBody = t.querySelector(".toast-body");
-  if (toastBody) toastBody.innerText = msg;
-  t.style.display = "block"; 
-  const toastDiv = t.querySelector(".toast");
-  if (toastDiv) {
-    toastDiv.className = `toast align-items-center border-0 ${isErr ? "text-bg-danger" : "text-bg-success"}`;
-  }
+  
+  const toast = document.createElement('div');
+  toast.className = `custom-toast ${isErr ? 'error' : type === 'warning' ? 'warning' : 'success'}`;
+  toast.innerHTML = `
+    <i class="bi ${isErr ? 'bi-exclamation-triangle-fill' : type === 'warning' ? 'bi-exclamation-circle-fill' : 'bi-check-circle-fill'}"></i>
+    <span class="toast-message">${msg}</span>
+  `;
+  
+  toastContainer.appendChild(toast);
   
   setTimeout(() => {
-    t.style.display = "none";
-    isToastShowing = false;
-    
-    if (toastQueue.length > 0) {
-      const next = toastQueue.shift();
-      showNotif(next.msg, next.isErr);
-    }
-  }, 2700); 
-}
-
-export function hideToast() { 
-  const toast = document.getElementById("customToast");
-  if (toast) toast.style.display = "none"; 
-  isToastShowing = false;
+    toast.classList.add('show');
+  }, 10);
+  
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => {
+      toast.remove();
+      isToastShowing = false;
+      
+      if (toastQueue.length > 0) {
+        const next = toastQueue.shift();
+        showNotif(next.msg, next.isErr, next.type);
+      }
+    }, 300);
+  }, 2700);
 }
 
 export function formatNumberRp(val) { 
@@ -55,35 +69,14 @@ export function escapeHtml(str) {
 
 export function togglePrivacy() { 
   privacyHidden = !privacyHidden; 
-  showNotif(privacyHidden ? "🔒 Angka disembunyikan" : "👁️ Angka ditampilkan"); 
+  showNotif(privacyHidden ? "🔒 Angka disembunyikan" : "👁️ Angka ditampilkan", false, 'info'); 
   if (window.renderDashboard) window.renderDashboard();
 }
 
 export function setCurrentUser(user) { currentUser = user; }
 export function setMasterData(data) { masterData = data; window.masterData = data; }
 
-export function formatDateShort(dateStr) {
-  if (!dateStr) return '-';
-  const parts = dateStr.split('-');
-  if (parts.length === 3) {
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-    return `${parts[2]} ${monthNames[parseInt(parts[1]) - 1]} ${parts[0]}`;
-  }
-  return dateStr;
-}
-
-export function formatDateLong(dateStr) {
-  if (!dateStr) return '';
-  const parts = dateStr.split('-');
-  if (parts.length === 3) {
-    const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-    return `${parts[2]} ${monthNames[parseInt(parts[1]) - 1]} ${parts[0]}`;
-  }
-  return dateStr;
-}
-
-// Compress image
-export async function compressImage(file, maxSizeMB = 2) {
+export function compressImage(file, maxSizeMB = 2) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -122,10 +115,7 @@ export async function compressImage(file, maxSizeMB = 2) {
   });
 }
 
-// Expose ke window
+// Expose
 window.showNotif = showNotif;
-window.hideToast = hideToast;
 window.formatNumberRp = formatNumberRp;
 window.togglePrivacy = togglePrivacy;
-window.formatDateShort = formatDateShort;
-window.formatDateLong = formatDateLong;
