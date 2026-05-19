@@ -1,3 +1,4 @@
+// js/app.js - Main Application (FULL VERSION dengan Semua Fitur)
 import { db, ref, onValue, set } from './firebase-config.js';
 import { masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser } from './utils.js';
 import { 
@@ -27,6 +28,10 @@ import {
   removePhotoAtIndex, 
   editMomentFromDetail 
 } from './moment.js';
+import { initKeuangan } from './keuangan.js';
+import { initCatatan } from './catatan.js';
+import { initImpian } from './impian.js';
+import { initPengingat } from './pengingat.js';
 
 // ============ GLOBAL STATE ============
 let firebaseListener = null;
@@ -54,98 +59,11 @@ async function loadComponents() {
     attachEventListeners();
     initDarkMode();
     initMenuToggle();
-    loadSidebarState();
     handleResize();
     
   } catch (error) {
     console.error('Error loading components:', error);
-    showNotif("❌ Gagal memuat aplikasi", true);
-  }
-}
-
-// ============ TOGGLE SIDEBAR (COLLAPSE/DESKTOP) ============
-function toggleSidebar() {
-  const sidebar = document.getElementById("app-sidebar");
-  const appContent = document.getElementById("app-content");
-  const toggleBtn = document.querySelector(".sidebar-toggle-btn i");
-  
-  if (!sidebar) return;
-  
-  sidebar.classList.toggle("collapsed");
-  
-  // Save state to localStorage
-  const isCollapsed = sidebar.classList.contains("collapsed");
-  localStorage.setItem("sidebarCollapsed", isCollapsed);
-  
-  // Update toggle button icon
-  if (toggleBtn) {
-    if (isCollapsed) {
-      toggleBtn.classList.remove("bi-chevron-left");
-      toggleBtn.classList.add("bi-chevron-right");
-    } else {
-      toggleBtn.classList.remove("bi-chevron-right");
-      toggleBtn.classList.add("bi-chevron-left");
-    }
-  }
-  
-  // Update app content margin for desktop only
-  if (window.innerWidth > 768) {
-    if (appContent) {
-      if (isCollapsed) {
-        appContent.style.marginLeft = "80px";
-      } else {
-        appContent.style.marginLeft = "280px";
-      }
-    }
-  }
-}
-
-// ============ LOAD SIDEBAR STATE ON START ============
-function loadSidebarState() {
-  const savedState = localStorage.getItem("sidebarCollapsed");
-  const sidebar = document.getElementById("app-sidebar");
-  const appContent = document.getElementById("app-content");
-  const toggleBtn = document.querySelector(".sidebar-toggle-btn i");
-  
-  if (!sidebar) return;
-  
-  if (savedState === "true" && sidebar && window.innerWidth > 768) {
-    sidebar.classList.add("collapsed");
-    if (appContent) appContent.style.marginLeft = "80px";
-    if (toggleBtn) {
-      toggleBtn.classList.remove("bi-chevron-left");
-      toggleBtn.classList.add("bi-chevron-right");
-    }
-  } else {
-    if (appContent && window.innerWidth > 768) appContent.style.marginLeft = "280px";
-  }
-}
-
-// ============ HANDLE RESIZE ============
-function handleResize() {
-  const sidebar = document.getElementById("app-sidebar");
-  const appContent = document.getElementById("app-content");
-  const menuToggle = document.getElementById("menuToggleHp");
-  
-  if (window.innerWidth > 768) {
-    // Desktop mode
-    if (menuToggle) menuToggle.style.display = "none";
-    
-    if (sidebar) {
-      if (sidebar.classList.contains("collapsed")) {
-        if (appContent) appContent.style.marginLeft = "80px";
-      } else {
-        if (appContent) appContent.style.marginLeft = "280px";
-      }
-      sidebar.classList.remove("open");
-    }
-  } else {
-    // Mobile mode
-    if (menuToggle) menuToggle.style.display = "flex";
-    if (appContent) appContent.style.marginLeft = "0";
-    if (sidebar) {
-      sidebar.classList.remove("collapsed");
-    }
+    showNotif("❌ Gagal memuat aplikasi", true, 'error');
   }
 }
 
@@ -210,17 +128,27 @@ function initMenuToggle() {
   }
 }
 
+// ============ HANDLE RESIZE ============
+function handleResize() {
+  const sidebar = document.getElementById("app-sidebar");
+  const appContent = document.getElementById("app-content");
+  const menuToggle = document.getElementById("menuToggleHp");
+  
+  if (window.innerWidth > 768) {
+    // Desktop mode
+    if (menuToggle) menuToggle.style.display = "none";
+    if (appContent) appContent.style.marginLeft = "280px";
+    if (sidebar) sidebar.classList.remove("open");
+  } else {
+    // Mobile mode
+    if (menuToggle) menuToggle.style.display = "flex";
+    if (appContent) appContent.style.marginLeft = "0";
+  }
+}
+
 // ============ ATTACH EVENT LISTENERS ============
 function attachEventListeners() {
   console.log("Attaching event listeners...");
-  
-  // Sidebar toggle button (desktop collapse)
-  const sidebarToggleBtn = document.getElementById("sidebarToggleBtn");
-  if (sidebarToggleBtn) {
-    sidebarToggleBtn.removeEventListener("click", sidebarToggleBtn._toggleListener);
-    sidebarToggleBtn._toggleListener = () => toggleSidebar();
-    sidebarToggleBtn.addEventListener("click", sidebarToggleBtn._toggleListener);
-  }
   
   // Profile trigger - Event delegation
   document.body.addEventListener('click', (e) => {
@@ -233,7 +161,7 @@ function attachEventListeners() {
         openProfileModal();
       } else {
         console.error("openProfileModal is not defined");
-        showNotif("❌ Error: Fungsi profile tidak ditemukan", true);
+        showNotif("❌ Error: Fungsi profile tidak ditemukan", true, 'error');
       }
     }
   });
@@ -298,11 +226,11 @@ function attachEventListeners() {
   
   // Online/Offline detection
   window.addEventListener('online', () => {
-    showNotif("📡 Koneksi kembali online");
+    showNotif("📡 Koneksi kembali online", false, 'success');
   });
   
   window.addEventListener('offline', () => {
-    showNotif("⚠️ Koneksi terputus", true);
+    showNotif("⚠️ Koneksi terputus", true, 'error');
   });
 }
 
@@ -350,7 +278,7 @@ function showPage(pageId) {
     }
   }
   
-  // Render page content
+  // Initialize page-specific content
   if (pageId === "moment") {
     setTimeout(() => {
       if (typeof renderCalendar === 'function') renderCalendar();
@@ -359,6 +287,22 @@ function showPage(pageId) {
   } else if (pageId === "dashboard") {
     setTimeout(() => {
       if (typeof renderDashboard === 'function') renderDashboard();
+    }, 100);
+  } else if (pageId === "keuangan") {
+    setTimeout(() => {
+      if (typeof initKeuangan === 'function') initKeuangan();
+    }, 100);
+  } else if (pageId === "catatan") {
+    setTimeout(() => {
+      if (typeof initCatatan === 'function') initCatatan();
+    }, 100);
+  } else if (pageId === "impian") {
+    setTimeout(() => {
+      if (typeof initImpian === 'function') initImpian();
+    }, 100);
+  } else if (pageId === "pengingat") {
+    setTimeout(() => {
+      if (typeof initPengingat === 'function') initPengingat();
     }, 100);
   }
 }
@@ -423,8 +367,6 @@ function setupAppSession(u) {
     if (typeof updateProfileUI === 'function') {
       updateProfileUI();
     }
-    // Re-apply sidebar state after profile loads
-    loadSidebarState();
     handleResize();
   }, 200);
   
@@ -446,7 +388,19 @@ function initFirebaseListener() {
   if (!firebaseListener) {
     console.log("Initializing Firebase listener...");
     firebaseListener = onValue(ref(db, "data/"), (snapshot) => {
-      const data = snapshot.val() || { dreams: {}, plans: {}, finances: {}, settings: {}, moments: {}, vendors: {}, profiles: {} };
+      const data = snapshot.val() || { 
+        dreams: {}, 
+        plans: {}, 
+        finances: {}, 
+        settings: {}, 
+        moments: {}, 
+        vendors: {}, 
+        profiles: {},
+        keuangan: {},
+        catatan: {},
+        impian: {},
+        pengingat: {}
+      };
       setMasterData(data);
       
       // Initialize default auth if not exists
@@ -456,52 +410,52 @@ function initFirebaseListener() {
           .catch(err => console.error("Error creating default auth:", err));
       }
       
-      // Initialize default settings if not exists
-      if (!data.settings?.weddingTarget) {
-        set(ref(db, "data/settings"), { weddingTarget: 50000000 })
-          .then(() => console.log("Default settings created"))
-          .catch(err => console.error("Error creating default settings:", err));
-      }
-      
       // Re-render if user is logged in
-      if (sessionStorage.getItem("progrowth_user")) {
+      const loggedUser = sessionStorage.getItem("progrowth_user");
+      if (loggedUser) {
         if (currentPage === "dashboard" && typeof renderDashboard === 'function') {
           renderDashboard();
         } else if (currentPage === "moment" && typeof renderCalendar === 'function') {
           renderCalendar();
           if (typeof renderMomentsList === 'function') renderMomentsList();
+        } else if (currentPage === "keuangan" && typeof initKeuangan === 'function') {
+          initKeuangan();
+        } else if (currentPage === "catatan" && typeof initCatatan === 'function') {
+          initCatatan();
+        } else if (currentPage === "impian" && typeof initImpian === 'function') {
+          initImpian();
+        } else if (currentPage === "pengingat" && typeof initPengingat === 'function') {
+          initPengingat();
         }
       }
       
       console.log("Firebase data synced");
     }, (error) => {
       console.error("Firebase listener error:", error);
-      showNotif("⚠️ Gagal terhubung ke server", true);
+      showNotif("⚠️ Gagal terhubung ke server", true, 'error');
     });
   }
 }
 
-// ============ TOAST NOTIFICATION ============
-function injectToastHTML() {
-  if (!document.getElementById('customToast')) {
-    const toastHTML = `
-      <div id="customToast" style="display:none; position:fixed; bottom:80px; left:50%; transform:translateX(-50%); z-index:1100; min-width:250px;">
-        <div class="toast align-items-center border-0 shadow-lg" role="alert" style="border-radius: 50px;">
-          <div class="d-flex">
-            <div class="toast-body fw-semibold"></div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-          </div>
-        </div>
-      </div>
-    `;
-    document.body.insertAdjacentHTML('beforeend', toastHTML);
+// ============ CUSTOM TOAST CONTAINER ============
+function injectToastContainer() {
+  if (!document.getElementById('customToastContainer')) {
+    const toastContainer = document.createElement('div');
+    toastContainer.id = 'customToastContainer';
+    toastContainer.style.position = 'fixed';
+    toastContainer.style.bottom = '80px';
+    toastContainer.style.left = '50%';
+    toastContainer.style.transform = 'translateX(-50%)';
+    toastContainer.style.zIndex = '9999';
+    toastContainer.style.pointerEvents = 'none';
+    document.body.appendChild(toastContainer);
   }
 }
 
 // ============ INITIALIZE APP ============
 async function init() {
   console.log("🚀 Initializing Growthogether App...");
-  injectToastHTML();
+  injectToastContainer();
   await loadComponents();
   checkAuth();
   initFirebaseListener();
@@ -519,7 +473,6 @@ window.openChangePasswordFromProfile = openChangePasswordFromProfile;
 window.handleProfilePhotoUpload = handleProfilePhotoUpload;
 window.updateStatus = updateStatus;
 window.forceRefreshProfile = forceRefreshProfile;
-window.toggleSidebar = toggleSidebar;
 
 // Moment functions
 window.renderCalendar = renderCalendar;
