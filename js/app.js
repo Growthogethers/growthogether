@@ -1,7 +1,7 @@
 // js/app.js - Main Application
 import { db, ref, onValue, set } from './firebase-config.js';
 import { masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser } from './utils.js';
-import { handleLogin, updateCloudPassword, resetPassword, confirmLogout, handleLogout } from './auth.js';
+import { handleLogin, updateCloudPassword, resetPassword, confirmLogout, handleLogout, openForgotPasswordModal, updatePasswordHint } from './auth.js';
 import { renderDashboard } from './dashboard.js';
 import { renderCalendar, renderMomentsList, saveMoment, viewMomentDetail, deleteMomentFromDetail, changeMonth, selectMomentDate, openMomentModal, handleMultiplePhotos, removePhotoAtIndex, editMomentFromDetail } from './moment.js';
 
@@ -71,6 +71,25 @@ function attachEventListeners() {
   if (confirmLogoutBtn) {
     confirmLogoutBtn.onclick = () => handleLogout();
   }
+  
+  // ============ EVENT LISTENER UNTUK LUPA PASSWORD ============
+  // Gunakan event delegation karena link ada di dalam login screen yang dimuat setelah loadComponents
+  document.body.addEventListener('click', (e) => {
+    const target = e.target;
+    // Cek apakah yang diklik adalah link lupa password atau child di dalamnya
+    if (target.id === 'forgotPasswordLink' || target.closest('#forgotPasswordLink')) {
+      e.preventDefault();
+      console.log("Lupa password link clicked");
+      openForgotPasswordModal();
+    }
+  });
+  
+  // Event listener untuk select user di modal lupa password
+  document.body.addEventListener('change', (e) => {
+    if (e.target.id === 'resetUserSelect') {
+      updatePasswordHint();
+    }
+  });
 }
 
 function showPage(pageId) {
