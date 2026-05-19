@@ -1013,6 +1013,221 @@ body {
   background: #8b5cf6;
 }
 
+/* ============ WARNA BARU ============ */
+.text-purple { color: #8b5cf6; }
+.text-pink { color: #ec4899; }
+.bg-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+
+.btn-purple {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  border: none;
+  color: white;
+}
+
+.btn-purple:hover {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: white;
+}
+
+/* ============ CARD HOVER ============ */
+.hover-card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.hover-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* ============ PROGRESS BAR ============ */
+.progress {
+  background-color: var(--border-light);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* ============ CATATAN CHECKLIST ============ */
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-bottom: 1px solid var(--border-light);
+  transition: all 0.2s;
+}
+
+.checklist-item:hover {
+  background: var(--bg-body);
+}
+
+.checklist-item .form-check-input {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.checklist-item .form-check-input:checked + .form-check-label {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.checklist-label {
+  flex: 1;
+  cursor: pointer;
+  margin-bottom: 0;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.btn-icon:hover {
+  background: var(--border-light);
+  color: var(--danger);
+}
+
+/* ============ IMPIAN CARD ============ */
+.impian-card {
+  border-radius: 16px;
+  padding: 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-light);
+  transition: all 0.3s;
+}
+
+.impian-card.achieved {
+  opacity: 0.7;
+  background: var(--bg-body);
+}
+
+.impian-card .progress {
+  height: 6px;
+}
+
+.impian-progress {
+  margin-top: 12px;
+}
+
+/* ============ PENGINGAT CARD ============ */
+.pengingat-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.pengingat-card.overdue {
+  border-left: 3px solid var(--danger);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.pengingat-card.today {
+  border-left: 3px solid var(--warning);
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.pengingat-date {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.pengingat-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+/* ============ TOAST CUSTOM ============ */
+.custom-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  z-index: 9999;
+  min-width: 280px;
+  max-width: 90%;
+  background: var(--card-bg);
+  border-radius: 50px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  pointer-events: none;
+}
+
+.custom-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.custom-toast.success {
+  border-left: 4px solid #10b981;
+}
+
+.custom-toast.error {
+  border-left: 4px solid #ef4444;
+}
+
+.custom-toast.warning {
+  border-left: 4px solid #f59e0b;
+}
+
+.custom-toast i {
+  font-size: 20px;
+}
+
+.custom-toast.success i { color: #10b981; }
+.custom-toast.error i { color: #ef4444; }
+.custom-toast.warning i { color: #f59e0b; }
+
+.toast-message {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* ============ MODAL STYLE ============ */
+.modal-form {
+  padding: 8px 0;
+}
+
+.modal-form label {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--text-muted);
+}
+
+.modal-form input, 
+.modal-form select, 
+.modal-form textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.modal-form input:focus, 
+.modal-form select:focus, 
+.modal-form textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
 /* ============ DARK MODE OVERRIDES ============ */
 body.dark .calendar-day.has-moment { background: #064e3b; }
 body.dark .calendar-day.special-moment { background: #451a03; }
