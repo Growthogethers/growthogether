@@ -27,6 +27,7 @@ body {
   background: var(--bg-body);
   color: var(--text-primary);
   transition: background 0.2s, color 0.2s;
+  overflow-x: hidden;
 }
 
 /* ============ LOGIN SCREEN ============ */
@@ -111,9 +112,9 @@ body {
 
 .login-btn:active { transform: scale(0.98); }
 
-/* ============ SIDEBAR COLLAPSIBLE & HOVER EFFECT ============ */
+/* ============ SIDEBAR - RESPONSIVE FIX ============ */
 
-/* Sidebar Container */
+/* Sidebar Container - Desktop Default */
 .sidebar, #app-sidebar {
   width: 280px;
   height: 100vh;
@@ -126,16 +127,122 @@ body {
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow-y: auto;
   overflow-x: hidden;
 }
 
-/* Collapsed Sidebar (Desktop) */
-.sidebar.collapsed, #app-sidebar.collapsed {
-  width: 80px;
+/* Desktop - Sidebar selalu terbuka */
+@media (min-width: 769px) {
+  .sidebar, #app-sidebar {
+    transform: translateX(0) !important;
+  }
+  
+  .sidebar.collapsed, #app-sidebar.collapsed {
+    width: 80px;
+  }
+  
+  .mobile-close-btn { display: none !important; }
+  .menu-toggle-hp { display: none !important; }
 }
 
+/* Mobile - Sidebar sebagai drawer */
+@media (max-width: 768px) {
+  .sidebar, #app-sidebar {
+    transform: translateX(-100%);
+    width: 280px;
+    box-shadow: none;
+    transition: transform 0.3s ease;
+  }
+  
+  .sidebar.open, #app-sidebar.open {
+    transform: translateX(0);
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Overlay saat sidebar terbuka */
+  .sidebar.open::before, #app-sidebar.open::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+  }
+  
+  .sidebar-toggle-btn { display: none; }
+  .mobile-close-btn { display: block; }
+  
+  #app-content { 
+    margin-left: 0 !important; 
+    transition: margin-left 0.3s ease;
+  }
+  
+  .menu-toggle-hp { 
+    display: flex !important; 
+    z-index: 1060;
+  }
+  
+  .bottom-nav { display: flex; }
+  
+  .dark-mode-fab { 
+    bottom: calc(70px + env(safe-area-inset-bottom, 0px)); 
+    right: 16px; 
+  }
+  
+  /* Fix untuk konten agar tidak tergeser */
+  body.sidebar-open {
+    overflow: hidden;
+  }
+  
+  /* Sidebar collapsed tidak berlaku di mobile */
+  .sidebar.collapsed, #app-sidebar.collapsed {
+    width: 280px;
+  }
+  
+  .sidebar.collapsed .nav-text,
+  .sidebar.collapsed .tagline,
+  .sidebar.collapsed .profile-section h6,
+  .sidebar.collapsed .app-title,
+  #app-sidebar.collapsed .nav-text,
+  #app-sidebar.collapsed .tagline,
+  #app-sidebar.collapsed .profile-section h6,
+  #app-sidebar.collapsed .app-title {
+    display: flex;
+  }
+  
+  .sidebar.collapsed .nav-link,
+  #app-sidebar.collapsed .nav-link {
+    justify-content: flex-start;
+  }
+  
+  .sidebar.collapsed .nav-link i,
+  #app-sidebar.collapsed .nav-link i {
+    margin-right: 12px !important;
+  }
+  
+  /* Logout button margin */
+  .sidebar .mt-auto, 
+  #app-sidebar .mt-auto {
+    margin-bottom: 70px;
+  }
+  
+  .sidebar .btn-outline-danger,
+  #app-sidebar .btn-outline-danger {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+}
+
+/* Tablet */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar, #app-sidebar { width: 260px; }
+  .profile-avatar { width: 75px; height: 75px; }
+}
+
+/* ============ SIDEBAR COLLAPSIBLE (Desktop Only) ============ */
 .sidebar.collapsed .nav-text,
 .sidebar.collapsed .tagline,
 .sidebar.collapsed .profile-section h6,
@@ -252,6 +359,148 @@ body {
   font-size: 0.7rem;
 }
 
+/* Mobile Close Button */
+.mobile-close-btn {
+  display: none;
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  z-index: 1010;
+}
+
+/* ============ APP LAYOUT ============ */
+#app-content {
+  margin-left: 280px;
+  padding: 1rem;
+  min-height: 100vh;
+  display: none;
+  transition: margin-left 0.3s ease;
+}
+
+/* Desktop - Content margin */
+@media (min-width: 769px) {
+  #app-content {
+    margin-left: 280px;
+  }
+  
+  .sidebar.collapsed ~ #app-content,
+  #app-sidebar.collapsed ~ #app-content {
+    margin-left: 80px;
+  }
+}
+
+/* Mobile - Content full width */
+@media (max-width: 768px) {
+  #app-content {
+    margin-left: 0 !important;
+  }
+}
+
+/* ============ BOTTOM NAVIGATION ============ */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--card-bg);
+  border-top: 1px solid var(--border-light);
+  display: none;
+  justify-content: space-around;
+  padding: 8px 12px 20px;
+  z-index: 1050;
+}
+
+@media (max-width: 768px) {
+  .bottom-nav {
+    display: flex;
+  }
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bottom-nav-item i { font-size: 1.5rem; margin-bottom: 4px; }
+.bottom-nav-item.active { color: var(--primary); background: rgba(99, 102, 241, 0.1); }
+.bottom-nav-item:active { transform: scale(0.95); }
+
+/* ============ MENU TOGGLE & FAB ============ */
+.menu-toggle-hp {
+  display: none;
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 1060;
+  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  color: white;
+  border: none;
+  border-radius: 40px;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s;
+}
+
+.menu-toggle-hp:active {
+  transform: scale(0.95);
+}
+
+@media (max-width: 768px) {
+  .menu-toggle-hp {
+    display: flex !important;
+  }
+}
+
+.dark-mode-fab {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1050;
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s;
+}
+
+.dark-mode-fab:active {
+  transform: scale(0.95);
+}
+
+@media (max-width: 768px) {
+  .dark-mode-fab { 
+    bottom: calc(70px + env(safe-area-inset-bottom, 0px)); 
+    right: 16px; 
+  }
+}
+
 /* Navigation Hover Effect */
 .nav-link {
   display: flex;
@@ -316,96 +565,6 @@ body {
   border-color: #dc2626;
 }
 
-/* Mobile Close Button */
-.mobile-close-btn {
-  display: none;
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: var(--text-muted);
-  cursor: pointer;
-  z-index: 1010;
-}
-
-/* ============ APP LAYOUT ============ */
-#app-content {
-  margin-left: 280px;
-  padding: 1rem;
-  min-height: 100vh;
-  display: none;
-  transition: margin-left 0.3s ease;
-}
-
-/* ============ BOTTOM NAVIGATION ============ */
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--card-bg);
-  border-top: 1px solid var(--border-light);
-  display: none;
-  justify-content: space-around;
-  padding: 8px 12px 20px;
-  z-index: 1050;
-}
-
-.bottom-nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  font-size: 0.7rem;
-  font-weight: 500;
-  padding: 8px 12px;
-  border-radius: 30px;
-  cursor: pointer;
-}
-
-.bottom-nav-item i { font-size: 1.5rem; margin-bottom: 4px; }
-.bottom-nav-item.active { color: var(--primary); background: rgba(99, 102, 241, 0.1); }
-
-/* ============ MENU TOGGLE & FAB ============ */
-.menu-toggle-hp {
-  display: none;
-  position: fixed;
-  top: 12px;
-  left: 12px;
-  z-index: 1060;
-  background: linear-gradient(135deg, var(--primary), #8b5cf6);
-  color: white;
-  border: none;
-  border-radius: 40px;
-  width: 48px;
-  height: 48px;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  cursor: pointer;
-}
-
-.dark-mode-fab {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 1050;
-  width: 48px;
-  height: 48px;
-  border-radius: 24px;
-  background: linear-gradient(135deg, var(--primary), #8b5cf6);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  cursor: pointer;
-}
-
 /* ============ CARDS ============ */
 .card { 
   border: none; 
@@ -443,6 +602,11 @@ body {
   cursor: pointer;
   position: relative;
   border: 1px solid var(--border-light);
+  transition: all 0.2s;
+}
+
+.calendar-day:active {
+  transform: scale(0.95);
 }
 
 .calendar-day .day-number { 
@@ -537,6 +701,11 @@ body {
   justify-content: center;
   cursor: pointer;
   color: var(--text-muted);
+  transition: all 0.2s;
+}
+
+.photo-upload-item:active {
+  transform: scale(0.95);
 }
 
 .photo-upload-item i { font-size: 24px; margin-bottom: 4px; }
@@ -647,10 +816,25 @@ body {
   to { opacity: 1; transform: translateX(0); }
 }
 
+@keyframes pulseWarning {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; transform: scale(1.1); }
+}
+
+@keyframes ring {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(15deg); }
+  50% { transform: rotate(-15deg); }
+  75% { transform: rotate(5deg); }
+  100% { transform: rotate(0deg); }
+}
+
 /* Animation Classes */
 .floating-icon { animation: float 3s ease-in-out infinite; }
 .modal-enter { animation: fadeInScale 0.3s ease-out; }
 .modal-closing .modal-content { animation: slideOutDown 0.3s ease-out forwards; }
+.animate-pulse { animation: pulseWarning 1s ease-in-out infinite; }
+
 .reset-success-icon {
   position: fixed;
   top: 50%;
@@ -868,151 +1052,6 @@ body {
 
 .status-badge.active i { color: white; }
 
-/* ============ RESPONSIVE ============ */
-
-/* Desktop */
-@media (min-width: 769px) {
-  #app-content {
-    margin-left: 280px;
-  }
-  
-  .sidebar.collapsed ~ #app-content,
-  #app-sidebar.collapsed ~ #app-content,
-  body:has(.sidebar.collapsed) #app-content {
-    margin-left: 80px;
-  }
-  
-  .mobile-close-btn { display: none !important; }
-  .menu-toggle-hp { display: none !important; }
-}
-
-/* Tablet */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .sidebar, #app-sidebar { width: 260px; }
-  .profile-avatar { width: 75px; height: 75px; }
-}
-
-/* Mobile */
-@media (max-width: 768px) {
-  #app-sidebar, .sidebar {
-    transform: translateX(-100%);
-    width: 280px;
-    box-shadow: none;
-  }
-  
-  #app-sidebar.open, .sidebar.open {
-    transform: translateX(0);
-    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
-  }
-  
-  .sidebar-toggle-btn { display: none; }
-  .mobile-close-btn { display: block; }
-  
-  #app-content { margin-left: 0; }
-  
-  .menu-toggle-hp { display: flex; }
-  
-  .bottom-nav { display: flex; }
-  
-  .dark-mode-fab { 
-    bottom: calc(70px + env(safe-area-inset-bottom, 0px)); 
-    right: 16px; 
-  }
-  
-  /* Fix Logout Button di HP - Tidak Tertimpa Bottom Nav */
-  .sidebar .mt-auto, 
-  #app-sidebar .mt-auto {
-    margin-bottom: 70px;
-  }
-  
-  .sidebar .btn-outline-danger,
-  #app-sidebar .btn-outline-danger {
-    width: 100%;
-    margin-bottom: 8px;
-  }
-  
-  .profile-avatar { width: 70px; height: 70px; }
-  .profile-section h6 { font-size: 14px; }
-  .profile-section small { font-size: 11px; }
-  
-  .modal-dialog { margin: 16px; }
-  .modal-sm { max-width: calc(100% - 32px); margin: 16px auto; }
-  
-  .status-badge {
-    font-size: 11px;
-    padding: 6px 10px;
-    min-width: 70px;
-  }
-  
-  .bottom-nav {
-    padding-bottom: env(safe-area-inset-bottom, 16px);
-  }
-  
-  /* Sidebar collapsed tidak berlaku di mobile */
-  .sidebar.collapsed, #app-sidebar.collapsed {
-    width: 280px;
-  }
-  
-  .sidebar.collapsed .nav-text,
-  .sidebar.collapsed .tagline,
-  .sidebar.collapsed .profile-section h6,
-  .sidebar.collapsed .app-title,
-  #app-sidebar.collapsed .nav-text,
-  #app-sidebar.collapsed .tagline,
-  #app-sidebar.collapsed .profile-section h6,
-  #app-sidebar.collapsed .app-title {
-    display: flex;
-  }
-  
-  .sidebar.collapsed .nav-link,
-  #app-sidebar.collapsed .nav-link {
-    justify-content: flex-start;
-  }
-  
-  .sidebar.collapsed .nav-link i,
-  #app-sidebar.collapsed .nav-link i {
-    margin-right: 12px !important;
-  }
-}
-
-/* Safe area for notched phones */
-@supports (padding: max(0px)) {
-  .sidebar, #app-sidebar {
-    padding-top: max(1rem, env(safe-area-inset-top));
-    padding-bottom: max(1rem, env(safe-area-inset-bottom));
-  }
-  
-  .bottom-nav {
-    padding-bottom: max(12px, env(safe-area-inset-bottom));
-  }
-}
-
-/* Utility Classes */
-.object-fit-cover { object-fit: cover; }
-
-/* Scrollbar Styling */
-.sidebar::-webkit-scrollbar,
-#app-sidebar::-webkit-scrollbar {
-  width: 4px;
-}
-
-.sidebar::-webkit-scrollbar-track,
-#app-sidebar::-webkit-scrollbar-track {
-  background: var(--border-light);
-  border-radius: 4px;
-}
-
-.sidebar::-webkit-scrollbar-thumb,
-#app-sidebar::-webkit-scrollbar-thumb {
-  background: var(--primary);
-  border-radius: 4px;
-}
-
-.sidebar::-webkit-scrollbar-thumb:hover,
-#app-sidebar::-webkit-scrollbar-thumb:hover {
-  background: #8b5cf6;
-}
-
 /* ============ WARNA BARU ============ */
 .text-purple { color: #8b5cf6; }
 .text-pink { color: #ec4899; }
@@ -1067,7 +1106,7 @@ body {
   cursor: pointer;
 }
 
-.checklist-item .form-check-input:checked + .form-check-label {
+.checklist-item .form-check-input:checked + .checklist-label {
   text-decoration: line-through;
   opacity: 0.6;
 }
@@ -1087,79 +1126,6 @@ body {
   transition: all 0.2s;
 }
 
-/* Tambahan di style.css */
-
-/* Animasi pulse untuk reminder overdue */
-.animate-pulse {
-  animation: pulseWarning 1s ease-in-out infinite;
-}
-
-@keyframes pulseWarning {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; transform: scale(1.1); }
-}
-
-/* Styling untuk pengingat yang sudah selesai */
-.pengingat-card.completed {
-  background: rgba(16, 185, 129, 0.05);
-  opacity: 0.8;
-}
-
-.pengingat-card.completed .fw-medium {
-  text-decoration: line-through;
-}
-
-/* Badge pink untuk user Azizah */
-.bg-pink {
-  background: linear-gradient(135deg, #ec4899, #f43f5e);
-  color: white;
-}
-
-/* Hover effect untuk card keuangan */
-.list-group-item {
-  transition: all 0.2s ease;
-}
-
-.list-group-item:hover {
-  transform: translateX(4px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Modal form lebih besar di mobile */
-@media (max-width: 768px) {
-  .modal-dialog.modal-md {
-    margin: 16px;
-  }
-  
-  .modal-content {
-    max-width: calc(100% - 32px);
-    margin: 0 auto;
-  }
-  
-  .form-control-lg, .form-select-lg {
-    font-size: 16px; /* Mencegah zoom pada iOS */
-    padding: 12px 16px;
-  }
-}
-
-/* Toast dengan efek suara */
-#customToastContainer .custom-toast.warning {
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
-  border-left: 4px solid #f59e0b;
-}
-
-#customToastContainer .custom-toast.warning i {
-  color: #f59e0b;
-  animation: ring 0.5s ease;
-}
-
-@keyframes ring {
-  0% { transform: rotate(0deg); }
-  25% { transform: rotate(15deg); }
-  50% { transform: rotate(-15deg); }
-  75% { transform: rotate(5deg); }
-  100% { transform: rotate(0deg); }
-}
 .btn-icon:hover {
   background: var(--border-light);
   color: var(--danger);
@@ -1206,6 +1172,15 @@ body {
   background: rgba(245, 158, 11, 0.05);
 }
 
+.pengingat-card.completed {
+  background: rgba(16, 185, 129, 0.05);
+  opacity: 0.8;
+}
+
+.pengingat-card.completed .fw-medium {
+  text-decoration: line-through;
+}
+
 .pengingat-date {
   font-size: 12px;
   color: var(--text-muted);
@@ -1218,12 +1193,17 @@ body {
 }
 
 /* ============ TOAST CUSTOM ============ */
-.custom-toast {
+#customToastContainer {
   position: fixed;
   bottom: 80px;
   left: 50%;
-  transform: translateX(-50%) translateY(100px);
+  transform: translateX(-50%);
   z-index: 9999;
+  pointer-events: none;
+}
+
+.custom-toast {
+  position: relative;
   min-width: 280px;
   max-width: 90%;
   background: var(--card-bg);
@@ -1234,13 +1214,15 @@ body {
   align-items: center;
   gap: 12px;
   opacity: 0;
+  transform: translateY(20px);
   transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   pointer-events: none;
+  margin-bottom: 8px;
 }
 
 .custom-toast.show {
   opacity: 1;
-  transform: translateX(-50%) translateY(0);
+  transform: translateY(0);
 }
 
 .custom-toast.success {
@@ -1262,6 +1244,9 @@ body {
 .custom-toast.success i { color: #10b981; }
 .custom-toast.error i { color: #ef4444; }
 .custom-toast.warning i { color: #f59e0b; }
+.custom-toast.warning i {
+  animation: ring 0.5s ease;
+}
 
 .toast-message {
   flex: 1;
@@ -1301,8 +1286,81 @@ body {
   border-color: var(--primary);
 }
 
+/* Modal lebih besar di mobile */
+@media (max-width: 768px) {
+  .modal-dialog.modal-md {
+    margin: 16px;
+  }
+  
+  .modal-content {
+    max-width: calc(100% - 32px);
+    margin: 0 auto;
+  }
+  
+  .form-control-lg, .form-select-lg {
+    font-size: 16px;
+    padding: 12px 16px;
+  }
+}
+
+/* Badge pink untuk user Azizah */
+.bg-pink {
+  background: linear-gradient(135deg, #ec4899, #f43f5e);
+  color: white;
+}
+
+/* Hover effect untuk card keuangan */
+.list-group-item {
+  transition: all 0.2s ease;
+}
+
+.list-group-item:hover {
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Safe area for notched phones */
+@supports (padding: max(0px)) {
+  .sidebar, #app-sidebar {
+    padding-top: max(1rem, env(safe-area-inset-top));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  
+  .bottom-nav {
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Utility Classes */
+.object-fit-cover { object-fit: cover; }
+
+/* Scrollbar Styling */
+.sidebar::-webkit-scrollbar,
+#app-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-track,
+#app-sidebar::-webkit-scrollbar-track {
+  background: var(--border-light);
+  border-radius: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb,
+#app-sidebar::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover,
+#app-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #8b5cf6;
+}
+
 /* ============ DARK MODE OVERRIDES ============ */
 body.dark .calendar-day.has-moment { background: #064e3b; }
 body.dark .calendar-day.special-moment { background: #451a03; }
 body.dark .moment-card { background: #1f2937; }
 body.dark .logo-wrapper { background: linear-gradient(135deg, #1e293b, #334155); }
+body.dark .list-group-item { background: var(--card-bg); }
+body.dark .modal-content { background: var(--card-bg); }
