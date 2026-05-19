@@ -1,30 +1,97 @@
-<!-- MODAL GANTI PASSWORD -->
+<!-- MODAL PROFILE - Lengkap dengan Foto & Ganti Password -->
+<div class="modal fade" id="profileModal" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content rounded-4 overflow-hidden">
+      
+      <!-- Header dengan background gradient -->
+      <div class="modal-header border-0 py-4 text-center d-block" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+        <div class="profile-edit-avatar mx-auto position-relative" style="width: 100px; height: 100px;">
+          <img id="modalProfileAvatar" class="rounded-circle w-100 h-100 object-fit-cover border border-3 border-white shadow" 
+               src="https://ui-avatars.com/api/?background=fff&color=6366f1&bold=true&size=100&name=User" 
+               alt="Profile">
+          <button class="change-photo-btn" onclick="document.getElementById('profilePhotoInput').click()">
+            <i class="bi bi-camera-fill"></i>
+          </button>
+        </div>
+        <h5 class="fw-bold text-white mt-2 mb-0" id="modalProfileName">User</h5>
+        <p class="text-white-50 small mb-0" id="modalProfileEmail">user@growthogether.com</p>
+      </div>
+      
+      <div class="modal-body p-4">
+        <!-- Status Section -->
+        <div class="mb-4">
+          <label class="form-label fw-semibold small text-muted">
+            <i class="bi bi-emoji-smile me-1"></i> Status
+          </label>
+          <div class="status-options d-flex gap-2 flex-wrap">
+            <button class="status-badge" data-status="merencanakan" onclick="updateStatus('merencanakan')">
+              <i class="bi bi-calendar-check"></i> Merencanakan
+            </button>
+            <button class="status-badge" data-status="online" onclick="updateStatus('online')">
+              <i class="bi bi-circle-fill text-success" style="font-size: 10px;"></i> Online
+            </button>
+            <button class="status-badge" data-status="sibuk" onclick="updateStatus('sibuk')">
+              <i class="bi bi-clock"></i> Sibuk
+            </button>
+            <button class="status-badge" data-status="liburan" onclick="updateStatus('liburan')">
+              <i class="bi bi-umbrella"></i> Liburan
+            </button>
+          </div>
+        </div>
+        
+        <!-- Divider -->
+        <div class="dropdown-divider my-3"></div>
+        
+        <!-- Ganti Password Section -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold small text-muted">
+            <i class="bi bi-lock me-1"></i> Keamanan
+          </label>
+          <button class="btn btn-outline-primary w-100 rounded-pill py-2 mb-2" onclick="openChangePasswordFromProfile()">
+            <i class="bi bi-key me-2"></i>Ganti Password
+          </button>
+        </div>
+        
+        <!-- Divider -->
+        <div class="dropdown-divider my-3"></div>
+        
+        <!-- Info Akun -->
+        <div class="small text-muted text-center">
+          <i class="bi bi-shield-check me-1"></i>
+          Akun dilindungi
+        </div>
+      </div>
+      
+      <div class="modal-footer border-0 justify-content-center pb-4">
+        <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL GANTI PASSWORD (Standalone) -->
 <div class="modal fade" id="passModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4 overflow-hidden">
-      <div class="modal-header border-0 bg-gradient bg-primary text-white py-3" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+    <div class="modal-content rounded-4">
+      <div class="modal-header border-0 bg-gradient bg-primary text-white py-3">
         <h5 class="fw-bold mb-0">
-          <i class="bi bi-lock-fill me-2"></i>Ganti Password
+          <i class="bi bi-lock me-2"></i>Ganti Password
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-4">
         <div class="text-center mb-3">
-          <i class="bi bi-key-fill fs-1 text-primary" style="filter: drop-shadow(0 4px 6px rgba(99, 102, 241, 0.3));"></i>
+          <i class="bi bi-shield-lock-fill fs-1 text-primary"></i>
         </div>
         <div class="mb-3">
-          <label class="form-label fw-semibold">
-            <i class="bi bi-lock me-1"></i>Password Baru
-          </label>
+          <label class="form-label fw-semibold">Password Baru</label>
           <input type="password" id="newPass" class="form-control rounded-3" placeholder="Minimal 4 karakter">
         </div>
         <div class="mb-3">
-          <label class="form-label fw-semibold">
-            <i class="bi bi-check-circle me-1"></i>Konfirmasi Password
-          </label>
+          <label class="form-label fw-semibold">Konfirmasi Password</label>
           <input type="password" id="confirmPass" class="form-control rounded-3" placeholder="Ketik ulang password baru">
         </div>
-        <button onclick="window.updateCloudPassword()" class="btn btn-primary w-100 rounded-pill py-2 fw-bold">
+        <button onclick="window.updateCloudPassword()" class="btn btn-primary w-100 rounded-pill py-2">
           <i class="bi bi-save me-2"></i>Update Password
         </button>
       </div>
@@ -89,7 +156,7 @@
               <span>Tambah Foto</span>
             </div>
           </div>
-          <input type="file" id="momentPhotoInput" accept="image/jpeg,image/png,image/jpg" multiple style="display: none" onchange="handleMultiplePhotos(this)">
+          <input type="file" id="momentPhotoInput" accept="image/jpeg,image/png,image.jpg" multiple style="display: none" onchange="handleMultiplePhotos(this)">
           <small class="text-muted">Klik untuk upload, maksimal 5 foto (max 2MB per foto)</small>
         </div>
 
@@ -166,3 +233,6 @@
     </div>
   </div>
 </div>
+
+<!-- Input file untuk upload foto profil (hidden) -->
+<input type="file" id="profilePhotoInput" accept="image/jpeg,image/png,image/jpg" style="display: none" onchange="handleProfilePhotoUpload(this)">
