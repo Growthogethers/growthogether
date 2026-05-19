@@ -1,4 +1,4 @@
-// js/app.js - Dengan Fitur Profile
+// js/app.js - Dengan Perbaikan Profile Click
 import { db, ref, onValue, set } from './firebase-config.js';
 import { masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser } from './utils.js';
 import { handleLogin, updateCloudPassword, confirmLogout, handleLogout, openProfileModal, updateStatus, handleProfilePhotoUpload, openChangePasswordFromProfile } from './auth.js';
@@ -11,6 +11,8 @@ let isSidebarOpen = false;
 
 async function loadComponents() {
   try {
+    console.log("Loading components...");
+    
     const sidebarHtml = await fetch('components/sidebar.html').then(r => r.text());
     const bottomNavHtml = await fetch('components/navbar.html').then(r => r.text());
     const modalsHtml = await fetch('components/modals.html').then(r => r.text());
@@ -23,9 +25,11 @@ async function loadComponents() {
     document.getElementById('app-content').innerHTML = contentHtml;
     document.getElementById('login-screen').innerHTML = loginHtml;
     
+    console.log("Components loaded, attaching listeners...");
     attachEventListeners();
     initDarkMode();
     initMenuToggle();
+    
   } catch (error) {
     console.error('Error loading components:', error);
     showNotif("❌ Gagal memuat aplikasi", true);
@@ -51,16 +55,21 @@ function initMenuToggle() {
   const closeBtn = document.getElementById("closeSidebarBtn");
   
   if (menuToggle && sidebar) {
-    menuToggle.addEventListener("click", () => {
+    // Remove existing listener to avoid duplicates
+    menuToggle.removeEventListener("click", menuToggle._listener);
+    menuToggle._listener = () => {
       isSidebarOpen = !isSidebarOpen;
       sidebar.classList.toggle("open");
-    });
+    };
+    menuToggle.addEventListener("click", menuToggle._listener);
     
     if (closeBtn) {
-      closeBtn.addEventListener("click", () => {
+      closeBtn.removeEventListener("click", closeBtn._listener);
+      closeBtn._listener = () => {
         sidebar.classList.remove("open");
         isSidebarOpen = false;
-      });
+      };
+      closeBtn.addEventListener("click", closeBtn._listener);
     }
     
     // Close on outside click
@@ -74,35 +83,66 @@ function initMenuToggle() {
 }
 
 function attachEventListeners() {
-  // Profile trigger
-  const profileTrigger = document.getElementById("profileTrigger");
-  if (profileTrigger) {
-    profileTrigger.addEventListener("click", () => {
-      openProfileModal();
-    });
-  }
+  console.log("Attaching event listeners...");
   
-  // Privacy toggle
-  document.querySelectorAll("#privacyToggleDash").forEach(btn => {
-    if (btn) btn.addEventListener("click", () => {
-      togglePrivacy();
-      if (window.renderDashboard) window.renderDashboard();
-    });
+  // ============ PROFILE TRIGGER - PERBAIKAN UTAMA ============
+  // Gunakan event delegation agar selalu terdeteksi
+  document.body.addEventListener('click', (e) => {
+    // Cek apakah yang diklik adalah profileTrigger atau child di dalamnya
+    const profileTrigger = e.target.closest('#profileTrigger');
+    if (profileTrigger) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log("Profile clicked! Opening modal...");
+      if (typeof openProfileModal === 'function') {
+        openProfileModal();
+      } else {
+        console.error("openProfileModal is not defined");
+        showNotif("❌ Error: Fungsi profile tidak ditemukan", true);
+      }
+    }
   });
   
-  // Navigation
+  // ============ PRIVACY TOGGLE ============
+  document.querySelectorAll("#privacyToggleDash").forEach(btn => {
+    if (btn) {
+      btn.removeEventListener('click', btn._privacyListener);
+      btn._privacyListener = () => {
+        togglePrivacy();
+        if (window.renderDashboard) window.renderDashboard();
+      };
+      btn.addEventListener('click', btn._privacyListener);
+    }
+  });
+  
+  // ============ NAVIGATION ============
   document.querySelectorAll(".nav-link, .bottom-nav-item").forEach(el => {
-    el.addEventListener("click", () => {
+    el.removeEventListener('click', el._navListener);
+    el._navListener = () => {
       const page = el.getAttribute("data-page");
       if (page) showPage(page);
-    });
+    };
+    el.addEventListener('click', el._navListener);
   });
   
-  // Confirm logout
+  // ============ CONFIRM LOGOUT ============
   const confirmLogoutBtn = document.getElementById("confirmLogoutBtn");
   if (confirmLogoutBtn) {
-    confirmLogoutBtn.onclick = () => handleLogout();
+    confirmLogoutBtn.removeEventListener('click', confirmLogoutBtn._logoutListener);
+    confirmLogoutBtn._logoutListener = () => handleLogout();
+    confirmLogoutBtn.addEventListener('click', confirmLogoutBtn._logoutListener);
   }
+  
+  // ============ STATUS BADGE CLICK (Event Delegation) ============
+  document.body.addEventListener('click', (e) => {
+    const statusBadge = e.target.closest('.status-badge');
+    if (statusBadge) {
+      const status = statusBadge.getAttribute('data-status');
+      if (status && typeof updateStatus === 'function') {
+        updateStatus(status);
+      }
+    }
+  });
 }
 
 function showPage(pageId) {
@@ -135,6 +175,8 @@ function showPage(pageId) {
 }
 
 function setupAppSession(u) {
+  console.log("Setting up session for user:", u);
+  
   const loginScreen = document.getElementById("login-screen");
   const sidebar = document.getElementById("app-sidebar");
   const appContent = document.getElementById("app-content");
@@ -150,6 +192,13 @@ function setupAppSession(u) {
   
   const userGreet = document.getElementById("userGreet");
   if (userGreet) userGreet.innerText = displayName;
+  
+  // Update profile UI
+  setTimeout(() => {
+    if (typeof updateProfileUI === 'function') {
+      updateProfileUI();
+    }
+  }, 100);
   
   renderDashboard();
   showPage('dashboard');
@@ -200,10 +249,12 @@ function injectToastHTML() {
 }
 
 async function init() {
+  console.log("Initializing app...");
   injectToastHTML();
   await loadComponents();
   checkAuth();
   initFirebaseListener();
+  console.log("App initialized");
 }
 
 // Exports
