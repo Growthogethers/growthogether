@@ -54,10 +54,98 @@ async function loadComponents() {
     attachEventListeners();
     initDarkMode();
     initMenuToggle();
+    loadSidebarState();
+    handleResize();
     
   } catch (error) {
     console.error('Error loading components:', error);
     showNotif("❌ Gagal memuat aplikasi", true);
+  }
+}
+
+// ============ TOGGLE SIDEBAR (COLLAPSE/DESKTOP) ============
+function toggleSidebar() {
+  const sidebar = document.getElementById("app-sidebar");
+  const appContent = document.getElementById("app-content");
+  const toggleBtn = document.querySelector(".sidebar-toggle-btn i");
+  
+  if (!sidebar) return;
+  
+  sidebar.classList.toggle("collapsed");
+  
+  // Save state to localStorage
+  const isCollapsed = sidebar.classList.contains("collapsed");
+  localStorage.setItem("sidebarCollapsed", isCollapsed);
+  
+  // Update toggle button icon
+  if (toggleBtn) {
+    if (isCollapsed) {
+      toggleBtn.classList.remove("bi-chevron-left");
+      toggleBtn.classList.add("bi-chevron-right");
+    } else {
+      toggleBtn.classList.remove("bi-chevron-right");
+      toggleBtn.classList.add("bi-chevron-left");
+    }
+  }
+  
+  // Update app content margin for desktop only
+  if (window.innerWidth > 768) {
+    if (appContent) {
+      if (isCollapsed) {
+        appContent.style.marginLeft = "80px";
+      } else {
+        appContent.style.marginLeft = "280px";
+      }
+    }
+  }
+}
+
+// ============ LOAD SIDEBAR STATE ON START ============
+function loadSidebarState() {
+  const savedState = localStorage.getItem("sidebarCollapsed");
+  const sidebar = document.getElementById("app-sidebar");
+  const appContent = document.getElementById("app-content");
+  const toggleBtn = document.querySelector(".sidebar-toggle-btn i");
+  
+  if (!sidebar) return;
+  
+  if (savedState === "true" && sidebar && window.innerWidth > 768) {
+    sidebar.classList.add("collapsed");
+    if (appContent) appContent.style.marginLeft = "80px";
+    if (toggleBtn) {
+      toggleBtn.classList.remove("bi-chevron-left");
+      toggleBtn.classList.add("bi-chevron-right");
+    }
+  } else {
+    if (appContent && window.innerWidth > 768) appContent.style.marginLeft = "280px";
+  }
+}
+
+// ============ HANDLE RESIZE ============
+function handleResize() {
+  const sidebar = document.getElementById("app-sidebar");
+  const appContent = document.getElementById("app-content");
+  const menuToggle = document.getElementById("menuToggleHp");
+  
+  if (window.innerWidth > 768) {
+    // Desktop mode
+    if (menuToggle) menuToggle.style.display = "none";
+    
+    if (sidebar) {
+      if (sidebar.classList.contains("collapsed")) {
+        if (appContent) appContent.style.marginLeft = "80px";
+      } else {
+        if (appContent) appContent.style.marginLeft = "280px";
+      }
+      sidebar.classList.remove("open");
+    }
+  } else {
+    // Mobile mode
+    if (menuToggle) menuToggle.style.display = "flex";
+    if (appContent) appContent.style.marginLeft = "0";
+    if (sidebar) {
+      sidebar.classList.remove("collapsed");
+    }
   }
 }
 
@@ -71,11 +159,17 @@ function initDarkMode() {
       document.body.classList.toggle("dark");
       localStorage.setItem("darkMode", document.body.classList.contains("dark") ? "enabled" : "disabled");
       darkFab.innerHTML = document.body.classList.contains("dark") ? '<i class="bi bi-brightness-high-fill fs-5"></i>' : '<i class="bi bi-moon-stars fs-5"></i>';
+      
+      // Animation feedback
+      darkFab.style.transform = 'scale(0.9)';
+      setTimeout(() => {
+        if (darkFab) darkFab.style.transform = '';
+      }, 200);
     };
   }
 }
 
-// ============ INIT MENU TOGGLE ============
+// ============ INIT MENU TOGGLE (MOBILE) ============
 function initMenuToggle() {
   const menuToggle = document.getElementById("menuToggleHp");
   const sidebar = document.getElementById("app-sidebar");
@@ -86,6 +180,12 @@ function initMenuToggle() {
     menuToggle._listener = () => {
       isSidebarOpen = !isSidebarOpen;
       sidebar.classList.toggle("open");
+      // Prevent body scroll when sidebar is open on mobile
+      if (isSidebarOpen) {
+        document.body.style.overflow = "hidden";
+      } else {
+        document.body.style.overflow = "";
+      }
     };
     menuToggle.addEventListener("click", menuToggle._listener);
     
@@ -94,14 +194,17 @@ function initMenuToggle() {
       closeBtn._listener = () => {
         sidebar.classList.remove("open");
         isSidebarOpen = false;
+        document.body.style.overflow = "";
       };
       closeBtn.addEventListener("click", closeBtn._listener);
     }
     
+    // Close on outside click for mobile
     document.addEventListener('click', (e) => {
       if (window.innerWidth <= 768 && isSidebarOpen && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
         sidebar.classList.remove('open');
         isSidebarOpen = false;
+        document.body.style.overflow = "";
       }
     });
   }
@@ -110,6 +213,14 @@ function initMenuToggle() {
 // ============ ATTACH EVENT LISTENERS ============
 function attachEventListeners() {
   console.log("Attaching event listeners...");
+  
+  // Sidebar toggle button (desktop collapse)
+  const sidebarToggleBtn = document.getElementById("sidebarToggleBtn");
+  if (sidebarToggleBtn) {
+    sidebarToggleBtn.removeEventListener("click", sidebarToggleBtn._toggleListener);
+    sidebarToggleBtn._toggleListener = () => toggleSidebar();
+    sidebarToggleBtn.addEventListener("click", sidebarToggleBtn._toggleListener);
+  }
   
   // Profile trigger - Event delegation
   document.body.addEventListener('click', (e) => {
@@ -134,6 +245,12 @@ function attachEventListeners() {
       btn._privacyListener = () => {
         togglePrivacy();
         if (window.renderDashboard) window.renderDashboard();
+        
+        // Animation feedback
+        btn.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+          if (btn) btn.style.transform = '';
+        }, 150);
       };
       btn.addEventListener('click', btn._privacyListener);
     }
@@ -142,9 +259,15 @@ function attachEventListeners() {
   // Navigation
   document.querySelectorAll(".nav-link, .bottom-nav-item").forEach(el => {
     el.removeEventListener('click', el._navListener);
-    el._navListener = () => {
+    el._navListener = (e) => {
       const page = el.getAttribute("data-page");
       if (page) showPage(page);
+      
+      // Animation feedback
+      e.currentTarget.style.transform = 'scale(0.98)';
+      setTimeout(() => {
+        if (e.currentTarget) e.currentTarget.style.transform = '';
+      }, 150);
     };
     el.addEventListener('click', el._navListener);
   });
@@ -167,6 +290,20 @@ function attachEventListeners() {
       }
     }
   });
+  
+  // Window resize handler
+  window.addEventListener('resize', () => {
+    handleResize();
+  });
+  
+  // Online/Offline detection
+  window.addEventListener('online', () => {
+    showNotif("📡 Koneksi kembali online");
+  });
+  
+  window.addEventListener('offline', () => {
+    showNotif("⚠️ Koneksi terputus", true);
+  });
 }
 
 // ============ SHOW PAGE FUNCTION ============
@@ -174,6 +311,7 @@ function showPage(pageId) {
   console.log("Showing page:", pageId);
   currentPage = pageId;
   
+  // Hide all sections with animation
   document.querySelectorAll("section").forEach(s => {
     s.style.transition = 'opacity 0.2s';
     s.style.opacity = '0';
@@ -182,6 +320,7 @@ function showPage(pageId) {
     }, 150);
   });
   
+  // Show selected page with animation
   setTimeout(() => {
     const pageElement = document.getElementById(`${pageId}-page`);
     if (pageElement) {
@@ -192,6 +331,7 @@ function showPage(pageId) {
     }
   }, 150);
   
+  // Update active states
   document.querySelectorAll(".nav-link, .bottom-nav-item").forEach(el => {
     el.classList.remove("active");
   });
@@ -200,22 +340,25 @@ function showPage(pageId) {
     el.classList.add("active");
   });
   
+  // Close sidebar on mobile after navigation
   if (window.innerWidth <= 768) {
     const sidebar = document.getElementById("app-sidebar");
     if (sidebar) {
       sidebar.classList.remove("open");
       isSidebarOpen = false;
+      document.body.style.overflow = "";
     }
   }
   
+  // Render page content
   if (pageId === "moment") {
     setTimeout(() => {
-      renderCalendar();
-      renderMomentsList();
+      if (typeof renderCalendar === 'function') renderCalendar();
+      if (typeof renderMomentsList === 'function') renderMomentsList();
     }, 100);
   } else if (pageId === "dashboard") {
     setTimeout(() => {
-      renderDashboard();
+      if (typeof renderDashboard === 'function') renderDashboard();
     }, 100);
   }
 }
@@ -228,6 +371,7 @@ function setupAppSession(u) {
   const sidebar = document.getElementById("app-sidebar");
   const appContent = document.getElementById("app-content");
   
+  // Hide login with animation
   if (loginScreen) {
     loginScreen.style.transition = 'all 0.3s ease-out';
     loginScreen.style.opacity = '0';
@@ -237,6 +381,7 @@ function setupAppSession(u) {
     }, 300);
   }
   
+  // Show app UI
   if (sidebar) {
     sidebar.style.display = "flex";
     sidebar.style.opacity = '0';
@@ -263,12 +408,14 @@ function setupAppSession(u) {
   
   const displayName = u === "FACHMI" ? "Fachmi" : "Azizah";
   
+  // Update UI elements
   const badge = document.getElementById("activeUserBadge");
   if (badge) badge.innerText = displayName;
   
   const userGreet = document.getElementById("userGreet");
   if (userGreet) userGreet.innerText = displayName;
   
+  // Force refresh profile UI
   setTimeout(() => {
     if (typeof forceRefreshProfile === 'function') {
       forceRefreshProfile();
@@ -276,6 +423,9 @@ function setupAppSession(u) {
     if (typeof updateProfileUI === 'function') {
       updateProfileUI();
     }
+    // Re-apply sidebar state after profile loads
+    loadSidebarState();
+    handleResize();
   }, 200);
   
   renderDashboard();
@@ -299,23 +449,27 @@ function initFirebaseListener() {
       const data = snapshot.val() || { dreams: {}, plans: {}, finances: {}, settings: {}, moments: {}, vendors: {}, profiles: {} };
       setMasterData(data);
       
+      // Initialize default auth if not exists
       if (!data.auth) {
         set(ref(db, "data/auth"), { FACHMI: "gokil223", AZIZAH: "1234" })
           .then(() => console.log("Default auth created"))
           .catch(err => console.error("Error creating default auth:", err));
       }
       
+      // Initialize default settings if not exists
       if (!data.settings?.weddingTarget) {
         set(ref(db, "data/settings"), { weddingTarget: 50000000 })
           .then(() => console.log("Default settings created"))
           .catch(err => console.error("Error creating default settings:", err));
       }
       
+      // Re-render if user is logged in
       if (sessionStorage.getItem("progrowth_user")) {
-        if (currentPage === "dashboard") renderDashboard();
-        else if (currentPage === "moment") {
+        if (currentPage === "dashboard" && typeof renderDashboard === 'function') {
+          renderDashboard();
+        } else if (currentPage === "moment" && typeof renderCalendar === 'function') {
           renderCalendar();
-          renderMomentsList();
+          if (typeof renderMomentsList === 'function') renderMomentsList();
         }
       }
       
@@ -365,6 +519,7 @@ window.openChangePasswordFromProfile = openChangePasswordFromProfile;
 window.handleProfilePhotoUpload = handleProfilePhotoUpload;
 window.updateStatus = updateStatus;
 window.forceRefreshProfile = forceRefreshProfile;
+window.toggleSidebar = toggleSidebar;
 
 // Moment functions
 window.renderCalendar = renderCalendar;
