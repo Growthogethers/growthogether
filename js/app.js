@@ -1,4 +1,4 @@
-// js/app.js - Main Application (FULL VERSION dengan Semua Fitur)
+// js/app.js - Main Application (FULL VERSION dengan Sidebar Responsive)
 import { db, ref, onValue, set } from './firebase-config.js';
 import { masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser } from './utils.js';
 import { 
@@ -87,45 +87,95 @@ function initDarkMode() {
   }
 }
 
-// ============ INIT MENU TOGGLE (MOBILE) ============
+// ============ INIT MENU TOGGLE (MOBILE) - FIXED ============
 function initMenuToggle() {
   const menuToggle = document.getElementById("menuToggleHp");
   const sidebar = document.getElementById("app-sidebar");
   const closeBtn = document.getElementById("closeSidebarBtn");
   
-  if (menuToggle && sidebar) {
-    menuToggle.removeEventListener("click", menuToggle._listener);
-    menuToggle._listener = () => {
-      isSidebarOpen = !isSidebarOpen;
-      sidebar.classList.toggle("open");
-      // Prevent body scroll when sidebar is open on mobile
-      if (isSidebarOpen) {
-        document.body.style.overflow = "hidden";
-      } else {
-        document.body.style.overflow = "";
+  if (!menuToggle || !sidebar) {
+    console.log("Menu toggle or sidebar not found, will retry");
+    // Retry after a short delay
+    setTimeout(() => {
+      const retryMenuToggle = document.getElementById("menuToggleHp");
+      const retrySidebar = document.getElementById("app-sidebar");
+      const retryCloseBtn = document.getElementById("closeSidebarBtn");
+      
+      if (retryMenuToggle && retrySidebar) {
+        setupMenuToggleListeners(retryMenuToggle, retrySidebar, retryCloseBtn);
       }
-    };
-    menuToggle.addEventListener("click", menuToggle._listener);
+    }, 500);
+    return;
+  }
+  
+  setupMenuToggleListeners(menuToggle, sidebar, closeBtn);
+}
+
+function setupMenuToggleListeners(menuToggle, sidebar, closeBtn) {
+  // Hapus listener lama dengan clone node
+  const newMenuToggle = menuToggle.cloneNode(true);
+  menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
+  
+  // Handler untuk membuka sidebar
+  newMenuToggle.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Menu toggle clicked - opening sidebar");
+    sidebar.classList.add("open");
+    isSidebarOpen = true;
+    document.body.style.overflow = "hidden";
+    document.body.classList.add("sidebar-open");
+  });
+  
+  // Handler untuk close button
+  if (closeBtn) {
+    const newCloseBtn = closeBtn.cloneNode(true);
+    closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
     
-    if (closeBtn) {
-      closeBtn.removeEventListener("click", closeBtn._listener);
-      closeBtn._listener = () => {
-        sidebar.classList.remove("open");
-        isSidebarOpen = false;
-        document.body.style.overflow = "";
-      };
-      closeBtn.addEventListener("click", closeBtn._listener);
-    }
-    
-    // Close on outside click for mobile
-    document.addEventListener('click', (e) => {
-      if (window.innerWidth <= 768 && isSidebarOpen && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
-        sidebar.classList.remove('open');
-        isSidebarOpen = false;
-        document.body.style.overflow = "";
-      }
+    newCloseBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log("Close button clicked - closing sidebar");
+      sidebar.classList.remove("open");
+      isSidebarOpen = false;
+      document.body.style.overflow = "";
+      document.body.classList.remove("sidebar-open");
     });
   }
+  
+  // Tutup sidebar saat klik di luar (overlay)
+  document.addEventListener("click", (e) => {
+    if (window.innerWidth <= 768 && 
+        sidebar.classList.contains("open") && 
+        !sidebar.contains(e.target) && 
+        !newMenuToggle.contains(e.target)) {
+      console.log("Clicked outside - closing sidebar");
+      sidebar.classList.remove("open");
+      isSidebarOpen = false;
+      document.body.style.overflow = "";
+      document.body.classList.remove("sidebar-open");
+    }
+  });
+  
+  // Tutup sidebar saat tombol back ditekan di mobile
+  window.addEventListener("popstate", () => {
+    if (window.innerWidth <= 768 && sidebar.classList.contains("open")) {
+      sidebar.classList.remove("open");
+      isSidebarOpen = false;
+      document.body.style.overflow = "";
+      document.body.classList.remove("sidebar-open");
+    }
+  });
+  
+  // Handle resize - tutup sidebar saat beralih ke desktop
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 768) {
+      sidebar.classList.remove("open");
+      isSidebarOpen = false;
+      document.body.style.overflow = "";
+      document.body.classList.remove("sidebar-open");
+    }
+  });
 }
 
 // ============ HANDLE RESIZE ============
@@ -138,7 +188,10 @@ function handleResize() {
     // Desktop mode
     if (menuToggle) menuToggle.style.display = "none";
     if (appContent) appContent.style.marginLeft = "280px";
-    if (sidebar) sidebar.classList.remove("open");
+    if (sidebar) {
+      sidebar.classList.remove("open");
+      document.body.style.overflow = "";
+    }
   } else {
     // Mobile mode
     if (menuToggle) menuToggle.style.display = "flex";
@@ -189,7 +242,18 @@ function attachEventListeners() {
     el.removeEventListener('click', el._navListener);
     el._navListener = (e) => {
       const page = el.getAttribute("data-page");
-      if (page) showPage(page);
+      if (page) {
+        showPage(page);
+        // Tutup sidebar di mobile setelah navigasi
+        if (window.innerWidth <= 768) {
+          const sidebar = document.getElementById("app-sidebar");
+          if (sidebar) {
+            sidebar.classList.remove("open");
+            isSidebarOpen = false;
+            document.body.style.overflow = "";
+          }
+        }
+      }
       
       // Animation feedback
       e.currentTarget.style.transform = 'scale(0.98)';
@@ -267,16 +331,6 @@ function showPage(pageId) {
   document.querySelectorAll(`[data-page="${pageId}"]`).forEach(el => {
     el.classList.add("active");
   });
-  
-  // Close sidebar on mobile after navigation
-  if (window.innerWidth <= 768) {
-    const sidebar = document.getElementById("app-sidebar");
-    if (sidebar) {
-      sidebar.classList.remove("open");
-      isSidebarOpen = false;
-      document.body.style.overflow = "";
-    }
-  }
   
   // Initialize page-specific content
   if (pageId === "moment") {
@@ -452,6 +506,36 @@ function injectToastContainer() {
   }
 }
 
+// ============ SIDEBAR TOGGLE (DESKTOP COLLAPSE) ============
+function toggleSidebarCollapse() {
+  const sidebar = document.getElementById("app-sidebar");
+  if (!sidebar) return;
+  
+  // Only for desktop
+  if (window.innerWidth > 768) {
+    sidebar.classList.toggle("collapsed");
+    const isCollapsed = sidebar.classList.contains("collapsed");
+    localStorage.setItem("sidebarCollapsed", isCollapsed);
+    
+    const appContent = document.getElementById("app-content");
+    if (appContent) {
+      appContent.style.marginLeft = isCollapsed ? "80px" : "280px";
+    }
+  }
+}
+
+// ============ LOAD SIDEBAR STATE ============
+function loadSidebarState() {
+  const savedState = localStorage.getItem("sidebarCollapsed");
+  const sidebar = document.getElementById("app-sidebar");
+  const appContent = document.getElementById("app-content");
+  
+  if (savedState === "true" && sidebar && window.innerWidth > 768) {
+    sidebar.classList.add("collapsed");
+    if (appContent) appContent.style.marginLeft = "80px";
+  }
+}
+
 // ============ INITIALIZE APP ============
 async function init() {
   console.log("🚀 Initializing Growthogether App...");
@@ -459,6 +543,7 @@ async function init() {
   await loadComponents();
   checkAuth();
   initFirebaseListener();
+  loadSidebarState();
   console.log("✅ App initialized successfully");
 }
 
@@ -473,6 +558,7 @@ window.openChangePasswordFromProfile = openChangePasswordFromProfile;
 window.handleProfilePhotoUpload = handleProfilePhotoUpload;
 window.updateStatus = updateStatus;
 window.forceRefreshProfile = forceRefreshProfile;
+window.toggleSidebarCollapse = toggleSidebarCollapse;
 
 // Moment functions
 window.renderCalendar = renderCalendar;
