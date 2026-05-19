@@ -1,23 +1,30 @@
 <!-- MODAL GANTI PASSWORD -->
 <div class="modal fade" id="passModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4">
-      <div class="modal-header border-0 bg-gradient bg-primary text-white py-3">
+    <div class="modal-content rounded-4 overflow-hidden">
+      <div class="modal-header border-0 bg-gradient bg-primary text-white py-3" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
         <h5 class="fw-bold mb-0">
-          <i class="bi bi-lock me-2"></i>Ganti Password
+          <i class="bi bi-lock-fill me-2"></i>Ganti Password
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-4">
+        <div class="text-center mb-3">
+          <i class="bi bi-key-fill fs-1 text-primary" style="filter: drop-shadow(0 4px 6px rgba(99, 102, 241, 0.3));"></i>
+        </div>
         <div class="mb-3">
-          <label class="form-label fw-semibold">Password Baru</label>
+          <label class="form-label fw-semibold">
+            <i class="bi bi-lock me-1"></i>Password Baru
+          </label>
           <input type="password" id="newPass" class="form-control rounded-3" placeholder="Minimal 4 karakter">
         </div>
         <div class="mb-3">
-          <label class="form-label fw-semibold">Konfirmasi Password</label>
+          <label class="form-label fw-semibold">
+            <i class="bi bi-check-circle me-1"></i>Konfirmasi Password
+          </label>
           <input type="password" id="confirmPass" class="form-control rounded-3" placeholder="Ketik ulang password baru">
         </div>
-        <button onclick="window.updateCloudPassword()" class="btn btn-primary w-100 rounded-pill py-2">
+        <button onclick="window.updateCloudPassword()" class="btn btn-primary w-100 rounded-pill py-2 fw-bold">
           <i class="bi bi-save me-2"></i>Update Password
         </button>
       </div>
@@ -25,36 +32,85 @@
   </div>
 </div>
 
-<!-- MODAL LUPA PASSWORD -->
-<div class="modal fade" id="forgotPassModal" tabindex="-1" data-bs-backdrop="static">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4">
-      <div class="modal-header border-0 bg-gradient bg-warning text-dark py-3">
-        <h5 class="fw-bold mb-0">
-          <i class="bi bi-question-circle me-2"></i>Lupa Password
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- MODAL LUPA PASSWORD - PREMIUM VERSION -->
+<div class="modal fade" id="forgotPassModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content rounded-4 overflow-hidden shadow-lg">
+      
+      <!-- Header dengan gradient animasi -->
+      <div class="modal-header border-0 py-4" style="background: linear-gradient(135deg, #f59e0b, #d97706, #f59e0b); background-size: 200% 200%; animation: gradientShift 3s ease infinite;">
+        <div class="d-flex align-items-center gap-3">
+          <div class="floating-icon">
+            <i class="bi bi-question-circle-fill text-white fs-1"></i>
+          </div>
+          <div>
+            <h5 class="fw-bold mb-0 text-white">Lupa Password?</h5>
+            <p class="text-white-50 small mb-0">Tenang, kita reset yuk!</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
+      
       <div class="modal-body p-4">
-        <p class="text-muted mb-3">Pilih akun yang ingin direset passwordnya ke default:</p>
-        
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Pilih Akun</label>
-          <select id="resetUserSelect" class="form-select rounded-3">
-            <option value="FACHMI">✨ Fachmi</option>
-            <option value="AZIZAH">🌸 Azizah</option>
-          </select>
+        <!-- Animasi Avatar User -->
+        <div class="text-center mb-4">
+          <div class="user-avatar-preview d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 50%; font-size: 40px;">
+            ✨
+          </div>
         </div>
         
-        <div class="alert alert-info small rounded-3">
-          <i class="bi bi-info-circle me-1"></i>
-          Password akan direset ke:
-          <strong id="defaultPassHint">gokil223</strong>
+        <p class="text-muted mb-4 text-center">
+          <i class="bi bi-info-circle-fill me-1"></i>
+          Pilih akun yang ingin direset passwordnya
+        </p>
+        
+        <!-- Select User Card -->
+        <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #fef9e7, #fff);">
+          <div class="card-body p-3">
+            <label class="form-label fw-semibold d-flex align-items-center gap-2">
+              <i class="bi bi-person-circle text-warning"></i>
+              Pilih Akun
+            </label>
+            <select id="resetUserSelect" class="form-select rounded-3 border-2 border-warning" style="transition: all 0.2s;" onchange="window.updatePasswordHint()">
+              <option value="FACHMI">✨ Fachmi</option>
+              <option value="AZIZAH">🌸 Azizah</option>
+            </select>
+          </div>
         </div>
         
-        <button onclick="window.resetPassword()" class="btn btn-warning w-100 rounded-pill py-2">
-          <i class="bi bi-arrow-repeat me-2"></i>Reset Password
+        <!-- Password Hint Card -->
+        <div class="alert p-3 rounded-3 mb-4" style="background: linear-gradient(135deg, #e0f2fe, #bae6fd); border: none;">
+          <div class="d-flex align-items-center gap-3">
+            <div class="flex-shrink-0">
+              <i class="bi bi-shield-lock-fill fs-2 text-primary"></i>
+            </div>
+            <div class="flex-grow-1">
+              <small class="text-muted d-block">Password akan direset ke:</small>
+              <strong id="defaultPassHint" class="fs-3 text-primary" style="letter-spacing: 2px;">gokil223</strong>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Tombol Reset dengan efek ripple -->
+        <button onclick="window.resetPassword()" class="btn-reset-action btn btn-warning w-100 rounded-pill py-3 fw-bold position-relative overflow-hidden" style="background: linear-gradient(135deg, #f59e0b, #d97706); transition: all 0.3s;">
+          <i class="bi bi-arrow-repeat me-2"></i>
+          Reset Password Sekarang
+          <span class="ripple-effect"></span>
         </button>
+        
+        <!-- Info tambahan -->
+        <div class="text-center mt-4">
+          <small class="text-muted">
+            <i class="bi bi-chat-heart-fill text-danger me-1"></i>
+            Setelah reset, kamu bisa login dengan password di atas
+          </small>
+        </div>
+      </div>
+      
+      <div class="modal-footer border-0 bg-light py-3">
+        <small class="text-muted mx-auto">
+          <i class="bi bi-shield-check me-1"></i> Data aman, hanya kamu berdua yang bisa akses
+        </small>
       </div>
     </div>
   </div>
