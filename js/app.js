@@ -1,9 +1,9 @@
 // js/app.js - Main Application
 import { db, ref, onValue, set } from './firebase-config.js';
 import { masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser } from './utils.js';
-import { handleLogin, confirmLogout, handleLogout } from './auth.js';
+import { handleLogin, updateCloudPassword, resetPassword, confirmLogout, handleLogout } from './auth.js';
 import { renderDashboard } from './dashboard.js';
-import { renderCalendar, renderMomentsList, saveMoment, viewMomentDetail, deleteMomentFromDetail, changeMonth, selectMomentDate, openMomentModal, handleMultiplePhotos, removePhotoAtIndex } from './moment.js';
+import { renderCalendar, renderMomentsList, saveMoment, viewMomentDetail, deleteMomentFromDetail, changeMonth, selectMomentDate, openMomentModal, handleMultiplePhotos, removePhotoAtIndex, editMomentFromDetail } from './moment.js';
 
 let firebaseListener = null;
 
@@ -142,3 +142,5 @@ window.setupAppSession = setupAppSession;
 window.showPage = showPage;
 window.renderDashboard = renderDashboard;
 window.togglePrivacy = togglePrivacy;
+window.updateCloudPassword = updateCloudPassword;
+window.resetPassword = resetPassword;
