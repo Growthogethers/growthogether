@@ -1,5 +1,4 @@
 <div class="sidebar" id="app-sidebar">
-  <!-- Header - Centered -->
   <div class="sidebar-header text-center mb-4">
     <div class="d-flex flex-column align-items-center">
       <div class="logo-wrapper mb-2">
@@ -10,10 +9,13 @@
     </div>
   </div>
 
-  <!-- PROFILE SECTION -->
+  <button class="mobile-close-btn" id="closeSidebarBtn">
+    <i class="bi bi-x-lg"></i>
+  </button>
+
   <div class="profile-section text-center mb-4" id="profileTrigger" style="cursor: pointer;">
     <div class="position-relative d-inline-block">
-      <div class="profile-avatar-wrapper" id="profileAvatarWrapper">
+      <div class="profile-avatar-wrapper">
         <img id="profileAvatar" class="profile-avatar" src="https://ui-avatars.com/api/?background=6366f1&color=fff&bold=true&name=User" alt="Profile">
         <div class="profile-status" id="profileStatus">
           <i class="bi bi-calendar-check-fill"></i>
@@ -27,7 +29,6 @@
     <small class="text-muted status-text" id="profileStatusText">sedang merencanakan</small>
   </div>
 
-  <!-- Navigation Menu with Hover Effect -->
   <nav class="nav flex-column">
     <a class="nav-link" data-page="dashboard">
       <i class="bi bi-speedometer2 me-3"></i>
@@ -37,9 +38,24 @@
       <i class="bi bi-calendar-heart me-3"></i>
       <span class="nav-text">Moment</span>
     </a>
+    <a class="nav-link" data-page="keuangan">
+      <i class="bi bi-wallet2 me-3"></i>
+      <span class="nav-text">Keuangan</span>
+    </a>
+    <a class="nav-link" data-page="catatan">
+      <i class="bi bi-journal-bookmark-fill me-3"></i>
+      <span class="nav-text">Catatan</span>
+    </a>
+    <a class="nav-link" data-page="impian">
+      <i class="bi bi-stars me-3"></i>
+      <span class="nav-text">Impian</span>
+    </a>
+    <a class="nav-link" data-page="pengingat">
+      <i class="bi bi-bell-fill me-3"></i>
+      <span class="nav-text">Pengingat</span>
+    </a>
   </nav>
 
-  <!-- Bottom Section -->
   <div class="mt-auto pt-4">
     <div class="d-grid gap-2">
       <button class="btn btn-sm btn-outline-danger" onclick="confirmLogout()">
