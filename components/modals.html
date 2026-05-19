@@ -1,3 +1,65 @@
+<!-- MODAL GANTI PASSWORD -->
+<div class="modal fade" id="passModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4">
+      <div class="modal-header border-0 bg-gradient bg-primary text-white py-3">
+        <h5 class="fw-bold mb-0">
+          <i class="bi bi-lock me-2"></i>Ganti Password
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Password Baru</label>
+          <input type="password" id="newPass" class="form-control rounded-3" placeholder="Minimal 4 karakter">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Konfirmasi Password</label>
+          <input type="password" id="confirmPass" class="form-control rounded-3" placeholder="Ketik ulang password baru">
+        </div>
+        <button onclick="window.updateCloudPassword()" class="btn btn-primary w-100 rounded-pill py-2">
+          <i class="bi bi-save me-2"></i>Update Password
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LUPA PASSWORD -->
+<div class="modal fade" id="forgotPassModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4">
+      <div class="modal-header border-0 bg-gradient bg-warning text-dark py-3">
+        <h5 class="fw-bold mb-0">
+          <i class="bi bi-question-circle me-2"></i>Lupa Password
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <p class="text-muted mb-3">Pilih akun yang ingin direset passwordnya ke default:</p>
+        
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Pilih Akun</label>
+          <select id="resetUserSelect" class="form-select rounded-3">
+            <option value="FACHMI">✨ Fachmi</option>
+            <option value="AZIZAH">🌸 Azizah</option>
+          </select>
+        </div>
+        
+        <div class="alert alert-info small rounded-3">
+          <i class="bi bi-info-circle me-1"></i>
+          Password akan direset ke:
+          <strong id="defaultPassHint">gokil223</strong> (untuk Fachmi) atau <strong>1234</strong> (untuk Azizah)
+        </div>
+        
+        <button onclick="window.resetPassword()" class="btn btn-warning w-100 rounded-pill py-2">
+          <i class="bi bi-arrow-repeat me-2"></i>Reset Password
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL KONFIRMASI LOGOUT -->
 <div class="modal fade" id="confirmLogoutModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
