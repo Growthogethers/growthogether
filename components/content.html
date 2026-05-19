@@ -10,13 +10,27 @@
   </div>
 
   <!-- Ringkasan Hubungan -->
-  <div class="row g-3 mb-4" id="relationshipSummary">
-    <!-- Akan diisi JS -->
+  <div class="row g-3 mb-4" id="relationshipSummary"></div>
+
+  <!-- Ringkasan Keuangan Per User -->
+  <div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="fw-bold mb-0"><i class="bi bi-graph-up me-2 text-success"></i>Ringkasan Keuangan</h5>
+      <button class="btn btn-sm btn-outline-success rounded-pill" onclick="window.location.href='#keuangan-page'; showPage('keuangan')">
+        <i class="bi bi-arrow-right me-1"></i> Detail
+      </button>
+    </div>
+    <div id="keuanganSummary"></div>
   </div>
 
   <!-- Preview Recent Moments -->
   <div class="card p-3 mb-4">
-    <h5 class="fw-bold mb-3"><i class="bi bi-clock-history me-2"></i>Momen Terbaru</h5>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="fw-bold mb-0"><i class="bi bi-clock-history me-2"></i>Momen Terbaru</h5>
+      <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="window.location.href='#moment-page'; showPage('moment')">
+        <i class="bi bi-arrow-right me-1"></i> Lihat Semua
+      </button>
+    </div>
     <div class="row g-3" id="recentMomentsPreview"></div>
   </div>
 </section>
@@ -27,6 +41,9 @@
     <h3 class="fw-bold">
       <i class="bi bi-calendar-heart-fill me-2 text-danger"></i>Momen Spesial Kita
     </h3>
+    <button class="btn btn-danger btn-sm rounded-pill" onclick="openMomentModal(null)">
+      <i class="bi bi-plus-lg me-1"></i> Tambah Momen
+    </button>
   </div>
 
   <div class="card p-3 p-md-4 mb-4 border-0 shadow-sm">
@@ -55,7 +72,7 @@
 <!-- KEUANGAN PAGE -->
 <section id="keuangan-page" style="display: none">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3 class="fw-bold"><i class="bi bi-wallet2 me-2 text-success"></i>Keuangan Bersama</h3>
+    <h3 class="fw-bold"><i class="bi bi-wallet2 me-2 text-success"></i><span id="keuanganUserName">Keuangan Saya</span></h3>
     <button class="btn btn-success btn-sm rounded-pill" onclick="openTransaksiModal()">
       <i class="bi bi-plus-lg me-1"></i> Tambah
     </button>
@@ -63,7 +80,7 @@
 
   <!-- Saldo Card -->
   <div class="card bg-gradient-success text-white mb-4 p-3" style="background: linear-gradient(135deg, #10b981, #059669);">
-    <small class="opacity-75">Total Saldo</small>
+    <small class="opacity-75">Total Saldo Saya</small>
     <h2 class="fw-bold mb-0" id="totalSaldo">Rp 0</h2>
     <small id="saldoDetail" class="opacity-75">Pemasukan - Pengeluaran</small>
   </div>
@@ -89,7 +106,7 @@
   <!-- Target Tabungan -->
   <div class="card p-3 mb-4">
     <div class="d-flex justify-content-between align-items-center mb-2">
-      <h6 class="fw-bold mb-0"><i class="bi bi-piggy-bank me-2"></i>Target Tabungan</h6>
+      <h6 class="fw-bold mb-0"><i class="bi bi-piggy-bank me-2"></i>Target Tabungan Saya</h6>
       <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="setTargetTabungan()">Atur Target</button>
     </div>
     <div class="progress mb-2" style="height: 10px;">
@@ -149,17 +166,6 @@
     <button class="btn btn-danger btn-sm rounded-pill" onclick="openPengingatModal()">
       <i class="bi bi-plus-lg me-1"></i> Tambah
     </button>
-  </div>
-
-  <!-- Ulang Tahun Input -->
-  <div class="card p-3 mb-4">
-    <div class="d-flex justify-content-between align-items-center">
-      <div>
-        <i class="bi bi-gift-fill text-pink me-2"></i>
-        <span class="fw-bold">Ulang Tahun Partner</span>
-      </div>
-      <input type="date" id="birthdayInput" class="form-control form-control-sm w-auto" onchange="saveBirthday()">
-    </div>
   </div>
 
   <!-- Daftar Pengingat -->
