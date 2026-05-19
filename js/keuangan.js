@@ -1,10 +1,11 @@
-// js/keuangan.js
+// js/keuangan.js - Per User & Fix Update (tidak double data)
 import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
-import { showNotif, formatNumberRp, masterData } from './utils.js';
+import { showNotif, formatNumberRp, escapeHtml } from './utils.js';
 
 let currentUser = null;
 let transaksiList = [];
 let targetTabungan = 0;
+let editTransaksiId = null;
 
 export function initKeuangan() {
   currentUser = sessionStorage.getItem("progrowth_user");
@@ -24,7 +25,7 @@ async function loadTargetTabungan() {
   }
 }
 
-async function loadTransaksi() {
+function loadTransaksi() {
   onValue(ref(db, `data/keuangan/${currentUser}/transaksi`), (snapshot) => {
     const data = snapshot.val() || {};
     transaksiList = Object.entries(data).map(([id, val]) => ({ id, ...val }));
@@ -38,17 +39,24 @@ function updateRingkasan() {
   const pengeluaran = transaksiList.filter(t => t.tipe === 'pengeluaran').reduce((sum, t) => sum + (t.nominal || 0), 0);
   const saldo = pemasukan - pengeluaran;
   
-  document.getElementById('totalSaldo').innerHTML = formatNumberRp(saldo);
-  document.getElementById('totalPemasukan').innerHTML = formatNumberRp(pemasukan);
-  document.getElementById('totalPengeluaran').innerHTML = formatNumberRp(pengeluaran);
-  document.getElementById('terkumpul').innerHTML = formatNumberRp(saldo);
+  const totalSaldoEl = document.getElementById('totalSaldo');
+  const totalPemasukanEl = document.getElementById('totalPemasukan');
+  const totalPengeluaranEl = document.getElementById('totalPengeluaran');
+  const terkumpulEl = document.getElementById('terkumpul');
+  const targetProgressEl = document.getElementById('targetProgress');
+  
+  if (totalSaldoEl) totalSaldoEl.innerHTML = formatNumberRp(saldo);
+  if (totalPemasukanEl) totalPemasukanEl.innerHTML = formatNumberRp(pemasukan);
+  if (totalPengeluaranEl) totalPengeluaranEl.innerHTML = formatNumberRp(pengeluaran);
+  if (terkumpulEl) terkumpulEl.innerHTML = formatNumberRp(saldo);
   
   const percent = targetTabungan > 0 ? (saldo / targetTabungan) * 100 : 0;
-  document.getElementById('targetProgress').style.width = `${Math.min(percent, 100)}%`;
+  if (targetProgressEl) targetProgressEl.style.width = `${Math.min(percent, 100)}%`;
 }
 
 function updateTargetUI() {
-  document.getElementById('targetAmount').innerHTML = `Target: ${formatNumberRp(targetTabungan)}`;
+  const targetAmountEl = document.getElementById('targetAmount');
+  if (targetAmountEl) targetAmountEl.innerHTML = `Target: ${formatNumberRp(targetTabungan)}`;
 }
 
 function renderTransaksi() {
@@ -65,26 +73,34 @@ function renderTransaksi() {
       <div>
         <span class="fw-medium">${escapeHtml(t.kategori)}</span>
         <small class="d-block text-muted">${new Date(t.tanggal).toLocaleDateString('id-ID')}</small>
+        ${t.catatan ? `<small class="d-block text-muted">${escapeHtml(t.catatan)}</small>` : ''}
       </div>
       <div class="text-end">
         <span class="fw-bold ${t.tipe === 'pemasukan' ? 'text-success' : 'text-danger'}">
           ${t.tipe === 'pemasukan' ? '+' : '-'} ${formatNumberRp(t.nominal)}
         </span>
-        <button class="btn-icon ms-2" onclick="deleteTransaksi('${t.id}')">
-          <i class="bi bi-trash3"></i>
-        </button>
+        <div class="mt-1">
+          <button class="btn-icon btn-sm" onclick="editTransaksi('${t.id}')">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button class="btn-icon btn-sm" onclick="deleteTransaksi('${t.id}')">
+            <i class="bi bi-trash3"></i>
+          </button>
+        </div>
       </div>
     </div>
   `).join('');
 }
 
-window.openTransaksiModal = function() {
+window.openTransaksiModal = function(editId = null) {
+  editTransaksiId = editId;
+  
   const modalHtml = `
     <div class="modal fade" id="transaksiModal" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content rounded-4">
           <div class="modal-header border-0">
-            <h5 class="fw-bold">Tambah Transaksi</h5>
+            <h5 class="fw-bold">${editId ? 'Edit Transaksi' : 'Tambah Transaksi'}</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body modal-form">
@@ -103,6 +119,7 @@ window.openTransaksiModal = function() {
                 <option value="Belanja">🛍️ Belanja</option>
                 <option value="Tabungan">🏦 Tabungan</option>
                 <option value="Hiburan">🎬 Hiburan</option>
+                <option value="Kesehatan">🏥 Kesehatan</option>
                 <option value="Lainnya">📝 Lainnya</option>
               </select>
             </div>
@@ -134,9 +151,26 @@ window.openTransaksiModal = function() {
     modal = document.getElementById('transaksiModal');
   }
   
+  // If edit, load data
+  if (editId) {
+    loadTransaksiData(editId);
+  }
+  
   const bsModal = new bootstrap.Modal(modal);
   bsModal.show();
 };
+
+async function loadTransaksiData(id) {
+  const snapshot = await get(ref(db, `data/keuangan/${currentUser}/transaksi/${id}`));
+  const data = snapshot.val();
+  if (data) {
+    document.getElementById('transaksiTipe').value = data.tipe || 'pemasukan';
+    document.getElementById('transaksiKategori').value = data.kategori || 'Lainnya';
+    document.getElementById('transaksiNominal').value = data.nominal || '';
+    document.getElementById('transaksiTanggal').value = data.tanggal ? new Date(data.tanggal).toISOString().split('T')[0] : '';
+    document.getElementById('transaksiCatatan').value = data.catatan || '';
+  }
+}
 
 window.saveTransaksi = async function() {
   const tipe = document.getElementById('transaksiTipe').value;
@@ -153,13 +187,28 @@ window.saveTransaksi = async function() {
   const currentUser = sessionStorage.getItem("progrowth_user");
   if (!currentUser) return;
   
-  await push(ref(db, `data/keuangan/${currentUser}/transaksi`), {
-    tipe, kategori, nominal, tanggal: new Date(tanggal).getTime(), catatan, createdAt: Date.now()
-  });
+  const transaksiData = {
+    tipe, kategori, nominal, tanggal: new Date(tanggal).getTime(), catatan, updatedAt: Date.now()
+  };
   
-  showNotif("Transaksi berhasil disimpan", false, 'success');
+  if (editTransaksiId) {
+    // UPDATE existing data
+    await update(ref(db, `data/keuangan/${currentUser}/transaksi/${editTransaksiId}`), transaksiData);
+    showNotif("Transaksi berhasil diupdate", false, 'success');
+    editTransaksiId = null;
+  } else {
+    // CREATE new data
+    transaksiData.createdAt = Date.now();
+    await push(ref(db, `data/keuangan/${currentUser}/transaksi`), transaksiData);
+    showNotif("Transaksi berhasil ditambahkan", false, 'success');
+  }
+  
   const modal = bootstrap.Modal.getInstance(document.getElementById('transaksiModal'));
   if (modal) modal.hide();
+};
+
+window.editTransaksi = function(id) {
+  openTransaksiModal(id);
 };
 
 window.deleteTransaksi = async function(id) {
@@ -179,6 +228,7 @@ window.setTargetTabungan = function() {
           </div>
           <div class="modal-body">
             <input type="number" id="targetInput" class="form-control" placeholder="Masukkan target" value="${targetTabungan}">
+            <small class="text-muted">Target tabungan untuk pernikahan / bersama</small>
           </div>
           <div class="modal-footer border-0">
             <button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Batal</button>
@@ -215,3 +265,4 @@ window.saveTarget = async function() {
 };
 
 window.initKeuangan = initKeuangan;
+window.editTransaksi = editTransaksi;
