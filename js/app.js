@@ -167,64 +167,6 @@ function handleNavigation(e) {
   }
 }
 
-function handleForgotPasswordClick(e) {
-  const forgotLink = e.target.closest('#forgotPasswordLink');
-  
-  if (forgotLink) {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    console.log("Lupa password link clicked - with premium animation");
-    
-    // Animate the link
-    forgotLink.style.transition = 'all 0.2s';
-    forgotLink.style.transform = 'scale(0.95)';
-    forgotLink.style.opacity = '0.7';
-    
-    setTimeout(() => {
-      if (forgotLink) {
-        forgotLink.style.transform = '';
-        forgotLink.style.opacity = '';
-      }
-    }, 150);
-    
-    // Create ripple effect on click position
-    const rect = forgotLink.getBoundingClientRect();
-    const ripple = document.createElement('span');
-    ripple.style.position = 'fixed';
-    ripple.style.left = rect.left + rect.width / 2 + 'px';
-    ripple.style.top = rect.top + rect.height / 2 + 'px';
-    ripple.style.width = '10px';
-    ripple.style.height = '10px';
-    ripple.style.borderRadius = '50%';
-    ripple.style.backgroundColor = '#f59e0b';
-    ripple.style.transform = 'scale(0)';
-    ripple.style.transition = 'transform 0.4s ease-out';
-    ripple.style.pointerEvents = 'none';
-    ripple.style.zIndex = '9999';
-    document.body.appendChild(ripple);
-    
-    setTimeout(() => {
-      ripple.style.transform = 'scale(50)';
-      ripple.style.opacity = '0';
-    }, 10);
-    
-    setTimeout(() => {
-      ripple.remove();
-    }, 500);
-    
-    // Open modal with premium animation
-    if (typeof window.openForgotPasswordModal === 'function') {
-      window.openForgotPasswordModal();
-    } else if (typeof openForgotPasswordModal === 'function') {
-      openForgotPasswordModal();
-    } else {
-      console.error("Fungsi openForgotPasswordModal tidak ditemukan");
-      showNotif("❌ Terjadi kesalahan, refresh halaman", true);
-    }
-  }
-}
-
 // ============ SHOW PAGE FUNCTION ============
 function showPage(pageId) {
   console.log("Showing page:", pageId);
