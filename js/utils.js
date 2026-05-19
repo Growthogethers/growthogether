@@ -1,9 +1,9 @@
-// js/utils.js
+// js/utils.js - Full Optimized Version
 export let currentUser = null;
 export let masterData = null;
 export let privacyHidden = false;
 
-// Toast
+// Toast queue
 let toastQueue = [];
 let isToastShowing = false;
 
@@ -50,16 +50,37 @@ export function formatNumberRp(val) {
 
 export function escapeHtml(str) { 
   if (!str) return ""; 
-  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
 export function togglePrivacy() { 
   privacyHidden = !privacyHidden; 
   showNotif(privacyHidden ? "🔒 Angka disembunyikan" : "👁️ Angka ditampilkan"); 
+  if (window.renderDashboard) window.renderDashboard();
 }
 
 export function setCurrentUser(user) { currentUser = user; }
 export function setMasterData(data) { masterData = data; window.masterData = data; }
+
+export function formatDateShort(dateStr) {
+  if (!dateStr) return '-';
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    return `${parts[2]} ${monthNames[parseInt(parts[1]) - 1]} ${parts[0]}`;
+  }
+  return dateStr;
+}
+
+export function formatDateLong(dateStr) {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    return `${parts[2]} ${monthNames[parseInt(parts[1]) - 1]} ${parts[0]}`;
+  }
+  return dateStr;
+}
 
 // Compress image
 export async function compressImage(file, maxSizeMB = 2) {
@@ -106,3 +127,5 @@ window.showNotif = showNotif;
 window.hideToast = hideToast;
 window.formatNumberRp = formatNumberRp;
 window.togglePrivacy = togglePrivacy;
+window.formatDateShort = formatDateShort;
+window.formatDateLong = formatDateLong;
