@@ -1,4 +1,4 @@
-// js/catatan.js - User Friendly dengan Progress yang Jelas
+// js/catatan.js - Dengan Modal Besar
 import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
 import { showNotif, escapeHtml } from './utils.js';
 
@@ -68,7 +68,6 @@ async function loadKategori() {
   if (saved && Object.keys(saved).length > 0) {
     kategoriList = Object.entries(saved).map(([id, val]) => ({ id, ...val }));
   } else {
-    // Initialize default kategori
     for (const kat of defaultKategori) {
       const newRef = push(ref(db, `data/catatan/${currentUser}/kategori`));
       const kategoriId = newRef.key;
@@ -193,20 +192,20 @@ window.openKategoriModal = function(editId = null) {
   
   const modalHtml = `
     <div class="modal fade" id="kategoriModal" tabindex="-1">
-      <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content rounded-4">
-          <div class="modal-header border-0">
-            <h5 class="fw-bold">${editId ? 'Edit Kategori' : 'Tambah Kategori'}</h5>
+      <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content rounded-4" style="max-width: 500px;">
+          <div class="modal-header border-0 bg-warning text-dark py-3">
+            <h5 class="fw-bold mb-0">${editId ? '✏️ Edit Kategori' : '📁 Tambah Kategori'}</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
-          <div class="modal-body modal-form">
+          <div class="modal-body modal-form p-4">
             <div class="mb-3">
-              <label>Nama Kategori</label>
-              <input type="text" id="kategoriNama" class="form-control" placeholder="Contoh: Dokumentasi">
+              <label class="fw-semibold mb-2">Nama Kategori</label>
+              <input type="text" id="kategoriNama" class="form-control form-control-lg rounded-3" placeholder="Contoh: Dokumentasi Pernikahan">
             </div>
             <div class="mb-3">
-              <label>Icon</label>
-              <select id="kategoriIcon" class="form-select">
+              <label class="fw-semibold mb-2">Icon</label>
+              <select id="kategoriIcon" class="form-select form-select-lg rounded-3">
                 <option value="bi-files">📋 Dokumen</option>
                 <option value="bi-building">🏛️ Venue</option>
                 <option value="bi-person-standing">👗 Busana</option>
@@ -220,9 +219,9 @@ window.openKategoriModal = function(editId = null) {
               </select>
             </div>
           </div>
-          <div class="modal-footer border-0">
-            <button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Batal</button>
-            <button class="btn btn-warning rounded-pill" onclick="saveKategori()">Simpan</button>
+          <div class="modal-footer border-0 pb-4 px-4">
+            <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+            <button class="btn btn-warning rounded-pill px-4" onclick="saveKategori()">Simpan Kategori</button>
           </div>
         </div>
       </div>
@@ -280,10 +279,12 @@ window.editKategori = function(id) {
 };
 
 window.deleteKategori = async function(id) {
-  await remove(ref(db, `data/catatan/${currentUser}/kategori/${id}`));
-  await remove(ref(db, `data/catatan/${currentUser}/items/${id}`));
-  showNotif("Kategori dihapus", false, 'warning');
-  await loadKategori();
+  if (confirm("Yakin ingin menghapus kategori ini? Semua item di dalamnya juga akan terhapus.")) {
+    await remove(ref(db, `data/catatan/${currentUser}/kategori/${id}`));
+    await remove(ref(db, `data/catatan/${currentUser}/items/${id}`));
+    showNotif("Kategori dihapus", false, 'warning');
+    await loadKategori();
+  }
 };
 
 window.toggleItem = async function(kategoriId, itemId, selesai) {
@@ -297,18 +298,18 @@ window.addItemToKategori = function(kategoriId) {
   
   const modalHtml = `
     <div class="modal fade" id="itemModal" tabindex="-1">
-      <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content rounded-4">
-          <div class="modal-header border-0">
-            <h5 class="fw-bold">Tambah Item</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content rounded-4" style="max-width: 500px;">
+          <div class="modal-header border-0 bg-primary text-white">
+            <h5 class="fw-bold mb-0">📝 Tambah Item Baru</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
-          <div class="modal-body">
-            <input type="text" id="itemNama" class="form-control" placeholder="Nama item">
+          <div class="modal-body p-4">
+            <input type="text" id="itemNama" class="form-control form-control-lg rounded-3" placeholder="Nama item / tugas">
           </div>
-          <div class="modal-footer border-0">
-            <button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Batal</button>
-            <button class="btn btn-primary rounded-pill" onclick="saveItem()">Simpan</button>
+          <div class="modal-footer border-0 pb-4 px-4">
+            <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+            <button class="btn btn-primary rounded-pill px-4" onclick="saveItem()">Simpan Item</button>
           </div>
         </div>
       </div>
@@ -331,18 +332,18 @@ window.editItem = function(kategoriId, itemId) {
   
   const modalHtml = `
     <div class="modal fade" id="itemModal" tabindex="-1">
-      <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content rounded-4">
-          <div class="modal-header border-0">
-            <h5 class="fw-bold">Edit Item</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content rounded-4" style="max-width: 500px;">
+          <div class="modal-header border-0 bg-primary text-white">
+            <h5 class="fw-bold mb-0">✏️ Edit Item</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
-          <div class="modal-body">
-            <input type="text" id="itemNama" class="form-control" placeholder="Nama item">
+          <div class="modal-body p-4">
+            <input type="text" id="itemNama" class="form-control form-control-lg rounded-3" placeholder="Nama item / tugas">
           </div>
-          <div class="modal-footer border-0">
-            <button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Batal</button>
-            <button class="btn btn-primary rounded-pill" onclick="saveItem()">Simpan</button>
+          <div class="modal-footer border-0 pb-4 px-4">
+            <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+            <button class="btn btn-primary rounded-pill px-4" onclick="saveItem()">Simpan Perubahan</button>
           </div>
         </div>
       </div>
@@ -391,10 +392,10 @@ window.saveItem = async function() {
 };
 
 window.deleteItem = async function(kategoriId, itemId) {
-  await remove(ref(db, `data/catatan/${currentUser}/items/${kategoriId}/${itemId}`));
-  showNotif("Item dihapus", false, 'warning');
+  if (confirm("Yakin ingin menghapus item ini?")) {
+    await remove(ref(db, `data/catatan/${currentUser}/items/${kategoriId}/${itemId}`));
+    showNotif("Item dihapus", false, 'warning');
+  }
 };
 
 window.initCatatan = initCatatan;
-window.editKategori = editKategori;
-window.editItem = editItem;
