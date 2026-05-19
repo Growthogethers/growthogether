@@ -559,6 +559,276 @@ body {
   .dark-mode-fab { bottom: 80px; }
 }
 
+/* ============ PROFILE SECTION STYLES ============ */
+
+/* Profile Avatar */
+.profile-avatar-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.profile-section:hover .profile-avatar {
+  transform: scale(1.05);
+  border-color: #8b5cf6;
+}
+
+/* Status Indicator */
+.profile-status {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--card-bg);
+}
+
+.profile-status i {
+  font-size: 12px;
+}
+
+.profile-status.status-merencanakan i { color: #f59e0b; }
+.profile-status.status-online i { color: #10b981; }
+.profile-status.status-sibuk i { color: #ef4444; }
+.profile-status.status-liburan i { color: #3b82f6; }
+
+/* Edit Profile Badge */
+.edit-profile-badge {
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  width: 28px;
+  height: 28px;
+  background: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  border: 2px solid var(--card-bg);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.profile-section:hover .edit-profile-badge {
+  opacity: 1;
+}
+
+/* Status Text */
+.status-text {
+  transition: all 0.3s ease;
+}
+
+.status-text.merencanakan { color: #f59e0b; }
+.status-text.online { color: #10b981; }
+.status-text.sibuk { color: #ef4444; }
+.status-text.liburan { color: #3b82f6; }
+
+/* Modal Profile Avatar */
+.profile-edit-avatar {
+  position: relative;
+}
+
+.change-photo-btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  background: var(--primary);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.change-photo-btn:hover {
+  transform: scale(1.1);
+  background: #8b5cf6;
+}
+
+/* Status Badge Options */
+.status-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.status-badge {
+  flex: 1;
+  min-width: 80px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-light);
+  background: var(--card-bg);
+  border-radius: 40px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.status-badge i {
+  margin-right: 4px;
+}
+
+.status-badge:hover {
+  border-color: var(--primary);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.status-badge.active {
+  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  border-color: transparent;
+  color: white;
+}
+
+.status-badge.active i {
+  color: white;
+}
+
+/* ============ RESPONSIVE STYLES ============ */
+
+/* Mobile Styles (max-width: 768px) */
+@media (max-width: 768px) {
+  /* Sidebar adjustments */
+  .sidebar {
+    width: 280px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 1050;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  
+  /* Close button in sidebar */
+  #closeSidebarBtn {
+    display: block !important;
+  }
+  
+  /* Profile section on mobile */
+  .profile-avatar {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .profile-section h6 {
+    font-size: 14px;
+  }
+  
+  .profile-section small {
+    font-size: 11px;
+  }
+  
+  /* Modal profile on mobile */
+  .modal-dialog {
+    margin: 16px;
+  }
+  
+  .modal-sm {
+    max-width: calc(100% - 32px);
+    margin: 16px auto;
+  }
+  
+  /* Status badges on mobile */
+  .status-badge {
+    font-size: 11px;
+    padding: 6px 10px;
+    min-width: 70px;
+  }
+  
+  /* Bottom nav spacing */
+  .bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+  
+  /* Dark mode FAB position */
+  .dark-mode-fab {
+    bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+    right: 16px;
+  }
+}
+
+/* Tablet Styles (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar {
+    width: 260px;
+  }
+  
+  .profile-avatar {
+    width: 75px;
+    height: 75px;
+  }
+}
+
+/* Desktop Styles (min-width: 1025px) */
+@media (min-width: 1025px) {
+  .sidebar {
+    transform: translateX(0) !important;
+  }
+  
+  #closeSidebarBtn {
+    display: none !important;
+  }
+  
+  .menu-toggle-hp {
+    display: none !important;
+  }
+}
+
+/* Safe area for notched phones */
+@supports (padding: max(0px)) {
+  .sidebar {
+    padding-top: max(1rem, env(safe-area-inset-top));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  
+  .bottom-nav {
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Animations */
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.profile-status.status-online i {
+  animation: statusPulse 2s ease-in-out infinite;
+}
+
+/* Object fit utility */
+.object-fit-cover {
+  object-fit: cover;
+}
+
 /* ============ DARK MODE OVERRIDES ============ */
 body.dark .calendar-day.has-moment { background: #064e3b; }
 body.dark .calendar-day.special-moment { background: #451a03; }
