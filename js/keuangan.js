@@ -1,10 +1,10 @@
-// js/keuangan.js - Real Time dengan Session User & Modal Besar
+// js/keuangan.js - Dengan Target Bersama (Shared Target)
 import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
 import { showNotif, formatNumberRp, escapeHtml } from './utils.js';
 
 let currentUser = null;
 let transaksiList = [];
-let targetTabungan = 0;
+let targetBersama = 0; // Target bersama untuk kedua user
 let editTransaksiId = null;
 
 export function initKeuangan() {
@@ -21,36 +21,45 @@ export function initKeuangan() {
     keuanganUserName.innerHTML = `Keuangan ${displayName}`;
   }
   
-  loadTargetTabungan();
-  loadAllTransaksi(); // Load semua transaksi dari semua user
+  loadTargetBersama();
+  loadAllTransaksi();
 }
 
 function loadAllTransaksi() {
-  // Load transaksi Fachmi
-  onValue(ref(db, `data/keuangan/FACHMI/transaksi`), (snapshot) => {
-    const data = snapshot.val() || {};
-    const fachmiList = Object.entries(data).map(([id, val]) => ({ 
-      id, ...val, userId: 'FACHMI', userName: 'Fachmi' 
-    }));
-    
-    // Load transaksi Azizah
-    onValue(ref(db, `data/keuangan/AZIZAH/transaksi`), (snapshot2) => {
-      const data2 = snapshot2.val() || {};
-      const azizahList = Object.entries(data2).map(([id, val]) => ({ 
+  // Load transaksi kedua user sekaligus
+  const fetchTransaksi = () => {
+    Promise.all([
+      get(ref(db, `data/keuangan/FACHMI/transaksi`)),
+      get(ref(db, `data/keuangan/AZIZAH/transaksi`))
+    ]).then(([fachmiSnap, azizahSnap]) => {
+      const fachmiData = fachmiSnap.val() || {};
+      const azizahData = azizahSnap.val() || {};
+      
+      const fachmiList = Object.entries(fachmiData).map(([id, val]) => ({ 
+        id, ...val, userId: 'FACHMI', userName: 'Fachmi' 
+      }));
+      
+      const azizahList = Object.entries(azizahData).map(([id, val]) => ({ 
         id, ...val, userId: 'AZIZAH', userName: 'Azizah' 
       }));
       
       transaksiList = [...fachmiList, ...azizahList];
       renderTransaksi();
       updateRingkasan();
-    }, { onlyOnce: true });
-  }, { onlyOnce: false });
+    });
+  };
+  
+  fetchTransaksi();
+  
+  // Setup realtime listener
+  onValue(ref(db, `data/keuangan/FACHMI/transaksi`), () => fetchTransaksi());
+  onValue(ref(db, `data/keuangan/AZIZAH/transaksi`), () => fetchTransaksi());
 }
 
-async function loadTargetTabungan() {
+async function loadTargetBersama() {
   try {
-    const snapshot = await get(ref(db, `data/keuangan/${currentUser}/target`));
-    targetTabungan = snapshot.val() || 0;
+    const snapshot = await get(ref(db, `data/keuangan/targetBersama`));
+    targetBersama = snapshot.val() || 0;
     updateTargetUI();
   } catch (err) {
     console.error("Error loading target:", err);
@@ -58,30 +67,50 @@ async function loadTargetTabungan() {
 }
 
 function updateRingkasan() {
-  // Ringkasan untuk user yang sedang login
+  // Hitung total saldo kedua user
+  const fachmiTransaksi = transaksiList.filter(t => t.userId === 'FACHMI');
+  const azizahTransaksi = transaksiList.filter(t => t.userId === 'AZIZAH');
+  
+  const fachmiPemasukan = fachmiTransaksi.filter(t => t.tipe === 'pemasukan').reduce((sum, t) => sum + (t.nominal || 0), 0);
+  const fachmiPengeluaran = fachmiTransaksi.filter(t => t.tipe === 'pengeluaran').reduce((sum, t) => sum + (t.nominal || 0), 0);
+  const azizahPemasukan = azizahTransaksi.filter(t => t.tipe === 'pemasukan').reduce((sum, t) => sum + (t.nominal || 0), 0);
+  const azizahPengeluaran = azizahTransaksi.filter(t => t.tipe === 'pengeluaran').reduce((sum, t) => sum + (t.nominal || 0), 0);
+  
+  const fachmiSaldo = fachmiPemasukan - fachmiPengeluaran;
+  const azizahSaldo = azizahPemasukan - azizahPengeluaran;
+  const totalSaldo = fachmiSaldo + azizahSaldo;
+  
+  // Untuk user yang sedang login, tampilkan saldo pribadi dan total bersama
   const userTransaksi = transaksiList.filter(t => t.userId === currentUser);
-  const pemasukan = userTransaksi.filter(t => t.tipe === 'pemasukan').reduce((sum, t) => sum + (t.nominal || 0), 0);
-  const pengeluaran = userTransaksi.filter(t => t.tipe === 'pengeluaran').reduce((sum, t) => sum + (t.nominal || 0), 0);
-  const saldo = pemasukan - pengeluaran;
+  const userPemasukan = userTransaksi.filter(t => t.tipe === 'pemasukan').reduce((sum, t) => sum + (t.nominal || 0), 0);
+  const userPengeluaran = userTransaksi.filter(t => t.tipe === 'pengeluaran').reduce((sum, t) => sum + (t.nominal || 0), 0);
+  const userSaldo = userPemasukan - userPengeluaran;
   
   const totalSaldoEl = document.getElementById('totalSaldo');
   const totalPemasukanEl = document.getElementById('totalPemasukan');
   const totalPengeluaranEl = document.getElementById('totalPengeluaran');
   const terkumpulEl = document.getElementById('terkumpul');
   const targetProgressEl = document.getElementById('targetProgress');
+  const saldoDetailEl = document.getElementById('saldoDetail');
   
-  if (totalSaldoEl) totalSaldoEl.innerHTML = formatNumberRp(saldo);
-  if (totalPemasukanEl) totalPemasukanEl.innerHTML = formatNumberRp(pemasukan);
-  if (totalPengeluaranEl) totalPengeluaranEl.innerHTML = formatNumberRp(pengeluaran);
-  if (terkumpulEl) terkumpulEl.innerHTML = formatNumberRp(saldo);
+  if (totalSaldoEl) totalSaldoEl.innerHTML = formatNumberRp(userSaldo);
+  if (totalPemasukanEl) totalPemasukanEl.innerHTML = formatNumberRp(userPemasukan);
+  if (totalPengeluaranEl) totalPengeluaranEl.innerHTML = formatNumberRp(userPengeluaran);
+  if (terkumpulEl) terkumpulEl.innerHTML = formatNumberRp(totalSaldo);
+  if (saldoDetailEl) saldoDetailEl.innerHTML = `Saldo Anda: ${formatNumberRp(userSaldo)} | Total bersama: ${formatNumberRp(totalSaldo)}`;
   
-  const percent = targetTabungan > 0 ? (saldo / targetTabungan) * 100 : 0;
+  const percent = targetBersama > 0 ? (totalSaldo / targetBersama) * 100 : 0;
   if (targetProgressEl) targetProgressEl.style.width = `${Math.min(percent, 100)}%`;
 }
 
 function updateTargetUI() {
   const targetAmountEl = document.getElementById('targetAmount');
-  if (targetAmountEl) targetAmountEl.innerHTML = `Target: ${formatNumberRp(targetTabungan)}`;
+  if (targetAmountEl) targetAmountEl.innerHTML = `Target Bersama: ${formatNumberRp(targetBersama)}`;
+  
+  // Update ringkasan di dashboard jika ada
+  if (typeof window.renderDashboard === 'function') {
+    window.renderDashboard();
+  }
 }
 
 function renderTransaksi() {
@@ -97,16 +126,18 @@ function renderTransaksi() {
   const sortedList = [...transaksiList].sort((a, b) => b.tanggal - a.tanggal);
   
   container.innerHTML = sortedList.map(t => `
-    <div class="list-group-item d-flex justify-content-between align-items-center ${t.userId === currentUser ? 'bg-light' : ''}" style="border-left: 3px solid ${t.userId === 'FACHMI' ? '#6366f1' : '#ec4899'}">
-      <div>
-        <div class="d-flex align-items-center gap-2 mb-1">
+    <div class="list-group-item d-flex justify-content-between align-items-start ${t.userId === currentUser ? 'bg-light' : ''}" style="border-left: 3px solid ${t.userId === 'FACHMI' ? '#6366f1' : '#ec4899'}">
+      <div class="flex-grow-1">
+        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
           <span class="badge ${t.userId === 'FACHMI' ? 'bg-primary' : 'bg-pink'}">${escapeHtml(t.userName)}</span>
           <span class="fw-medium">${escapeHtml(t.kategori)}</span>
+          ${t.fromImpian ? '<span class="badge bg-purple"><i class="bi bi-stars me-1"></i>Impian</span>' : ''}
+          ${t.fromCatatan ? '<span class="badge bg-warning"><i class="bi bi-journal me-1"></i>Catatan</span>' : ''}
         </div>
         <small class="d-block text-muted">${new Date(t.tanggal).toLocaleDateString('id-ID')}</small>
         ${t.catatan ? `<small class="d-block text-muted">📝 ${escapeHtml(t.catatan)}</small>` : ''}
       </div>
-      <div class="text-end">
+      <div class="text-end ms-2">
         <span class="fw-bold ${t.tipe === 'pemasukan' ? 'text-success' : 'text-danger'}">
           ${t.tipe === 'pemasukan' ? '+' : '-'} ${formatNumberRp(t.nominal)}
         </span>
@@ -123,6 +154,25 @@ function renderTransaksi() {
       </div>
     </div>
   `).join('');
+}
+
+// Fungsi untuk menambah transaksi dari luar (catatan/impian)
+export async function addTransaksiFromExternal(userId, data) {
+  const transaksiData = {
+    tipe: data.tipe || 'pengeluaran',
+    kategori: data.kategori || 'Lainnya',
+    nominal: data.nominal,
+    tanggal: Date.now(),
+    catatan: data.catatan || '',
+    fromImpian: data.fromImpian || false,
+    fromCatatan: data.fromCatatan || false,
+    sumber: data.sumber || '',
+    createdAt: Date.now(),
+    createdBy: userId
+  };
+  
+  await push(ref(db, `data/keuangan/${userId}/transaksi`), transaksiData);
+  showNotif(`💰 Transaksi dari ${data.sumber} ditambahkan!`, false, 'success');
 }
 
 window.openTransaksiModal = function(editId = null, editUserId = null) {
@@ -155,6 +205,7 @@ window.openTransaksiModal = function(editId = null, editUserId = null) {
                 <option value="Kesehatan">🏥 Kesehatan</option>
                 <option value="Pendidikan">📚 Pendidikan</option>
                 <option value="Tagihan">💡 Tagihan</option>
+                <option value="Pernikahan">💍 Pernikahan</option>
                 <option value="Lainnya">📝 Lainnya</option>
               </select>
             </div>
@@ -268,13 +319,13 @@ window.setTargetTabungan = function() {
       <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content rounded-4">
           <div class="modal-header border-0 bg-primary text-white">
-            <h5 class="fw-bold mb-0">🎯 Target Tabungan Saya</h5>
+            <h5 class="fw-bold mb-0">🎯 Target Tabungan Bersama</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body p-4">
-            <label class="fw-semibold mb-2">Target Tabungan</label>
-            <input type="number" id="targetInput" class="form-control form-control-lg rounded-3" placeholder="Masukkan target" value="${targetTabungan}">
-            <small class="text-muted mt-2 d-block">Target tabungan pribadi Anda</small>
+            <label class="fw-semibold mb-2">Target Tabungan Bersama</label>
+            <input type="number" id="targetInput" class="form-control form-control-lg rounded-3" placeholder="Masukkan target bersama" value="${targetBersama}">
+            <small class="text-muted mt-2 d-block">Target ini akan terlihat oleh kedua pasangan</small>
           </div>
           <div class="modal-footer border-0 pb-4">
             <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
@@ -298,15 +349,16 @@ window.setTargetTabungan = function() {
 window.saveTarget = async function() {
   const target = parseInt(document.getElementById('targetInput').value);
   
-  if (target && currentUser) {
-    await set(ref(db, `data/keuangan/${currentUser}/target`), target);
-    targetTabungan = target;
+  if (target && target > 0) {
+    await set(ref(db, `data/keuangan/targetBersama`), target);
+    targetBersama = target;
     updateTargetUI();
     updateRingkasan();
-    showNotif("Target tabungan disimpan", false, 'success');
+    showNotif("Target tabungan bersama disimpan! 💪", false, 'success');
     const modal = bootstrap.Modal.getInstance(document.getElementById('targetModal'));
     if (modal) modal.hide();
   }
 };
 
 window.initKeuangan = initKeuangan;
+window.addTransaksiFromExternal = addTransaksiFromExternal;
