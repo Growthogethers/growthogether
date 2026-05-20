@@ -2,7 +2,6 @@
 import { db, ref, push, update, remove } from './firebase-config.js';
 import { masterData, escapeHtml, showNotif, compressImage } from './utils.js';
 
-// State
 let currentViewDate = new Date();
 let currentDetailMomentId = null;
 let currentMomentPhotos = [];
@@ -176,12 +175,12 @@ export function renderMomentsList() {
     const dateFormatted = moment.date ? moment.date.split('-').reverse().join('/') : '';
     
     return `
-      <div class="col-6 col-md-4 col-lg-3">
+      <div class="col-6 col-lg-3 col-md-4 mb-3">
         <div class="moment-card ${specialClass} h-100" onclick="window.viewMomentDetail('${moment.id}')">
-          ${firstPhoto ? `<img src="${firstPhoto}" class="moment-image" loading="lazy">` : `<div class="moment-image-placeholder"><i class="bi bi-camera-fill"></i></div>`}
+          ${firstPhoto ? `<img src="${firstPhoto}" class="moment-image" loading="lazy" style="height: 140px; width: 100%; object-fit: cover;">` : `<div class="moment-image-placeholder" style="height: 140px;"><i class="bi bi-camera-fill"></i></div>`}
           <div class="card-body p-2">
             <h6 class="fw-bold mb-0 small">${escapeHtml(moment.title || 'Momen Tak Terlupakan')}</h6>
-            <small class="text-muted">${dateFormatted}</small>
+            <small class="text-muted" style="font-size: 10px;">${dateFormatted}</small>
           </div>
         </div>
       </div>
@@ -197,16 +196,13 @@ export function selectMomentDate(dateKey) {
   if (existingEntry) {
     viewMomentDetail(existingEntry[0]);
   } else {
-    // Reset form untuk tambah baru
     document.getElementById('momentEditId').value = '';
     document.getElementById('momentDate').value = dateKey;
     document.getElementById('momentTitle').value = '';
     document.getElementById('momentStory').value = '';
     document.getElementById('momentIsSpecial').checked = false;
     currentMomentPhotos = [];
-    
     renderPhotoGrid();
-    
     document.getElementById('momentModalTitle').innerText = 'Tambah Momen Baru';
     const modal = new bootstrap.Modal(document.getElementById('momentModal'));
     modal.show();
@@ -215,7 +211,6 @@ export function selectMomentDate(dateKey) {
 
 export function openMomentModal(momentId) {
   if (!momentId) {
-    // Mode tambah baru
     document.getElementById('momentModalTitle').innerText = 'Tambah Momen Baru';
     document.getElementById('momentEditId').value = '';
     if (!document.getElementById('momentDate').value) {
@@ -227,7 +222,6 @@ export function openMomentModal(momentId) {
     currentMomentPhotos = [];
     renderPhotoGrid();
   } else {
-    // Mode edit
     document.getElementById('momentModalTitle').innerText = 'Edit Momen';
     const data = masterData;
     const moment = data?.moments?.[momentId];
@@ -276,12 +270,10 @@ export async function saveMoment() {
   
   try {
     if (!editId) {
-      // Create new moment
       momentData.createdAt = Date.now();
       await push(ref(db, 'data/moments'), momentData);
       showNotif('✅ Momen berhasil ditambahkan! 🎉');
     } else {
-      // Update existing moment
       const existing = masterData?.moments?.[editId];
       momentData.createdAt = existing?.createdAt || Date.now();
       await update(ref(db, `data/moments/${editId}`), momentData);
@@ -341,7 +333,6 @@ export async function viewMomentDetail(momentId) {
 }
 
 export function editMomentFromDetail() {
-  // Tutup modal detail, buka modal edit
   const detailModal = bootstrap.Modal.getInstance(document.getElementById('momentDetailModal'));
   if (detailModal) detailModal.hide();
   
@@ -353,7 +344,6 @@ export function editMomentFromDetail() {
 export async function deleteMomentFromDetail() {
   if (!currentDetailMomentId) return;
   
-  // Gunakan modal konfirmasi custom (bukan alert browser)
   showConfirmDialog('Hapus Momen', 'Yakin ingin menghapus momen ini? Data yang dihapus tidak dapat dikembalikan.', async () => {
     try {
       await remove(ref(db, `data/moments/${currentDetailMomentId}`));
@@ -372,7 +362,6 @@ export async function deleteMomentFromDetail() {
 }
 
 function showConfirmDialog(title, message, onConfirm) {
-  // Buat modal konfirmasi custom dengan toast style
   let confirmModal = document.getElementById('customConfirmModal');
   
   if (!confirmModal) {
@@ -399,28 +388,20 @@ function showConfirmDialog(title, message, onConfirm) {
     confirmModal = document.getElementById('customConfirmModal');
   }
   
-  // Update title dan message
   confirmModal.querySelector('.modal-header .fw-bold').innerText = title;
   confirmModal.querySelector('.modal-body p').innerHTML = message;
   
   const modal = new bootstrap.Modal(confirmModal);
   
-  const confirmBtn = document.getElementById('confirmDeleteActionBtn');
   const handleConfirm = () => {
     modal.hide();
     onConfirm();
-    confirmBtn.removeEventListener('click', handleConfirm);
   };
   
-  // Remove existing listener and add new one
-  const newConfirmBtn = confirmModal.querySelector('#confirmDeleteActionBtn');
-  newConfirmBtn.replaceWith(confirmBtn.cloneNode(true));
   const freshConfirmBtn = document.getElementById('confirmDeleteActionBtn');
-  freshConfirmBtn.addEventListener('click', handleConfirm, { once: true });
-  
-  confirmModal.addEventListener('hidden.bs.modal', () => {
-    freshConfirmBtn.removeEventListener('click', handleConfirm);
-  }, { once: true });
+  freshConfirmBtn.replaceWith(freshConfirmBtn.cloneNode(true));
+  const newConfirmBtn = document.getElementById('confirmDeleteActionBtn');
+  newConfirmBtn.addEventListener('click', handleConfirm, { once: true });
   
   modal.show();
 }
@@ -430,7 +411,7 @@ export function changeMonth(delta) {
   renderCalendar();
 }
 
-// Export ke window
+// Exports
 window.renderCalendar = renderCalendar;
 window.renderMomentsList = renderMomentsList;
 window.selectMomentDate = selectMomentDate;
