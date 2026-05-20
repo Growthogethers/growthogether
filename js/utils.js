@@ -1,8 +1,123 @@
-// js/utils.js - Tambahan fungsi custom modal
+// js/utils.js - Optimasi dengan Caching System
 export let currentUser = null;
 export let masterData = null;
 export let privacyHidden = false;
 
+// ============ CACHING SYSTEM ============
+let cacheData = {};
+let cacheExpiry = {};
+let pendingRequests = new Map(); // Untuk mencegah duplicate request
+
+export function setCache(key, data, ttlMinutes = 5) {
+  cacheData[key] = data;
+  cacheExpiry[key] = Date.now() + (ttlMinutes * 60 * 1000);
+  // Simpan juga ke sessionStorage untuk persistensi antar halaman
+  try {
+    sessionStorage.setItem(`cache_${key}`, JSON.stringify({
+      data: data,
+      expiry: cacheExpiry[key]
+    }));
+  } catch (e) {}
+}
+
+export function getCache(key) {
+  // Cek memory cache
+  if (cacheData[key] && cacheExpiry[key] > Date.now()) {
+    console.log(`✅ Cache hit: ${key}`);
+    return cacheData[key];
+  }
+  
+  // Cek sessionStorage cache
+  try {
+    const cached = sessionStorage.getItem(`cache_${key}`);
+    if (cached) {
+      const { data, expiry } = JSON.parse(cached);
+      if (expiry > Date.now()) {
+        console.log(`✅ Session cache hit: ${key}`);
+        cacheData[key] = data;
+        cacheExpiry[key] = expiry;
+        return data;
+      } else {
+        sessionStorage.removeItem(`cache_${key}`);
+      }
+    }
+  } catch (e) {}
+  
+  console.log(`❌ Cache miss: ${key}`);
+  return null;
+}
+
+export function clearCache(key) {
+  if (key) {
+    delete cacheData[key];
+    delete cacheExpiry[key];
+    try { sessionStorage.removeItem(`cache_${key}`); } catch(e) {}
+  } else {
+    cacheData = {};
+    cacheExpiry = {};
+    try {
+      Object.keys(sessionStorage).forEach(k => {
+        if (k.startsWith('cache_')) sessionStorage.removeItem(k);
+      });
+    } catch(e) {}
+  }
+}
+
+// ============ LOADING INDICATOR ============
+let loadingOverlay = null;
+let loadingTimeout = null;
+
+export function showLoading(message = 'Memuat data...') {
+  if (loadingOverlay) return;
+  
+  loadingOverlay = document.createElement('div');
+  loadingOverlay.id = 'loadingOverlay';
+  loadingOverlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.75);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    backdrop-filter: blur(4px);
+    transition: all 0.3s ease;
+  `;
+  loadingOverlay.innerHTML = `
+    <div class="spinner-border text-light" role="status" style="width: 44px; height: 44px;">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <div class="text-white mt-3 fw-bold" style="font-size: 14px;">${message}</div>
+    <div class="text-white-50 small mt-1">Mohon tunggu sebentar...</div>
+  `;
+  document.body.appendChild(loadingOverlay);
+  
+  // Timeout protection - hide after 10 seconds
+  loadingTimeout = setTimeout(() => {
+    hideLoading();
+    showNotif("⏰ Loading terlalu lama, coba refresh", true, 'error');
+  }, 10000);
+}
+
+export function hideLoading() {
+  if (loadingOverlay) {
+    loadingOverlay.style.opacity = '0';
+    setTimeout(() => {
+      if (loadingOverlay) loadingOverlay.remove();
+      loadingOverlay = null;
+    }, 300);
+  }
+  if (loadingTimeout) {
+    clearTimeout(loadingTimeout);
+    loadingTimeout = null;
+  }
+}
+
+// ============ TOAST NOTIFICATION ============
 let toastQueue = [];
 let isToastShowing = false;
 
@@ -12,12 +127,14 @@ export function showNotif(msg, isErr = false, type = 'success') {
   if (!toastContainer) {
     toastContainer = document.createElement('div');
     toastContainer.id = 'customToastContainer';
-    toastContainer.style.position = 'fixed';
-    toastContainer.style.bottom = '80px';
-    toastContainer.style.left = '50%';
-    toastContainer.style.transform = 'translateX(-50%)';
-    toastContainer.style.zIndex = '9999';
-    toastContainer.style.pointerEvents = 'none';
+    toastContainer.style.cssText = `
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      pointer-events: none;
+    `;
     document.body.appendChild(toastContainer);
   }
   
@@ -30,23 +147,37 @@ export function showNotif(msg, isErr = false, type = 'success') {
   
   const toast = document.createElement('div');
   toast.className = `custom-toast ${isErr ? 'error' : type === 'warning' ? 'warning' : 'success'}`;
+  toast.style.cssText = `
+    min-width: 260px;
+    max-width: 90%;
+    background: var(--card-bg, white);
+    border-radius: 50px;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    margin-bottom: 8px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  `;
   toast.innerHTML = `
-    <i class="bi ${isErr ? 'bi-exclamation-triangle-fill' : type === 'warning' ? 'bi-exclamation-circle-fill' : 'bi-check-circle-fill'}"></i>
-    <span class="toast-message">${msg}</span>
+    <i class="bi ${isErr ? 'bi-exclamation-triangle-fill' : type === 'warning' ? 'bi-exclamation-circle-fill' : 'bi-check-circle-fill'}" 
+       style="color: ${isErr ? '#ef4444' : type === 'warning' ? '#f59e0b' : '#10b981'}; font-size: 20px;"></i>
+    <span class="toast-message" style="flex: 1; font-size: 13px; font-weight: 500; color: var(--text-primary, #1e293b);">${msg}</span>
   `;
   
   toastContainer.appendChild(toast);
   
-  setTimeout(() => {
-    toast.classList.add('show');
-  }, 10);
+  setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; }, 10);
   
   setTimeout(() => {
-    toast.classList.remove('show');
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(20px)';
     setTimeout(() => {
       toast.remove();
       isToastShowing = false;
-      
       if (toastQueue.length > 0) {
         const next = toastQueue.shift();
         showNotif(next.msg, next.isErr, next.type);
@@ -55,7 +186,7 @@ export function showNotif(msg, isErr = false, type = 'success') {
   }, 2700);
 }
 
-// Custom Prompt Modal (menggantikan prompt bawaan browser)
+// ============ CUSTOM PROMPT & CONFIRM ============
 export function showCustomPrompt(title, placeholder, defaultValue = '') {
   return new Promise((resolve) => {
     let modalElement = document.getElementById('customPromptModal');
@@ -118,7 +249,6 @@ export function showCustomPrompt(title, placeholder, defaultValue = '') {
   });
 }
 
-// Custom Confirm Modal (menggantikan confirm bawaan browser)
 export function showCustomConfirm(title, message) {
   return new Promise((resolve) => {
     let modalElement = document.getElementById('customConfirmModalDialog');
@@ -177,6 +307,7 @@ export function showCustomConfirm(title, message) {
   });
 }
 
+// ============ UTILITY FUNCTIONS ============
 export function formatNumberRp(val) { 
   if (privacyHidden) return "●●● ●●●";
   if (val === undefined || val === null) return "Rp 0";
@@ -197,6 +328,35 @@ export function togglePrivacy() {
 export function setCurrentUser(user) { currentUser = user; }
 export function setMasterData(data) { masterData = data; window.masterData = data; }
 
+// ============ THROTTLE FUNCTION ============
+export function throttle(func, delay) {
+  let lastCall = 0;
+  let timeoutId = null;
+  return function(...args) {
+    const now = Date.now();
+    if (now - lastCall < delay) {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        lastCall = Date.now();
+        func.apply(this, args);
+      }, delay - (now - lastCall));
+      return;
+    }
+    lastCall = now;
+    func.apply(this, args);
+  };
+}
+
+// ============ DEBOUNCE FUNCTION ============
+export function debounce(func, delay) {
+  let timeoutId;
+  return function(...args) {
+    if (timeoutId) clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func.apply(this, args), delay);
+  };
+}
+
+// ============ COMPRESS IMAGE ============
 export function compressImage(file, maxSizeMB = 2) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -236,6 +396,24 @@ export function compressImage(file, maxSizeMB = 2) {
   });
 }
 
+// ============ BATCH FIREBASE GET ============
+export async function batchGet(refs, timeout = 10000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  
+  try {
+    const promises = refs.map(ref => get(ref));
+    const results = await Promise.all(promises);
+    clearTimeout(timeoutId);
+    return results;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    console.error("Batch get error:", error);
+    return null;
+  }
+}
+
+// Expose ke window
 window.showNotif = showNotif;
 window.formatNumberRp = formatNumberRp;
 window.togglePrivacy = togglePrivacy;
