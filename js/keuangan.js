@@ -1,6 +1,9 @@
-// js/keuangan.js - Optimasi dengan Caching
+// js/keuangan.js - Perbaikan import
 import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
-import { showNotif, formatNumberRp, escapeHtml, showCustomPrompt, showCustomConfirm, getCache, setCache, throttle, showLoading, hideLoading } from './utils.js';
+import { 
+  showNotif, formatNumberRp, escapeHtml, showCustomPrompt, showCustomConfirm, 
+  getCache, setCache, clearCache, throttle, showLoading, hideLoading 
+} from './utils.js';
 
 let currentUser = null;
 let transaksiList = [];
@@ -9,7 +12,6 @@ let editTransaksiId = null;
 let dynamicCategories = ['Pernikahan', 'Makanan', 'Transportasi', 'Belanja', 'Tabungan', 'Hiburan', 'Kesehatan', 'Pendidikan', 'Tagihan', 'Lainnya'];
 let isInitialized = false;
 
-// Throttled render functions
 const throttledRenderTransaksi = throttle(() => {
   renderTransaksi();
   updateRingkasan();
@@ -23,7 +25,6 @@ export function initKeuangan() {
   }
   
   if (isInitialized) {
-    // Refresh data saja
     loadAllTransaksiOptimized();
     return;
   }
@@ -37,7 +38,6 @@ export function initKeuangan() {
     keuanganUserName.innerHTML = `Keuangan ${displayName}`;
   }
   
-  // Parallel loading
   Promise.all([
     loadTargetBersama(),
     loadDynamicCategories(),
@@ -195,11 +195,10 @@ function renderTransaksi() {
   
   const sortedList = [...transaksiList].sort((a, b) => (b.tanggal || 0) - (a.tanggal || 0));
   
-  // Gunakan DocumentFragment untuk performance
   const fragment = document.createDocumentFragment();
   const tempDiv = document.createElement('div');
   
-  sortedList.forEach(t => {
+  sortedList.slice(0, 50).forEach(t => {
     tempDiv.innerHTML = `
       <div class="list-group-item d-flex justify-content-between align-items-start ${t.userId === currentUser ? 'bg-light' : ''}" style="border-left: 3px solid ${t.userId === 'FACHMI' ? '#6366f1' : '#ec4899'}; margin-bottom: 8px; border-radius: 12px;">
         <div class="flex-grow-1">
@@ -255,7 +254,6 @@ export async function addTransaksiFromExternal(userId, data) {
   };
   
   const newRef = await push(ref(db, `data/keuangan/${userId}/transaksi`), transaksiData);
-  // Clear cache
   clearCache(`keuangan_transaksi_${userId}`);
   return { id: newRef.key, ...transaksiData };
 }
@@ -290,7 +288,6 @@ export async function deleteTransaksiWithRelation(transaksiId, userId) {
   clearCache(`keuangan_transaksi_${userId}`);
 }
 
-// Setup realtime listeners dengan throttle
 let isListenerActive = false;
 function setupRealtimeListeners() {
   if (isListenerActive) return;
@@ -309,9 +306,9 @@ function setupRealtimeListeners() {
   });
 }
 
-// Panggil setup listeners setelah init
 setTimeout(() => setupRealtimeListeners(), 2000);
 
+// Modal functions
 window.openTransaksiModal = function(editId = null, editUserId = null) {
   editTransaksiId = editId;
   
