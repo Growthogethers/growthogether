@@ -20,7 +20,12 @@ body.dark {
   --border-light: #334155;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* { 
+  margin: 0; 
+  padding: 0; 
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -28,6 +33,7 @@ body {
   color: var(--text-primary);
   transition: background 0.2s, color 0.2s;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ============ LOGIN SCREEN ============ */
@@ -48,7 +54,7 @@ body {
   background: rgba(255, 255, 255, 0.98);
   border-radius: 32px;
   padding: 2rem 1.5rem;
-  width: 100%;
+  width: 90%;
   max-width: 380px;
   margin: 1rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
@@ -254,7 +260,7 @@ body {
   border-top: 1px solid var(--border-light);
   display: none;
   justify-content: space-around;
-  padding: 8px 12px 20px;
+  padding: 6px 8px 16px;
   z-index: 1050;
 }
 
@@ -269,16 +275,19 @@ body {
   background: transparent;
   border: none;
   color: var(--text-muted);
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 500;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: 30px;
   cursor: pointer;
   transition: all 0.2s;
   min-height: 44px;
+  flex: 1;
+  max-width: 70px;
 }
 
-.bottom-nav-item i { font-size: 1.5rem; margin-bottom: 4px; }
+.bottom-nav-item i { font-size: 1.3rem; margin-bottom: 3px; }
+.bottom-nav-item span { font-size: 0.6rem; white-space: nowrap; }
 .bottom-nav-item.active { color: var(--primary); background: rgba(99, 102, 241, 0.1); }
 .bottom-nav-item:active { transform: scale(0.95); }
 
@@ -293,11 +302,11 @@ body {
   color: white;
   border: none;
   border-radius: 40px;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
@@ -311,9 +320,9 @@ body {
   bottom: 20px;
   right: 20px;
   z-index: 1050;
-  width: 48px;
-  height: 48px;
-  border-radius: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
   background: linear-gradient(135deg, var(--primary), #8b5cf6);
   color: white;
   display: flex;
@@ -364,24 +373,25 @@ body {
   border-radius: 16px; 
   background: var(--card-bg); 
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); 
+  margin-bottom: 12px;
 }
 
 /* ============ CALENDAR ============ */
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
+  gap: 6px;
   background: var(--card-bg);
-  padding: 16px;
+  padding: 12px;
   border-radius: 20px;
 }
 
 .calendar-day-name { 
   text-align: center; 
   font-weight: 600; 
-  font-size: 12px; 
+  font-size: 11px; 
   color: var(--text-muted); 
-  padding: 8px 4px; 
+  padding: 6px 2px; 
 }
 
 .calendar-day {
@@ -391,15 +401,16 @@ body {
   align-items: center;
   justify-content: center;
   background: var(--bg-body);
-  border-radius: 12px;
+  border-radius: 10px;
   cursor: pointer;
   position: relative;
   border: 1px solid var(--border-light);
   transition: all 0.2s;
+  min-height: 44px;
 }
 
 .calendar-day .day-number { 
-  font-size: 14px; 
+  font-size: 13px; 
   font-weight: 500; 
   color: var(--text-primary); 
 }
@@ -413,102 +424,385 @@ body {
 .moment-love {
   position: absolute;
   bottom: 2px;
-  font-size: 12px;
+  font-size: 10px;
 }
 
 /* ============ MOMENT CARD ============ */
 .moment-card {
-  border-radius: 16px;
+  border-radius: 12px;
   background: var(--card-bg);
   border: 1px solid var(--border-light);
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.2s;
+  margin-bottom: 8px;
 }
 
-.moment-card:hover { transform: translateY(-4px); }
+.moment-card:hover { transform: translateY(-2px); }
 
 .moment-card.special-card { border: 2px solid var(--warning); position: relative; }
 
 .moment-card.special-card::before {
   content: "⭐";
   position: absolute;
-  top: -10px;
-  right: -10px;
+  top: -8px;
+  right: -8px;
   background: var(--warning);
   color: white;
   border-radius: 50%;
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 11px;
+  z-index: 1;
 }
 
-.moment-image { width: 100%; height: 160px; object-fit: cover; }
+.moment-image { width: 100%; height: 120px; object-fit: cover; }
 .moment-image-placeholder { 
   width: 100%; 
-  height: 160px; 
+  height: 120px; 
   background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
   display: flex; 
   align-items: center; 
   justify-content: center; 
   color: white; 
-  font-size: 32px; 
+  font-size: 28px; 
 }
 
-/* ============ RESPONSIVE MOBILE ============ */
-@media (max-width: 768px) {
+/* ============ RESPONSIVE MOBILE (ANDROID OPTIMIZED) ============ */
+@media (max-width: 480px) {
+  /* Small Android devices */
+  body {
+    font-size: 14px;
+  }
+  
   button, .bottom-nav-item, .nav-link, .btn-icon, .calendar-day, 
   .moment-card, .checklist-item, .pengingat-card, .status-badge {
     min-height: 44px;
   }
   
-  .bottom-nav-item i { font-size: 22px; }
-  .bottom-nav-item span { font-size: 11px; }
+  /* Bottom Navigation untuk layar kecil */
+  .bottom-nav {
+    padding: 4px 6px 12px;
+  }
   
-  .calendar-grid { gap: 6px; padding: 12px 8px; }
-  .calendar-day { min-height: 50px; border-radius: 10px; }
-  .calendar-day .day-number { font-size: 14px; font-weight: 600; }
-  .calendar-day-name { font-size: 11px; padding: 6px 2px; }
+  .bottom-nav-item {
+    padding: 4px 6px;
+    min-width: 55px;
+  }
   
+  .bottom-nav-item i { font-size: 1.2rem; }
+  .bottom-nav-item span { font-size: 0.55rem; }
+  
+  /* Calendar untuk layar kecil */
+  .calendar-grid {
+    gap: 4px;
+    padding: 8px;
+  }
+  
+  .calendar-day {
+    min-height: 40px;
+    border-radius: 8px;
+  }
+  
+  .calendar-day .day-number { 
+    font-size: 11px; 
+  }
+  
+  .calendar-day-name { 
+    font-size: 9px; 
+    padding: 4px 1px; 
+  }
+  
+  .moment-love {
+    font-size: 8px;
+    bottom: 1px;
+  }
+  
+  /* Grid untuk moments */
   #recentMomentsPreview .col-4,
   #momentsList .col-6.col-md-4.col-lg-3 {
     flex: 0 0 50%;
     max-width: 50%;
-    padding: 0 6px;
+    padding: 0 4px;
   }
   
-  .moment-image, .moment-image-placeholder { height: 130px; }
+  .moment-image, .moment-image-placeholder { 
+    height: 100px; 
+  }
   
-  #relationshipSummary .col-6.col-md-3 { padding: 0 6px; }
-  #relationshipSummary .card { padding: 12px 8px; }
-  #relationshipSummary h2.fs-3 { font-size: 1.3rem; }
-  #relationshipSummary small { font-size: 10px; }
+  .moment-card .card-body p-2 {
+    padding: 6px !important;
+  }
   
-  #keuanganSummary .col-6 { padding: 0 6px; }
-  #keuanganSummary .card { padding: 12px; }
-  #keuanganSummary h4 { font-size: 1rem; }
+  .moment-card h6 {
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
   
-  .modal-dialog { margin: 8px; }
-  .modal-dialog.modal-md { max-width: calc(100% - 16px); margin: 8px auto; }
-  .modal-body { padding: 20px 16px; }
+  /* Dashboard summary cards */
+  #relationshipSummary .col-6.col-md-3 { 
+    padding: 0 4px; 
+  }
   
-  input, select, textarea { font-size: 16px !important; }
+  #relationshipSummary .card { 
+    padding: 8px 4px; 
+  }
   
-  .bg-gradient-success h2 { font-size: 1.5rem; }
+  #relationshipSummary h2.fs-3 { 
+    font-size: 1.1rem; 
+  }
   
-  .pengingat-card .rounded-circle { width: 44px !important; height: 44px !important; }
+  #relationshipSummary i.fs-1 {
+    font-size: 1.5rem !important;
+  }
   
-  .custom-toast { min-width: 260px; max-width: 90%; padding: 10px 16px; }
+  #relationshipSummary small { 
+    font-size: 9px; 
+  }
   
-  section h3 { font-size: 1.3rem; }
+  /* Keuangan summary */
+  #keuanganSummary .col-6 { 
+    padding: 0 4px; 
+  }
+  
+  #keuanganSummary .card { 
+    padding: 8px; 
+  }
+  
+  #keuanganSummary h4 { 
+    font-size: 0.9rem; 
+  }
+  
+  #keuanganSummary small { 
+    font-size: 8px; 
+  }
+  
+  /* Modal untuk layar kecil */
+  .modal-dialog { 
+    margin: 8px; 
+  }
+  
+  .modal-dialog.modal-md { 
+    max-width: calc(100% - 16px); 
+    margin: 8px auto; 
+  }
+  
+  .modal-body { 
+    padding: 16px; 
+  }
+  
+  .modal-header {
+    padding: 12px 16px;
+  }
+  
+  .modal-header h5 {
+    font-size: 1rem;
+  }
+  
+  .modal-footer {
+    padding: 12px 16px;
+  }
+  
+  /* Form controls */
+  input, select, textarea { 
+    font-size: 16px !important; 
+    padding: 10px 12px !important;
+  }
+  
+  /* Button sizes */
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .btn {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+  
+  /* Saldo card */
+  .bg-gradient-success {
+    padding: 12px !important;
+  }
+  
+  .bg-gradient-success h2 { 
+    font-size: 1.3rem; 
+  }
+  
+  .bg-gradient-success small {
+    font-size: 10px;
+  }
+  
+  /* Pengingat card */
+  .pengingat-card {
+    padding: 10px;
+  }
+  
+  .pengingat-card .rounded-circle { 
+    width: 40px !important; 
+    height: 40px !important; 
+  }
+  
+  .pengingat-card .fw-medium {
+    font-size: 13px;
+  }
+  
+  .pengingat-date {
+    font-size: 10px;
+  }
+  
+  /* Checklist item */
+  .checklist-item {
+    padding: 10px;
+  }
+  
+  .checklist-label {
+    font-size: 13px;
+  }
+  
+  .form-check-input {
+    width: 18px;
+    height: 18px;
+  }
+  
+  /* Impian card */
+  .impian-card {
+    padding: 12px;
+  }
+  
+  .impian-card h6 {
+    font-size: 14px;
+  }
+  
+  .impian-card .badge {
+    font-size: 10px;
+  }
+  
+  /* Toast notification */
+  #customToastContainer {
+    bottom: 70px;
+  }
+  
+  .custom-toast {
+    min-width: 240px;
+    max-width: 85%;
+    padding: 8px 14px;
+  }
+  
+  .custom-toast .toast-message {
+    font-size: 12px;
+  }
+  
+  /* Profile section */
+  .profile-avatar {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .profile-status {
+    width: 18px;
+    height: 18px;
+    bottom: 3px;
+    right: 3px;
+  }
+  
+  .profile-status i {
+    font-size: 10px;
+  }
+  
+  .edit-profile-badge {
+    width: 22px;
+    height: 22px;
+    bottom: -3px;
+    right: -3px;
+  }
+  
+  .edit-profile-badge i {
+    font-size: 10px;
+  }
+  
+  /* Header sections */
+  section h3 {
+    font-size: 1.2rem;
+  }
+  
+  section h5 {
+    font-size: 0.95rem;
+  }
+  
+  /* Progress bar */
+  .progress {
+    height: 6px;
+  }
+  
+  /* Photo upload grid */
+  .photo-upload-grid {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 8px;
+  }
+  
+  .photo-upload-item i {
+    font-size: 20px;
+  }
+  
+  .photo-upload-item span {
+    font-size: 9px;
+  }
 }
 
+/* Untuk Android dengan layar medium (480px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  #recentMomentsPreview .col-4,
+  #momentsList .col-6.col-md-4.col-lg-3 {
+    flex: 0 0 33.333%;
+    max-width: 33.333%;
+  }
+  
+  .moment-image, .moment-image-placeholder {
+    height: 140px;
+  }
+  
+  .calendar-grid {
+    gap: 8px;
+  }
+  
+  .calendar-day {
+    min-height: 55px;
+  }
+}
+
+/* Landscape mode untuk Android */
 @media (max-width: 768px) and (orientation: landscape) {
-  .calendar-day { min-height: 55px; }
-  .moment-image, .moment-image-placeholder { height: 100px; }
+  .bottom-nav {
+    padding: 4px 8px 12px;
+  }
+  
+  .calendar-day {
+    min-height: 45px;
+  }
+  
+  .moment-image, .moment-image-placeholder {
+    height: 100px;
+  }
+  
+  .modal-dialog.modal-md {
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  
+  .sidebar, #app-sidebar {
+    padding-top: 8px;
+  }
+}
+
+/* Prevent zoom on input focus di Android */
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
 }
 
 /* Profile Section */
@@ -658,8 +952,67 @@ body.dark .calendar-day.has-moment { background: #064e3b; }
 body.dark .calendar-day.special-moment { background: #451a03; }
 body.dark .modal-content { background: var(--card-bg); }
 
-/* Safe Area */
+/* Safe Area untuk Android dengan notches */
 @supports (padding: max(0px)) {
-  .bottom-nav { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
-  .menu-toggle-hp { top: max(12px, env(safe-area-inset-top)); }
+  .bottom-nav { 
+    padding-bottom: max(12px, env(safe-area-inset-bottom)); 
+    padding-left: max(8px, env(safe-area-inset-left));
+    padding-right: max(8px, env(safe-area-inset-right));
+  }
+  
+  .menu-toggle-hp { 
+    top: max(12px, env(safe-area-inset-top)); 
+    left: max(12px, env(safe-area-inset-left)); 
+  }
+  
+  .dark-mode-fab {
+    bottom: max(70px, calc(env(safe-area-inset-bottom) + 70px));
+    right: max(16px, env(safe-area-inset-right));
+  }
+  
+  #app-content {
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+}
+
+/* Loading Overlay */
+#loadingOverlay {
+  animation: fadeIn 0.2s ease;
+  z-index: 9999;
+}
+
+#loadingOverlay .spinner-border {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Touch feedback untuk Android */
+@media (max-width: 768px) {
+  button:active, 
+  .bottom-nav-item:active, 
+  .calendar-day:active,
+  .moment-card:active,
+  .nav-link:active {
+    transform: scale(0.97);
+    transition: transform 0.05s;
+  }
+  
+  /* Hapus hover effect di mobile */
+  .nav-link:hover {
+    transform: none;
+  }
+  
+  .moment-card:hover {
+    transform: none;
+  }
 }
