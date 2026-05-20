@@ -1,4 +1,4 @@
-// js/catatan.js - Optimasi dengan Caching
+// js/catatan.js - Versi revisi dengan fitur AI generate planning wedding
 import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
 import { 
   showNotif, escapeHtml, showCustomPrompt, showCustomConfirm, 
@@ -13,6 +13,44 @@ let editItemParentId = null;
 let editItemId = null;
 let isGeneratingAI = false;
 let isInitialized = false;
+
+// Template planning wedding default
+const weddingTemplates = {
+  basic: {
+    name: "Paket Basic (Minimalis)",
+    categories: [
+      { nama: "Administrasi & Dokumen", icon: "bi-files", estimasiBiaya: 1500000, items: ["KTP & KK (scan & asli)", "Akta Kelahiran", "Ijazah terakhir", "Surat kesehatan pranikah", "Pengesahan KUA"] },
+      { nama: "Venue & Dekorasi", icon: "bi-building", estimasiBiaya: 15000000, items: ["Booking venue akad", "Booking venue resepsi", "Dekorasi pelaminan sederhana", "Backdrop foto"] },
+      { nama: "Busana & Makeup", icon: "bi-person-standing", estimasiBiaya: 5000000, items: ["Baju akad pria (sewa)", "Baju akad wanita (sewa)", "MUA untuk akad & resepsi", "Aksesoris"] },
+      { nama: "Dokumentasi", icon: "bi-camera", estimasiBiaya: 3500000, items: ["Fotografer 4 jam", "Videografer 4 jam", "Foto pre-wedding simple"] },
+      { nama: "Konsumsi", icon: "bi-cup-straw", estimasiBiaya: 10000000, items: ["Catering untuk 100 tamu", "Air mineral", "Snack box"] },
+      { nama: "Undangan", icon: "bi-envelope", estimasiBiaya: 1500000, items: ["Desain undangan digital", "Cetak undangan 100 pcs", "Amplop & materai"] }
+    ]
+  },
+  premium: {
+    name: "Paket Premium (Lengkap)",
+    categories: [
+      { nama: "Administrasi & Dokumen", icon: "bi-files", estimasiBiaya: 3000000, items: ["Semua dokumen + legalisasi", "Konsultasi pernikahan", "Asuransi pernikahan"] },
+      { nama: "Venue & Dekorasi", icon: "bi-building", estimasiBiaya: 35000000, items: ["Hotel bintang 4", "Dekorasi mewah dengan bunga segar", "Sound system & lighting", "Karpet merah", "Photo booth"] },
+      { nama: "Busana & Makeup", icon: "bi-person-standing", estimasiBiaya: 15000000, items: ["Baju akad custom", "Baju resepsi 2 model", "MUA profesional 3 sesi", "Makeup trial", "Rias keluarga"] },
+      { nama: "Dokumentasi", icon: "bi-camera", estimasiBiaya: 12000000, items: ["Fotografer full day", "Videografer full day + drone", "Album cetak mewah", "Pre-wedding outdoor 2 lokasi"] },
+      { nama: "Konsumsi", icon: "bi-cup-straw", estimasiBiaya: 30000000, items: ["Catering untuk 300 tamu", "Live cooking station", "Kue pernikahan 3 tingkat", "Welcome drink", "Floating market"] },
+      { nama: "Undangan", icon: "bi-envelope", estimasiBiaya: 5000000, items: ["Desain eksklusif", "Cetak undangan premium 200 pcs", "Undangan digital interaktif", "Souvenir undangan"] },
+      { nama: "Hiburan", icon: "bi-music-note", estimasiBiaya: 8000000, items: ["Live band atau DJ", "MC profesional", "Karaoke", "Games & Doorprize"] },
+      { nama: "Penginapan & Transport", icon: "bi-truck", estimasiBiaya: 10000000, items: ["Hotel untuk keluarga", "Sewa mobil hias", "Transport antar jemput tamu"] }
+    ]
+  },
+  destination: {
+    name: "Paket Destination Wedding",
+    categories: [
+      { nama: "Dokumen & Perizinan", icon: "bi-files", estimasiBiaya: 5000000, items: ["Paspor", "Visa (jika luar negeri)", "Surat pindah nikah", "Dokumen resmi negara tujuan"] },
+      { nama: "Venue & Akomodasi", icon: "bi-building", estimasiBiaya: 50000000, items: ["Resort/villa eksklusif", "Dekorasi beach/outdoor", "Akomodasi tamu (3 hari 2 malam)"] },
+      { nama: "Transportasi", icon: "bi-truck", estimasiBiaya: 20000000, items: ["Tiket pesawat untuk 10 orang", "Sewa mobil di lokasi", "Transfer bandara"] },
+      { nama: "Dokumentasi", icon: "bi-camera", estimasiBiaya: 15000000, items: ["Fotografer & videografer full coverage", "Pre-wedding di lokasi destination", "Album & video cinematic"] },
+      { nama: "Konsumsi", icon: "bi-cup-straw", estimasiBiaya: 25000000, items: ["Catering untuk 50 tamu", "Welcome dinner", "Wedding cake"] }
+    ]
+  }
+};
 
 const defaultKategori = [
   { nama: "Dokumen Penting", icon: "bi-files", estimasiBiaya: 500000, items: ["KTP (scan dan asli)", "KK (scan dan asli)", "Akta Kelahiran", "Ijazah terakhir"] },
@@ -150,27 +188,6 @@ async function loadChecklistItemsOptimized(forceRefresh = false) {
   setCache(cacheKey, checklistItems, 5);
 }
 
-async function updateProgressFromKeuangan() {
-  const transaksiSnap = await get(ref(db, `data/keuangan/${currentUser}/transaksi`));
-  const transaksi = transaksiSnap.val() || {};
-  
-  for (const [katId, items] of Object.entries(checklistItems)) {
-    if (items) {
-      for (const [itemId, item] of Object.entries(items)) {
-        if (item && item.sourceId) {
-          const hasTransaction = Object.values(transaksi).some(t => t.sourceId === `${katId}_${itemId}`);
-          if (hasTransaction !== item.selesai) {
-            await update(ref(db, `data/catatan/${currentUser}/items/${katId}/${itemId}`), { 
-              selesai: hasTransaction,
-              updatedFromKeuangan: true
-            });
-          }
-        }
-      }
-    }
-  }
-}
-
 function updateProgress() {
   let total = 0;
   let selesai = 0;
@@ -210,13 +227,12 @@ function renderKategori() {
     container.innerHTML = `
       <div class="text-center text-muted py-5">
         <i class="bi bi-folder2-open fs-1"></i>
-        <p class="mt-2">Belum ada kategori. Klik tombol + Kategori untuk menambah.</p>
+        <p class="mt-2">Belum ada kategori. Klik tombol + Kategori untuk menambah atau gunakan AI Generate di atas.</p>
       </div>
     `;
     return;
   }
   
-  // Gunakan fragment untuk performance
   const fragment = document.createDocumentFragment();
   const tempDiv = document.createElement('div');
   
@@ -291,6 +307,76 @@ function renderKategori() {
   container.appendChild(fragment);
 }
 
+// Fungsi generate planning wedding
+window.generateWeddingPlanning = async function(templateId = 'basic') {
+  const template = weddingTemplates[templateId];
+  if (!template) {
+    showNotif("Template tidak ditemukan", true, 'error');
+    return;
+  }
+  
+  const confirmed = await showCustomConfirm(
+    "Generate Planning Wedding", 
+    `Yakin ingin menggunakan template "${template.name}"? Data catatan yang ada akan diganti dengan template ini.`
+  );
+  
+  if (!confirmed) return;
+  
+  showLoading("Membuat planning wedding...");
+  
+  try {
+    // Hapus semua kategori dan items yang ada
+    const kategoriRef = ref(db, `data/catatan/${currentUser}/kategori`);
+    const itemsRef = ref(db, `data/catatan/${currentUser}/items`);
+    
+    await remove(kategoriRef);
+    await remove(itemsRef);
+    
+    // Buat kategori baru dari template
+    let totalEstimasi = 0;
+    
+    for (const kat of template.categories) {
+      const newKatRef = await push(kategoriRef, {
+        nama: kat.nama,
+        icon: kat.icon,
+        estimasiBiaya: kat.estimasiBiaya
+      });
+      const kategoriId = newKatRef.key;
+      totalEstimasi += kat.estimasiBiaya;
+      
+      // Buat items untuk kategori ini
+      for (const item of kat.items) {
+        await push(ref(db, `data/catatan/${currentUser}/items/${kategoriId}`), {
+          nama: item,
+          selesai: false
+        });
+      }
+    }
+    
+    // Set target keuangan berdasarkan total estimasi untuk current user
+    await set(ref(db, `data/keuangan/${currentUser}/targetPernikahan`), totalEstimasi);
+    
+    clearCache(`catatan_kategori_${currentUser}`);
+    clearCache(`catatan_items_${currentUser}`);
+    await loadKategoriOptimized(true);
+    await loadChecklistItemsOptimized(true);
+    renderKategori();
+    updateProgress();
+    
+    showNotif(`✅ Template "${template.name}" berhasil diterapkan! Total estimasi: Rp ${totalEstimasi.toLocaleString('id-ID')}`, false, 'success');
+    
+    // Refresh keuangan
+    if (typeof window.initKeuangan === 'function') window.initKeuangan();
+    
+  } catch (err) {
+    console.error(err);
+    showNotif("Gagal membuat planning wedding", true, 'error');
+  } finally {
+    hideLoading();
+  }
+};
+
+// AI Recommendations dengan tombol generate template
 async function generateAIRecommendations() {
   if (isGeneratingAI) return;
   isGeneratingAI = true;
@@ -301,104 +387,91 @@ async function generateAIRecommendations() {
     return;
   }
   
-  container.innerHTML = `
-    <div class="card p-3 mb-4" style="background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 16px;">
-      <div class="d-flex align-items-center gap-3">
-        <div class="spinner-border text-purple" role="status" style="width: 20px; height: 20px;"></div>
-        <span class="small">AI sedang menganalisis...</span>
-      </div>
-    </div>
-  `;
-  
-  // Simulasi AI analysis
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  const completedItems = [];
-  const incompleteItems = [];
+  // Hitung progress
+  let total = 0;
+  let selesai = 0;
   let totalEstimasi = 0;
   
   kategoriList.forEach(kat => {
+    const katItems = checklistItems[kat.id] ? Object.values(checklistItems[kat.id]) : [];
+    const validItems = katItems.filter(item => item !== null);
+    const completedItems = validItems.filter(item => item.selesai);
+    total += validItems.length;
+    selesai += completedItems.length;
     totalEstimasi += kat.estimasiBiaya || 0;
-    const items = checklistItems[kat.id] ? Object.values(checklistItems[kat.id]) : [];
-    items.forEach(item => {
-      if (item && item.selesai) completedItems.push(item);
-      else if (item) incompleteItems.push(item);
-    });
   });
   
-  const progress = kategoriList.length > 0 ? (completedItems.length / (completedItems.length + incompleteItems.length)) * 100 : 0;
+  const percent = total > 0 ? (selesai / total) * 100 : 0;
   
-  let recommendations = [];
-  
-  if (incompleteItems.length > 0) {
-    recommendations.push({
-      title: "📋 Prioritas Checklist",
-      description: `${incompleteItems.length} item perlu diselesaikan.`,
-      action: "Lihat Checklist"
-    });
-  }
-  
-  if (totalEstimasi > 0) {
-    recommendations.push({
-      title: "💰 Estimasi Biaya",
-      description: `Total: Rp ${totalEstimasi.toLocaleString('id-ID')}`,
-      action: "Atur Keuangan",
-      actionLink: "keuangan"
-    });
-  }
-  
-  if (progress < 30) {
-    recommendations.push({
-      title: "🚀 Mulai Persiapan",
-      description: "Fokus pada dokumen dan venue terlebih dahulu.",
-      action: "Mulai"
-    });
-  } else if (progress >= 70 && incompleteItems.length > 0) {
-    recommendations.push({
-      title: "🎉 Hampir Selesai!",
-      description: `Tinggal ${incompleteItems.length} item lagi.`,
-      action: "Finalisasi"
-    });
-  }
-  
+  // Tampilkan rekomendasi dengan tombol generate template
   container.innerHTML = `
     <div class="card p-3 mb-4" style="background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 16px;">
-      <div class="d-flex align-items-center justify-content-between mb-2">
+      <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
         <div class="d-flex align-items-center gap-2">
-          <i class="bi bi-robot fs-5 text-purple"></i>
-          <span class="fw-bold small">✨ Rekomendasi AI</span>
+          <i class="bi bi-magic fs-5 text-purple"></i>
+          <span class="fw-bold small">✨ AI Planning Assistant</span>
         </div>
-        <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="generateAIRecommendations()" style="font-size: 11px;">
-          <i class="bi bi-arrow-repeat me-1"></i> Refresh
-        </button>
+        <div class="btn-group btn-group-sm" role="group">
+          <button class="btn btn-outline-primary rounded-pill" onclick="generateWeddingPlanning('basic')" style="font-size: 11px;">
+            <i class="bi bi-stars me-1"></i> Basic Plan
+          </button>
+          <button class="btn btn-outline-primary rounded-pill" onclick="generateWeddingPlanning('premium')" style="font-size: 11px;">
+            <i class="bi bi-diamond me-1"></i> Premium Plan
+          </button>
+          <button class="btn btn-outline-primary rounded-pill" onclick="generateWeddingPlanning('destination')" style="font-size: 11px;">
+            <i class="bi bi-globe me-1"></i> Destination
+          </button>
+        </div>
       </div>
-      <div class="d-flex flex-wrap gap-2">
-        ${recommendations.map(rec => `
-          <div class="p-2 bg-white rounded-3 flex-grow-1" style="background: var(--card-bg) !important;">
-            <div class="fw-semibold small">${rec.title}</div>
-            <small class="text-muted d-block">${rec.description}</small>
-            <button class="btn btn-sm btn-outline-primary rounded-pill mt-1" style="font-size: 11px;" 
-                    onclick="applyAIRecommendation('${rec.actionLink || 'catatan'}')">
-              ${rec.action} <i class="bi bi-arrow-right ms-1"></i>
-            </button>
-          </div>
-        `).join('')}
-        ${recommendations.length === 0 ? '<div class="text-muted small py-2 text-center">✨ Persiapan Anda sudah baik! Tetap semangat!</div>' : ''}
+      
+      <div class="progress mb-2" style="height: 6px;">
+        <div class="progress-bar bg-success" style="width: ${percent}%"></div>
       </div>
+      
+      <div class="d-flex justify-content-between small text-muted mb-3">
+        <span>Progress: ${Math.round(percent)}%</span>
+        <span>Estimasi Total: Rp ${totalEstimasi.toLocaleString('id-ID')}</span>
+      </div>
+      
+      ${total === 0 ? `
+        <div class="alert alert-info alert-sm py-2 mb-0">
+          <i class="bi bi-info-circle me-1"></i>
+          Belum ada checklist. Klik salah satu template di atas untuk memulai planning pernikahan Anda!
+        </div>
+      ` : `
+        <div class="d-flex flex-wrap gap-2 mt-2">
+          ${percent < 30 ? `
+            <div class="p-2 bg-white rounded-3 flex-grow-1" style="background: var(--card-bg) !important;">
+              <div class="fw-semibold small">📋 Mulai dari Dokumen</div>
+              <small class="text-muted d-block">Prioritaskan kelengkapan administrasi</small>
+              <button class="btn btn-sm btn-outline-primary rounded-pill mt-1" style="font-size: 11px;" onclick="document.querySelector('[data-bs-target*=\"collapse\"]')?.click()">
+                Lihat Checklist <i class="bi bi-arrow-right ms-1"></i>
+              </button>
+            </div>
+          ` : percent < 70 ? `
+            <div class="p-2 bg-white rounded-3 flex-grow-1" style="background: var(--card-bg) !important;">
+              <div class="fw-semibold small">🎯 Fokus pada Vendor</div>
+              <small class="text-muted d-block">Segera booking venue & dokumentasi</small>
+              <button class="btn btn-sm btn-outline-primary rounded-pill mt-1" style="font-size: 11px;" onclick="window.location.href='#keuangan-page'; showPage('keuangan')">
+                Atur Keuangan <i class="bi bi-arrow-right ms-1"></i>
+              </button>
+            </div>
+          ` : `
+            <div class="p-2 bg-white rounded-3 flex-grow-1" style="background: var(--card-bg) !important;">
+              <div class="fw-semibold small">🎉 Finalisasi Persiapan</div>
+              <small class="text-muted d-block">Tinggal sedikit lagi! Cek ulang semua item</small>
+              <button class="btn btn-sm btn-outline-primary rounded-pill mt-1" style="font-size: 11px;" onclick="window.location.href='#moment-page'; showPage('moment')">
+                Lihat Momen <i class="bi bi-arrow-right ms-1"></i>
+              </button>
+            </div>
+          `}
+        </div>
+      `}
     </div>
   `;
   
   isGeneratingAI = false;
 }
-
-window.applyAIRecommendation = function(action) {
-  if (action === 'keuangan') {
-    window.location.href = '#keuangan-page';
-    showPage('keuangan');
-  }
-};
-
-window.generateAIRecommendations = generateAIRecommendations;
 
 window.addItemToKeuangan = async function(kategoriId, itemId, itemNama) {
   const kat = kategoriList.find(k => k.id === kategoriId);
@@ -753,3 +826,4 @@ window.saveItem = async function() {
 };
 
 window.initCatatan = initCatatan;
+window.generateAIRecommendations = generateAIRecommendations;
