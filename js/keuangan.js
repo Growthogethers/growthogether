@@ -1,11 +1,12 @@
-// js/keuangan.js - Dengan Target Bersama (Shared Target)
+// js/keuangan.js - Dengan Relasi Data & Kategori Dinamis
 import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
-import { showNotif, formatNumberRp, escapeHtml } from './utils.js';
+import { showNotif, formatNumberRp, escapeHtml, showCustomPrompt, showCustomConfirm } from './utils.js';
 
 let currentUser = null;
 let transaksiList = [];
-let targetBersama = 0; // Target bersama untuk kedua user
+let targetBersama = 0;
 let editTransaksiId = null;
+let dynamicCategories = ['Pernikahan', 'Makanan', 'Transportasi', 'Belanja', 'Tabungan', 'Hiburan', 'Kesehatan', 'Pendidikan', 'Tagihan', 'Lainnya'];
 
 export function initKeuangan() {
   currentUser = sessionStorage.getItem("progrowth_user");
@@ -14,19 +15,46 @@ export function initKeuangan() {
     return;
   }
   
-  // Update header
   const keuanganUserName = document.getElementById('keuanganUserName');
   if (keuanganUserName) {
     const displayName = currentUser === "FACHMI" ? "Fachmi" : "Azizah";
     keuanganUserName.innerHTML = `Keuangan ${displayName}`;
   }
   
+  loadDynamicCategories();
   loadTargetBersama();
   loadAllTransaksi();
 }
 
+async function loadDynamicCategories() {
+  // Load kategori dari catatan dan impian
+  try {
+    const catatanSnapshot = await get(ref(db, `data/catatan/${currentUser}/kategori`));
+    const catatanKategori = catatanSnapshot.val() || {};
+    const catatanNama = Object.values(catatanKategori).map(k => k.nama?.replace(/[📋🏛️👗💍📸🍽️🎵📝💰👥]/g, '').trim());
+    
+    const impianSnapshot = await get(ref(db, `data/impian/${currentUser}`));
+    const impianData = impianSnapshot.val() || {};
+    const impianKategori = Object.values(impianData).map(i => i.kategori);
+    
+    const allCategories = [...new Set([...dynamicCategories, ...catatanNama, ...impianKategori])];
+    dynamicCategories = allCategories.filter(c => c && c.length > 0);
+    
+    updateKategoriSelect();
+  } catch (err) {
+    console.error("Error loading dynamic categories:", err);
+  }
+}
+
+function updateKategoriSelect() {
+  const select = document.getElementById('transaksiKategori');
+  if (!select) return;
+  
+  const options = dynamicCategories.map(k => `<option value="${escapeHtml(k)}">${escapeHtml(k)}</option>`).join('');
+  select.innerHTML = options;
+}
+
 function loadAllTransaksi() {
-  // Load transaksi kedua user sekaligus
   const fetchTransaksi = () => {
     Promise.all([
       get(ref(db, `data/keuangan/FACHMI/transaksi`)),
@@ -51,9 +79,10 @@ function loadAllTransaksi() {
   
   fetchTransaksi();
   
-  // Setup realtime listener
   onValue(ref(db, `data/keuangan/FACHMI/transaksi`), () => fetchTransaksi());
   onValue(ref(db, `data/keuangan/AZIZAH/transaksi`), () => fetchTransaksi());
+  onValue(ref(db, `data/catatan/${currentUser}/kategori`), () => loadDynamicCategories());
+  onValue(ref(db, `data/impian/${currentUser}`), () => loadDynamicCategories());
 }
 
 async function loadTargetBersama() {
@@ -67,7 +96,6 @@ async function loadTargetBersama() {
 }
 
 function updateRingkasan() {
-  // Hitung total saldo kedua user
   const fachmiTransaksi = transaksiList.filter(t => t.userId === 'FACHMI');
   const azizahTransaksi = transaksiList.filter(t => t.userId === 'AZIZAH');
   
@@ -80,7 +108,6 @@ function updateRingkasan() {
   const azizahSaldo = azizahPemasukan - azizahPengeluaran;
   const totalSaldo = fachmiSaldo + azizahSaldo;
   
-  // Untuk user yang sedang login, tampilkan saldo pribadi dan total bersama
   const userTransaksi = transaksiList.filter(t => t.userId === currentUser);
   const userPemasukan = userTransaksi.filter(t => t.tipe === 'pemasukan').reduce((sum, t) => sum + (t.nominal || 0), 0);
   const userPengeluaran = userTransaksi.filter(t => t.tipe === 'pengeluaran').reduce((sum, t) => sum + (t.nominal || 0), 0);
@@ -106,11 +133,7 @@ function updateRingkasan() {
 function updateTargetUI() {
   const targetAmountEl = document.getElementById('targetAmount');
   if (targetAmountEl) targetAmountEl.innerHTML = `Target Bersama: ${formatNumberRp(targetBersama)}`;
-  
-  // Update ringkasan di dashboard jika ada
-  if (typeof window.renderDashboard === 'function') {
-    window.renderDashboard();
-  }
+  if (typeof window.renderDashboard === 'function') window.renderDashboard();
 }
 
 function renderTransaksi() {
@@ -122,7 +145,6 @@ function renderTransaksi() {
     return;
   }
   
-  // Urutkan berdasarkan tanggal terbaru
   const sortedList = [...transaksiList].sort((a, b) => b.tanggal - a.tanggal);
   
   container.innerHTML = sortedList.map(t => `
@@ -133,6 +155,7 @@ function renderTransaksi() {
           <span class="fw-medium">${escapeHtml(t.kategori)}</span>
           ${t.fromImpian ? '<span class="badge bg-purple"><i class="bi bi-stars me-1"></i>Impian</span>' : ''}
           ${t.fromCatatan ? '<span class="badge bg-warning"><i class="bi bi-journal me-1"></i>Catatan</span>' : ''}
+          ${t.sourceId ? `<span class="badge bg-secondary">🔗 Terhubung</span>` : ''}
         </div>
         <small class="d-block text-muted">${new Date(t.tanggal).toLocaleDateString('id-ID')}</small>
         ${t.catatan ? `<small class="d-block text-muted">📝 ${escapeHtml(t.catatan)}</small>` : ''}
@@ -156,23 +179,56 @@ function renderTransaksi() {
   `).join('');
 }
 
-// Fungsi untuk menambah transaksi dari luar (catatan/impian)
+// Tambah transaksi dari luar dengan relasi
 export async function addTransaksiFromExternal(userId, data) {
   const transaksiData = {
     tipe: data.tipe || 'pengeluaran',
-    kategori: data.kategori || 'Lainnya',
+    kategori: data.kategori || 'Pernikahan',
     nominal: data.nominal,
     tanggal: Date.now(),
     catatan: data.catatan || '',
     fromImpian: data.fromImpian || false,
     fromCatatan: data.fromCatatan || false,
-    sumber: data.sumber || '',
+    sourceId: data.sourceId || null,
+    sourceType: data.sourceType || null,
     createdAt: Date.now(),
     createdBy: userId
   };
   
-  await push(ref(db, `data/keuangan/${userId}/transaksi`), transaksiData);
-  showNotif(`💰 Transaksi dari ${data.sumber} ditambahkan!`, false, 'success');
+  const newRef = await push(ref(db, `data/keuangan/${userId}/transaksi`), transaksiData);
+  return { id: newRef.key, ...transaksiData };
+}
+
+// Hapus transaksi beserta relasinya
+export async function deleteTransaksiWithRelation(transaksiId, userId) {
+  const transaksiSnap = await get(ref(db, `data/keuangan/${userId}/transaksi/${transaksiId}`));
+  const transaksi = transaksiSnap.val();
+  
+  if (!transaksi) return;
+  
+  // Jika transaksi berasal dari catatan, update status item catatan
+  if (transaksi.fromCatatan && transaksi.sourceId && transaksi.sourceType === 'catatan_item') {
+    const [kategoriId, itemId] = transaksi.sourceId.split('_');
+    await update(ref(db, `data/catatan/${userId}/items/${kategoriId}/${itemId}`), { 
+      selesai: false,
+      linkedTransactionId: null 
+    });
+  }
+  
+  // Jika transaksi berasal dari impian, update progress impian
+  if (transaksi.fromImpian && transaksi.sourceId) {
+    const impianSnap = await get(ref(db, `data/impian/${userId}/${transaksi.sourceId}`));
+    const impian = impianSnap.val();
+    if (impian && impian.target && impian.progress) {
+      const newProgress = Math.max(0, impian.progress - (transaksi.nominal / impian.target * 100));
+      await update(ref(db, `data/impian/${userId}/${transaksi.sourceId}`), { 
+        progress: Math.round(newProgress),
+        terhubungKeuangan: false
+      });
+    }
+  }
+  
+  await remove(ref(db, `data/keuangan/${userId}/transaksi/${transaksiId}`));
 }
 
 window.openTransaksiModal = function(editId = null, editUserId = null) {
@@ -197,16 +253,7 @@ window.openTransaksiModal = function(editId = null, editUserId = null) {
             <div class="mb-3">
               <label class="fw-semibold mb-2">Kategori</label>
               <select id="transaksiKategori" class="form-select form-select-lg rounded-3">
-                <option value="Makanan">🍜 Makanan & Minuman</option>
-                <option value="Transportasi">🚗 Transportasi</option>
-                <option value="Belanja">🛍️ Belanja</option>
-                <option value="Tabungan">🏦 Tabungan</option>
-                <option value="Hiburan">🎬 Hiburan</option>
-                <option value="Kesehatan">🏥 Kesehatan</option>
-                <option value="Pendidikan">📚 Pendidikan</option>
-                <option value="Tagihan">💡 Tagihan</option>
-                <option value="Pernikahan">💍 Pernikahan</option>
-                <option value="Lainnya">📝 Lainnya</option>
+                ${dynamicCategories.map(k => `<option value="${escapeHtml(k)}">${escapeHtml(k)}</option>`).join('')}
               </select>
             </div>
             <div class="mb-3">
@@ -307,8 +354,9 @@ window.deleteTransaksi = async function(id, userId) {
     return;
   }
   
-  if (confirm("Yakin ingin menghapus transaksi ini?")) {
-    await remove(ref(db, `data/keuangan/${userId}/transaksi/${id}`));
+  const confirmed = await showCustomConfirm("Hapus Transaksi", "Yakin ingin menghapus transaksi ini? Data yang terhubung (Catatan/Impian) juga akan diperbarui.");
+  if (confirmed) {
+    await deleteTransaksiWithRelation(id, userId);
     showNotif("Transaksi dihapus", false, 'warning');
   }
 };
@@ -325,7 +373,7 @@ window.setTargetTabungan = function() {
           <div class="modal-body p-4">
             <label class="fw-semibold mb-2">Target Tabungan Bersama</label>
             <input type="number" id="targetInput" class="form-control form-control-lg rounded-3" placeholder="Masukkan target bersama" value="${targetBersama}">
-            <small class="text-muted mt-2 d-block">Target ini akan terlihat oleh kedua pasangan</small>
+            <small class="text-muted mt-2 d-block">✨ Target ini akan terlihat oleh kedua pasangan</small>
           </div>
           <div class="modal-footer border-0 pb-4">
             <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
@@ -362,3 +410,4 @@ window.saveTarget = async function() {
 
 window.initKeuangan = initKeuangan;
 window.addTransaksiFromExternal = addTransaksiFromExternal;
+window.deleteTransaksiWithRelation = deleteTransaksiWithRelation;
