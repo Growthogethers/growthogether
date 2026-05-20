@@ -1,6 +1,9 @@
 // js/moment.js - Optimasi dengan Lazy Loading
 import { db, ref, push, update, remove } from './firebase-config.js';
-import { masterData, escapeHtml, showNotif, compressImage, showCustomConfirm, throttle, showLoading, hideLoading } from './utils.js';
+import { 
+  masterData, escapeHtml, showNotif, compressImage, showCustomConfirm, 
+  throttle, showLoading, hideLoading 
+} from './utils.js';
 
 let currentViewDate = new Date();
 let currentDetailMomentId = null;
