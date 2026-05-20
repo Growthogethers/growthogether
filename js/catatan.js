@@ -1,6 +1,6 @@
-// js/catatan.js - Dengan AI Generate & Progress Otomatis dari Keuangan
+// js/catatan.js - Optimasi dengan Caching
 import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
-import { showNotif, escapeHtml, showCustomPrompt, showCustomConfirm } from './utils.js';
+import { showNotif, escapeHtml, showCustomPrompt, showCustomConfirm, getCache, setCache, throttle, showLoading, hideLoading } from './utils.js';
 
 let currentUser = null;
 let kategoriList = [];
@@ -9,183 +9,145 @@ let editKategoriId = null;
 let editItemParentId = null;
 let editItemId = null;
 let isGeneratingAI = false;
+let isInitialized = false;
 
 const defaultKategori = [
-  { nama: "Dokumen Penting", icon: "bi-files", estimasiBiaya: 500000, items: [
-    "KTP (scan dan asli)", "KK (scan dan asli)", "Akta Kelahiran", "Ijazah terakhir", 
-    "Paspor (jika ada)", "Surat Keterangan Belum Menikah"
-  ]},
-  { nama: "Venue & Dekorasi", icon: "bi-building", estimasiBiaya: 25000000, items: [
-    "Survey venue", "Booking venue akad", "Booking venue resepsi", "Dekorasi pelaminan",
-    "Dekorasi reception", "Backdrop foto", "Sewa kursi & meja"
-  ]},
-  { nama: "Busana & Makeup", icon: "bi-person-standing", estimasiBiaya: 5000000, items: [
-    "Baju akad pria", "Baju akad wanita", "Baju resepsi pria", "Baju resepsi wanita",
-    "Sewa aksesoris", "MUA untuk akad", "MUA untuk resepsi"
-  ]},
-  { nama: "Dokumentasi", icon: "bi-camera", estimasiBiaya: 7000000, items: [
-    "Cari fotografer", "Booking pre-wedding", "Foto akad", "Foto resepsi",
-    "Video documentary", "Video highlight"
-  ]},
-  { nama: "Konsumsi", icon: "bi-cup-straw", estimasiBiaya: 15000000, items: [
-    "Catering untuk tamu", "Menu utama resepsi", "Kue pernikahan", "Air mineral"
-  ]}
+  { nama: "Dokumen Penting", icon: "bi-files", estimasiBiaya: 500000, items: ["KTP (scan dan asli)", "KK (scan dan asli)", "Akta Kelahiran", "Ijazah terakhir"] },
+  { nama: "Venue & Dekorasi", icon: "bi-building", estimasiBiaya: 25000000, items: ["Survey venue", "Booking venue akad", "Dekorasi pelaminan", "Backdrop foto"] },
+  { nama: "Busana & Makeup", icon: "bi-person-standing", estimasiBiaya: 5000000, items: ["Baju akad pria", "Baju akad wanita", "MUA untuk akad", "Makeup trial"] },
+  { nama: "Dokumentasi", icon: "bi-camera", estimasiBiaya: 7000000, items: ["Cari fotografer", "Booking pre-wedding", "Foto akad", "Video documentary"] },
+  { nama: "Konsumsi", icon: "bi-cup-straw", estimasiBiaya: 15000000, items: ["Catering untuk tamu", "Menu utama resepsi", "Kue pernikahan", "Air mineral"] }
 ];
 
-// AI Generate Rekomendasi
-async function generateAIRecommendations() {
-  if (isGeneratingAI) return;
-  isGeneratingAI = true;
-  
-  const container = document.getElementById('aiRecommendations');
-  if (!container) {
-    isGeneratingAI = false;
-    return;
-  }
-  
-  container.innerHTML = `
-    <div class="card p-3 mb-4" style="background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 16px;">
-      <div class="d-flex align-items-center gap-3">
-        <div class="spinner-border text-purple" role="status" style="width: 24px; height: 24px;"></div>
-        <span>AI sedang menganalisis persiapan pernikahan Anda...</span>
-      </div>
-    </div>
-  `;
-  
-  // Simulasi AI analysis (bisa diganti dengan API AI real)
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  
-  const completedItems = [];
-  const incompleteItems = [];
-  const totalEstimasi = kategoriList.reduce((sum, k) => sum + (k.estimasiBiaya || 0), 0);
-  
-  Object.entries(checklistItems).forEach(([katId, items]) => {
-    if (items) {
-      Object.entries(items).forEach(([itemId, item]) => {
-        if (item && item.selesai) {
-          completedItems.push({ ...item, kategoriId: katId });
-        } else if (item) {
-          incompleteItems.push({ ...item, kategoriId: katId });
-        }
-      });
-    }
-  });
-  
-  const progress = kategoriList.length > 0 ? (completedItems.length / (completedItems.length + incompleteItems.length)) * 100 : 0;
-  
-  // Generate rekomendasi berdasarkan data
-  let recommendations = [];
-  
-  if (incompleteItems.length > 0) {
-    recommendations.push({
-      title: "📋 Prioritas Checklist",
-      description: `Anda masih memiliki ${incompleteItems.length} item yang perlu diselesaikan.`,
-      action: "Lihat Checklist",
-      items: incompleteItems.slice(0, 3).map(i => i.nama)
-    });
-  }
-  
-  if (totalEstimasi > 0) {
-    recommendations.push({
-      title: "💰 Estimasi Biaya",
-      description: `Total estimasi biaya persiapan: Rp ${totalEstimasi.toLocaleString('id-ID')}`,
-      action: "Atur Keuangan",
-      actionLink: "keuangan"
-    });
-  }
-  
-  if (progress < 30) {
-    recommendations.push({
-      title: "🚀 Mulai Persiapan",
-      description: "Fokus pada dokumen penting dan venue terlebih dahulu.",
-      action: "Mulai Sekarang"
-    });
-  } else if (progress < 70) {
-    recommendations.push({
-      title: "🎯 Teruskan Semangat!",
-      description: `Progress Anda ${Math.round(progress)}%. Jangan lupa urus dokumentasi dan konsumsi.`,
-      action: "Lanjutkan"
-    });
-  } else if (progress >= 70) {
-    recommendations.push({
-      title: "🎉 Hampir Selesai!",
-      description: `Tinggal ${incompleteItems.length} item lagi. Persiapkan diri untuk hari H!`,
-      action: "Finalisasi"
-    });
-  }
-  
-  // Rekomendasi berdasarkan waktu
-  const weddingDate = localStorage.getItem(`weddingDate_${currentUser}`);
-  if (weddingDate) {
-    const wedding = new Date(weddingDate);
-    const today = new Date();
-    const daysLeft = Math.ceil((wedding - today) / (1000 * 60 * 60 * 24));
-    if (daysLeft > 0 && daysLeft < 90) {
-      recommendations.unshift({
-        title: `⏰ ${daysLeft} Hari Menuju Pernikahan!`,
-        description: "Segera selesaikan persiapan yang masih tertunda.",
-        action: "Lihat Timeline",
-        urgent: true
-      });
-    }
-  }
-  
-  container.innerHTML = `
-    <div class="card p-3 mb-4" style="background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 16px;">
-      <div class="d-flex align-items-center justify-content-between mb-3">
-        <div class="d-flex align-items-center gap-2">
-          <i class="bi bi-robot fs-4 text-purple"></i>
-          <span class="fw-bold">✨ Rekomendasi AI untuk Anda</span>
-        </div>
-        <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="generateAIRecommendations()">
-          <i class="bi bi-arrow-repeat me-1"></i> Generate Ulang
-        </button>
-      </div>
-      <div class="row g-2">
-        ${recommendations.map(rec => `
-          <div class="col-12 col-md-6">
-            <div class="p-3 bg-white rounded-3 ${rec.urgent ? 'border-start border-danger border-4' : ''}" style="background: var(--card-bg) !important;">
-              <div class="fw-semibold mb-1">${rec.title}</div>
-              <small class="text-muted d-block mb-2">${rec.description}</small>
-              ${rec.items ? `<small class="text-muted d-block mb-2">📌 ${rec.items.join(', ')}</small>` : ''}
-              <button class="btn btn-sm ${rec.urgent ? 'btn-danger' : 'btn-outline-primary'} rounded-pill mt-1" 
-                      onclick="applyAIRecommendation('${rec.actionLink || 'catatan'}')">
-                ${rec.action} <i class="bi bi-arrow-right ms-1"></i>
-              </button>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-  `;
-  
-  isGeneratingAI = false;
-}
-
-window.applyAIRecommendation = function(action) {
-  if (action === 'keuangan') {
-    window.location.href = '#keuangan-page';
-    showPage('keuangan');
-  }
-};
+// Throttled render
+const throttledRender = throttle(() => {
+  renderKategori();
+  updateProgress();
+}, 300);
 
 export async function initCatatan() {
   currentUser = sessionStorage.getItem("progrowth_user");
   if (!currentUser) return;
   
-  await loadKategori();
-  renderKategori();
-  updateProgress();
-  generateAIRecommendations();
+  if (isInitialized) {
+    refreshData();
+    return;
+  }
   
-  // Setup listener untuk update progress otomatis dari keuangan
-  onValue(ref(db, `data/keuangan/${currentUser}/transaksi`), () => {
-    updateProgressFromKeuangan();
-  });
+  showLoading("Memuat catatan persiapan...");
+  isInitialized = true;
+  
+  try {
+    await Promise.all([
+      loadKategoriOptimized(),
+      loadChecklistItemsOptimized()
+    ]);
+    
+    renderKategori();
+    updateProgress();
+    generateAIRecommendations();
+    
+    // Setup listener dengan throttle
+    const throttledUpdate = throttle(() => {
+      updateProgress();
+      renderKategori();
+      generateAIRecommendations();
+    }, 1000);
+    
+    onValue(ref(db, `data/catatan/${currentUser}/items`), (snapshot) => {
+      checklistItems = snapshot.val() || {};
+      setCache(`catatan_items_${currentUser}`, checklistItems, 3);
+      throttledUpdate();
+    });
+    
+    onValue(ref(db, `data/catatan/${currentUser}/kategori`), () => {
+      clearCache(`catatan_kategori_${currentUser}`);
+      loadKategoriOptimized().then(() => throttledUpdate());
+    });
+    
+  } catch (err) {
+    console.error("Error init catatan:", err);
+    showNotif("Gagal memuat catatan", true, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+async function refreshData() {
+  showLoading("Memperbarui data...");
+  try {
+    await Promise.all([
+      loadKategoriOptimized(true),
+      loadChecklistItemsOptimized(true)
+    ]);
+    renderKategori();
+    updateProgress();
+    generateAIRecommendations();
+  } catch (err) {
+    console.error("Error refreshing catatan:", err);
+  } finally {
+    hideLoading();
+  }
+}
+
+async function loadKategoriOptimized(forceRefresh = false) {
+  const cacheKey = `catatan_kategori_${currentUser}`;
+  if (!forceRefresh) {
+    const cached = getCache(cacheKey);
+    if (cached) {
+      kategoriList = cached;
+      return;
+    }
+  }
+  
+  const snapshot = await get(ref(db, `data/catatan/${currentUser}/kategori`));
+  const saved = snapshot.val();
+  
+  if (saved && Object.keys(saved).length > 0) {
+    kategoriList = Object.entries(saved).map(([id, val]) => ({ id, ...val }));
+  } else {
+    // Load default dengan batch write
+    for (const kat of defaultKategori) {
+      const newRef = push(ref(db, `data/catatan/${currentUser}/kategori`));
+      const kategoriId = newRef.key;
+      await set(ref(db, `data/catatan/${currentUser}/kategori/${kategoriId}`), { 
+        nama: kat.nama, 
+        icon: kat.icon,
+        estimasiBiaya: kat.estimasiBiaya 
+      });
+      
+      const updates = {};
+      for (const item of kat.items) {
+        const itemRef = push(ref(db, `data/catatan/${currentUser}/items/${kategoriId}`));
+        updates[`data/catatan/${currentUser}/items/${kategoriId}/${itemRef.key}`] = { 
+          nama: item, 
+          selesai: false 
+        };
+      }
+      await update(ref(db), updates);
+    }
+    await loadKategoriOptimized(true);
+  }
+  
+  setCache(cacheKey, kategoriList, 10);
+}
+
+async function loadChecklistItemsOptimized(forceRefresh = false) {
+  const cacheKey = `catatan_items_${currentUser}`;
+  if (!forceRefresh) {
+    const cached = getCache(cacheKey);
+    if (cached) {
+      checklistItems = cached;
+      return;
+    }
+  }
+  
+  const snapshot = await get(ref(db, `data/catatan/${currentUser}/items`));
+  checklistItems = snapshot.val() || {};
+  setCache(cacheKey, checklistItems, 5);
 }
 
 async function updateProgressFromKeuangan() {
-  // Ambil semua transaksi yang terhubung dengan catatan
   const transaksiSnap = await get(ref(db, `data/keuangan/${currentUser}/transaksi`));
   const transaksi = transaksiSnap.val() || {};
   
@@ -193,7 +155,6 @@ async function updateProgressFromKeuangan() {
     if (items) {
       for (const [itemId, item] of Object.entries(items)) {
         if (item && item.sourceId) {
-          // Cek apakah ada transaksi dengan sourceId ini
           const hasTransaction = Object.values(transaksi).some(t => t.sourceId === `${katId}_${itemId}`);
           if (hasTransaction !== item.selesai) {
             await update(ref(db, `data/catatan/${currentUser}/items/${katId}/${itemId}`), { 
@@ -205,44 +166,6 @@ async function updateProgressFromKeuangan() {
       }
     }
   }
-}
-
-async function loadKategori() {
-  const snapshot = await get(ref(db, `data/catatan/${currentUser}/kategori`));
-  const saved = snapshot.val();
-  
-  if (saved && Object.keys(saved).length > 0) {
-    kategoriList = Object.entries(saved).map(([id, val]) => ({ id, ...val }));
-  } else {
-    for (const kat of defaultKategori) {
-      const newRef = push(ref(db, `data/catatan/${currentUser}/kategori`));
-      const kategoriId = newRef.key;
-      await set(ref(db, `data/catatan/${currentUser}/kategori/${kategoriId}`), { 
-        nama: kat.nama, 
-        icon: kat.icon,
-        estimasiBiaya: kat.estimasiBiaya 
-      });
-      
-      for (const item of kat.items) {
-        const itemRef = push(ref(db, `data/catatan/${currentUser}/items/${kategoriId}`));
-        await set(ref(db, `data/catatan/${currentUser}/items/${kategoriId}/${itemRef.key}`), { 
-          nama: item, 
-          selesai: false 
-        });
-      }
-    }
-    await loadKategori();
-  }
-  
-  loadChecklistItems();
-}
-
-function loadChecklistItems() {
-  onValue(ref(db, `data/catatan/${currentUser}/items`), (snapshot) => {
-    checklistItems = snapshot.val() || {};
-    updateProgress();
-    renderKategori();
-  });
 }
 
 function updateProgress() {
@@ -258,7 +181,7 @@ function updateProgress() {
     total += validItems.length;
     selesai += completedItems.length;
     
-    if (kat.estimasiBiaya) {
+    if (kat.estimasiBiaya && validItems.length > 0) {
       totalEstimasiBiaya += kat.estimasiBiaya;
       estimasiTerselesaikan += (kat.estimasiBiaya * completedItems.length) / validItems.length;
     }
@@ -271,7 +194,7 @@ function updateProgress() {
   
   if (progressPercentEl) progressPercentEl.innerHTML = `${Math.round(percent)}%`;
   if (catatanProgressEl) catatanProgressEl.style.width = `${percent}%`;
-  if (estimasiBiayaEl) {
+  if (estimasiBiayaEl && totalEstimasiBiaya > 0) {
     estimasiBiayaEl.innerHTML = `💰 Estimasi Total: Rp ${totalEstimasiBiaya.toLocaleString('id-ID')} | Terpakai: Rp ${Math.round(estimasiTerselesaikan).toLocaleString('id-ID')}`;
   }
 }
@@ -280,7 +203,7 @@ function renderKategori() {
   const container = document.getElementById('kategoriContainer');
   if (!container) return;
   
-  if (kategoriList.length === 0) {
+  if (!kategoriList || kategoriList.length === 0) {
     container.innerHTML = `
       <div class="text-center text-muted py-5">
         <i class="bi bi-folder2-open fs-1"></i>
@@ -290,13 +213,17 @@ function renderKategori() {
     return;
   }
   
-  container.innerHTML = kategoriList.map((kat, idx) => {
+  // Gunakan fragment untuk performance
+  const fragment = document.createDocumentFragment();
+  const tempDiv = document.createElement('div');
+  
+  kategoriList.forEach((kat, idx) => {
     const items = checklistItems[kat.id] ? Object.entries(checklistItems[kat.id]) : [];
     const validItems = items.filter(([_, item]) => item !== null);
     const completedCount = validItems.filter(([_, item]) => item.selesai).length;
     const percentItem = validItems.length > 0 ? (completedCount / validItems.length) * 100 : 0;
     
-    return `
+    tempDiv.innerHTML = `
       <div class="card mb-3 border-0 shadow-sm" data-kategori-id="${kat.id}">
         <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center p-3">
           <div class="d-flex align-items-center gap-2" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#collapse${idx}">
@@ -352,10 +279,124 @@ function renderKategori() {
         </div>
       </div>
     `;
-  }).join('');
+    while (tempDiv.firstChild) {
+      fragment.appendChild(tempDiv.firstChild);
+    }
+  });
+  
+  container.innerHTML = '';
+  container.appendChild(fragment);
 }
 
-// Tambah item ke keuangan dengan relasi
+async function generateAIRecommendations() {
+  if (isGeneratingAI) return;
+  isGeneratingAI = true;
+  
+  const container = document.getElementById('aiRecommendations');
+  if (!container) {
+    isGeneratingAI = false;
+    return;
+  }
+  
+  container.innerHTML = `
+    <div class="card p-3 mb-4" style="background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 16px;">
+      <div class="d-flex align-items-center gap-3">
+        <div class="spinner-border text-purple" role="status" style="width: 20px; height: 20px;"></div>
+        <span class="small">AI sedang menganalisis...</span>
+      </div>
+    </div>
+  `;
+  
+  // Simulasi AI analysis
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
+  const completedItems = [];
+  const incompleteItems = [];
+  let totalEstimasi = 0;
+  
+  kategoriList.forEach(kat => {
+    totalEstimasi += kat.estimasiBiaya || 0;
+    const items = checklistItems[kat.id] ? Object.values(checklistItems[kat.id]) : [];
+    items.forEach(item => {
+      if (item && item.selesai) completedItems.push(item);
+      else if (item) incompleteItems.push(item);
+    });
+  });
+  
+  const progress = kategoriList.length > 0 ? (completedItems.length / (completedItems.length + incompleteItems.length)) * 100 : 0;
+  
+  let recommendations = [];
+  
+  if (incompleteItems.length > 0) {
+    recommendations.push({
+      title: "📋 Prioritas Checklist",
+      description: `${incompleteItems.length} item perlu diselesaikan.`,
+      action: "Lihat Checklist"
+    });
+  }
+  
+  if (totalEstimasi > 0) {
+    recommendations.push({
+      title: "💰 Estimasi Biaya",
+      description: `Total: Rp ${totalEstimasi.toLocaleString('id-ID')}`,
+      action: "Atur Keuangan",
+      actionLink: "keuangan"
+    });
+  }
+  
+  if (progress < 30) {
+    recommendations.push({
+      title: "🚀 Mulai Persiapan",
+      description: "Fokus pada dokumen dan venue terlebih dahulu.",
+      action: "Mulai"
+    });
+  } else if (progress >= 70 && incompleteItems.length > 0) {
+    recommendations.push({
+      title: "🎉 Hampir Selesai!",
+      description: `Tinggal ${incompleteItems.length} item lagi.`,
+      action: "Finalisasi"
+    });
+  }
+  
+  container.innerHTML = `
+    <div class="card p-3 mb-4" style="background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 16px;">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-robot fs-5 text-purple"></i>
+          <span class="fw-bold small">✨ Rekomendasi AI</span>
+        </div>
+        <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="generateAIRecommendations()" style="font-size: 11px;">
+          <i class="bi bi-arrow-repeat me-1"></i> Refresh
+        </button>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        ${recommendations.map(rec => `
+          <div class="p-2 bg-white rounded-3 flex-grow-1" style="background: var(--card-bg) !important;">
+            <div class="fw-semibold small">${rec.title}</div>
+            <small class="text-muted d-block">${rec.description}</small>
+            <button class="btn btn-sm btn-outline-primary rounded-pill mt-1" style="font-size: 11px;" 
+                    onclick="applyAIRecommendation('${rec.actionLink || 'catatan'}')">
+              ${rec.action} <i class="bi bi-arrow-right ms-1"></i>
+            </button>
+          </div>
+        `).join('')}
+        ${recommendations.length === 0 ? '<div class="text-muted small py-2 text-center">✨ Persiapan Anda sudah baik! Tetap semangat!</div>' : ''}
+      </div>
+    </div>
+  `;
+  
+  isGeneratingAI = false;
+}
+
+window.applyAIRecommendation = function(action) {
+  if (action === 'keuangan') {
+    window.location.href = '#keuangan-page';
+    showPage('keuangan');
+  }
+};
+
+window.generateAIRecommendations = generateAIRecommendations;
+
 window.addItemToKeuangan = async function(kategoriId, itemId, itemNama) {
   const kat = kategoriList.find(k => k.id === kategoriId);
   const estimasiBiaya = kat?.estimasiBiaya || 0;
@@ -366,25 +407,35 @@ window.addItemToKeuangan = async function(kategoriId, itemId, itemNama) {
   if (nominal && !isNaN(nominal) && parseInt(nominal) > 0) {
     const confirmed = await showCustomConfirm("Konfirmasi", `Tambahkan keuangan untuk "${itemNama}" sebesar Rp ${parseInt(nominal).toLocaleString('id-ID')}?`);
     if (confirmed) {
-      const transaksi = await window.addTransaksiFromExternal(currentUser, {
-        tipe: 'pengeluaran',
-        kategori: 'Pernikahan',
-        nominal: parseInt(nominal),
-        catatan: `Biaya untuk: ${itemNama} (dari Catatan Persiapan)`,
-        fromCatatan: true,
-        sourceType: 'catatan_item',
-        sourceId: `${kategoriId}_${itemId}`
-      });
-      
-      await update(ref(db, `data/catatan/${currentUser}/items/${kategoriId}/${itemId}`), { 
-        selesai: true,
-        linkedTransactionId: transaksi.id,
-        updatedFromKeuangan: true
-      });
-      
-      showNotif(`✅ "${itemNama}" ditambahkan ke keuangan!`, false, 'success');
-      updateProgress();
-      generateAIRecommendations();
+      showLoading("Menambahkan ke keuangan...");
+      try {
+        const transaksi = await window.addTransaksiFromExternal(currentUser, {
+          tipe: 'pengeluaran',
+          kategori: 'Pernikahan',
+          nominal: parseInt(nominal),
+          catatan: `Biaya untuk: ${itemNama} (dari Catatan)`,
+          fromCatatan: true,
+          sourceType: 'catatan_item',
+          sourceId: `${kategoriId}_${itemId}`
+        });
+        
+        await update(ref(db, `data/catatan/${currentUser}/items/${kategoriId}/${itemId}`), { 
+          selesai: true,
+          linkedTransactionId: transaksi.id,
+          updatedFromKeuangan: true
+        });
+        
+        clearCache(`catatan_items_${currentUser}`);
+        await loadChecklistItemsOptimized(true);
+        renderKategori();
+        updateProgress();
+        
+        showNotif(`✅ "${itemNama}" ditambahkan!`, false, 'success');
+      } catch (err) {
+        showNotif("Gagal menambahkan", true, 'error');
+      } finally {
+        hideLoading();
+      }
     }
   }
 };
@@ -396,24 +447,30 @@ window.addBudgetToKeuangan = async function(kategoriId) {
     return;
   }
   
-  const confirmed = await showCustomConfirm("Konfirmasi", `Tambahkan budget untuk "${kat.nama}" sebesar Rp ${kat.estimasiBiaya.toLocaleString('id-ID')} ke dalam rencana keuangan?`);
+  const confirmed = await showCustomConfirm("Konfirmasi", `Tambahkan budget untuk "${kat.nama}" sebesar Rp ${kat.estimasiBiaya.toLocaleString('id-ID')}?`);
   if (confirmed) {
-    await window.addTransaksiFromExternal(currentUser, {
-      tipe: 'pengeluaran',
-      kategori: 'Pernikahan',
-      nominal: kat.estimasiBiaya,
-      catatan: `Budget untuk: ${kat.nama} (dari Catatan Persiapan)`,
-      fromCatatan: true,
-      sourceType: 'catatan_kategori',
-      sourceId: kategoriId
-    });
-    showNotif(`✅ Budget "${kat.nama}" ditambahkan ke keuangan!`, false, 'success');
+    showLoading("Menambahkan ke keuangan...");
+    try {
+      await window.addTransaksiFromExternal(currentUser, {
+        tipe: 'pengeluaran',
+        kategori: 'Pernikahan',
+        nominal: kat.estimasiBiaya,
+        catatan: `Budget untuk: ${kat.nama}`,
+        fromCatatan: true,
+        sourceType: 'catatan_kategori',
+        sourceId: kategoriId
+      });
+      showNotif(`✅ Budget "${kat.nama}" ditambahkan!`, false, 'success');
+    } catch (err) {
+      showNotif("Gagal menambahkan", true, 'error');
+    } finally {
+      hideLoading();
+    }
   }
 };
 
 window.toggleItem = async function(kategoriId, itemId, selesai) {
   if (selesai) {
-    // Jika mencoba mencentang manual, arahkan ke tambah keuangan
     const item = checklistItems[kategoriId]?.[itemId];
     if (item && !item.linkedTransactionId) {
       showNotif("Silakan tambahkan item ini ke Keuangan terlebih dahulu", false, 'warning');
@@ -422,34 +479,58 @@ window.toggleItem = async function(kategoriId, itemId, selesai) {
     }
   }
   await update(ref(db, `data/catatan/${currentUser}/items/${kategoriId}/${itemId}`), { selesai });
+  clearCache(`catatan_items_${currentUser}`);
   updateProgress();
 };
 
 window.deleteItem = async function(kategoriId, itemId) {
   const confirmed = await showCustomConfirm("Hapus Item", "Yakin ingin menghapus item ini?");
   if (confirmed) {
-    const item = checklistItems[kategoriId]?.[itemId];
-    if (item && item.linkedTransactionId) {
-      await window.deleteTransaksiWithRelation(item.linkedTransactionId, currentUser);
+    showLoading("Menghapus item...");
+    try {
+      const item = checklistItems[kategoriId]?.[itemId];
+      if (item && item.linkedTransactionId) {
+        await window.deleteTransaksiWithRelation(item.linkedTransactionId, currentUser);
+      }
+      await remove(ref(db, `data/catatan/${currentUser}/items/${kategoriId}/${itemId}`));
+      clearCache(`catatan_items_${currentUser}`);
+      await loadChecklistItemsOptimized(true);
+      renderKategori();
+      updateProgress();
+      showNotif("Item dihapus", false, 'warning');
+    } catch (err) {
+      showNotif("Gagal menghapus", true, 'error');
+    } finally {
+      hideLoading();
     }
-    await remove(ref(db, `data/catatan/${currentUser}/items/${kategoriId}/${itemId}`));
-    showNotif("Item dihapus", false, 'warning');
   }
 };
 
 window.deleteKategori = async function(id) {
   const confirmed = await showCustomConfirm("Hapus Kategori", "Yakin ingin menghapus kategori ini? Semua item di dalamnya juga akan terhapus.");
   if (confirmed) {
-    const items = checklistItems[id] || {};
-    for (const [itemId, item] of Object.entries(items)) {
-      if (item && item.linkedTransactionId) {
-        await window.deleteTransaksiWithRelation(item.linkedTransactionId, currentUser);
+    showLoading("Menghapus kategori...");
+    try {
+      const items = checklistItems[id] || {};
+      for (const [itemId, item] of Object.entries(items)) {
+        if (item && item.linkedTransactionId) {
+          await window.deleteTransaksiWithRelation(item.linkedTransactionId, currentUser);
+        }
       }
+      await remove(ref(db, `data/catatan/${currentUser}/kategori/${id}`));
+      await remove(ref(db, `data/catatan/${currentUser}/items/${id}`));
+      clearCache(`catatan_kategori_${currentUser}`);
+      clearCache(`catatan_items_${currentUser}`);
+      await loadKategoriOptimized(true);
+      await loadChecklistItemsOptimized(true);
+      renderKategori();
+      updateProgress();
+      showNotif("Kategori dihapus", false, 'warning');
+    } catch (err) {
+      showNotif("Gagal menghapus", true, 'error');
+    } finally {
+      hideLoading();
     }
-    await remove(ref(db, `data/catatan/${currentUser}/kategori/${id}`));
-    await remove(ref(db, `data/catatan/${currentUser}/items/${id}`));
-    showNotif("Kategori dihapus", false, 'warning');
-    await loadKategori();
   }
 };
 
@@ -459,7 +540,7 @@ window.openKategoriModal = function(editId = null) {
   const modalHtml = `
     <div class="modal fade" id="kategoriModal" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered modal-md">
-        <div class="modal-content rounded-4" style="max-width: 500px;">
+        <div class="modal-content rounded-4">
           <div class="modal-header border-0 bg-warning text-dark py-3">
             <h5 class="fw-bold mb-0">${editId ? '✏️ Edit Kategori' : '📁 Tambah Kategori'}</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -467,7 +548,7 @@ window.openKategoriModal = function(editId = null) {
           <div class="modal-body modal-form p-4">
             <div class="mb-3">
               <label class="fw-semibold mb-2">Nama Kategori</label>
-              <input type="text" id="kategoriNama" class="form-control form-control-lg rounded-3" placeholder="Contoh: Dokumentasi Pernikahan">
+              <input type="text" id="kategoriNama" class="form-control form-control-lg rounded-3">
             </div>
             <div class="mb-3">
               <label class="fw-semibold mb-2">Icon</label>
@@ -475,24 +556,19 @@ window.openKategoriModal = function(editId = null) {
                 <option value="bi-files">📋 Dokumen</option>
                 <option value="bi-building">🏛️ Venue</option>
                 <option value="bi-person-standing">👗 Busana</option>
-                <option value="bi-diamond">💍 Perlengkapan</option>
                 <option value="bi-camera">📸 Dokumentasi</option>
                 <option value="bi-cup-straw">🍽️ Konsumsi</option>
-                <option value="bi-music-note">🎵 Hiburan</option>
-                <option value="bi-envelope">📝 Undangan</option>
-                <option value="bi-wallet2">💰 Anggaran</option>
-                <option value="bi-people">👥 Tamu</option>
               </select>
             </div>
             <div class="mb-3">
               <label class="fw-semibold mb-2">Estimasi Biaya (Rp)</label>
-              <input type="number" id="kategoriEstimasi" class="form-control form-control-lg rounded-3" placeholder="Estimasi biaya untuk kategori ini">
-              <small class="text-muted">Biaya ini akan terhubung dengan menu Keuangan</small>
+              <input type="number" id="kategoriEstimasi" class="form-control form-control-lg rounded-3">
+              <small class="text-muted">Akan terhubung dengan menu Keuangan</small>
             </div>
           </div>
           <div class="modal-footer border-0 pb-4 px-4">
             <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-            <button class="btn btn-warning rounded-pill px-4" onclick="saveKategori()">Simpan Kategori</button>
+            <button class="btn btn-warning rounded-pill px-4" onclick="saveKategori()">Simpan</button>
           </div>
         </div>
       </div>
@@ -533,19 +609,29 @@ window.saveKategori = async function() {
     return;
   }
   
-  if (editKategoriId) {
-    await update(ref(db, `data/catatan/${currentUser}/kategori/${editKategoriId}`), { nama, icon, estimasiBiaya });
-    showNotif("Kategori berhasil diupdate", false, 'success');
-    editKategoriId = null;
-  } else {
-    await push(ref(db, `data/catatan/${currentUser}/kategori`), { nama, icon, estimasiBiaya });
-    showNotif("Kategori berhasil ditambahkan", false, 'success');
+  showLoading("Menyimpan kategori...");
+  try {
+    if (editKategoriId) {
+      await update(ref(db, `data/catatan/${currentUser}/kategori/${editKategoriId}`), { nama, icon, estimasiBiaya });
+      showNotif("Kategori berhasil diupdate", false, 'success');
+      editKategoriId = null;
+    } else {
+      await push(ref(db, `data/catatan/${currentUser}/kategori`), { nama, icon, estimasiBiaya });
+      showNotif("Kategori berhasil ditambahkan", false, 'success');
+    }
+    
+    clearCache(`catatan_kategori_${currentUser}`);
+    await loadKategoriOptimized(true);
+    renderKategori();
+    generateAIRecommendations();
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('kategoriModal'));
+    if (modal) modal.hide();
+  } catch (err) {
+    showNotif("Gagal menyimpan", true, 'error');
+  } finally {
+    hideLoading();
   }
-  
-  const modal = bootstrap.Modal.getInstance(document.getElementById('kategoriModal'));
-  if (modal) modal.hide();
-  await loadKategori();
-  generateAIRecommendations();
 };
 
 window.editKategori = function(id) {
@@ -559,17 +645,17 @@ window.addItemToKategori = function(kategoriId) {
   const modalHtml = `
     <div class="modal fade" id="itemModal" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered modal-md">
-        <div class="modal-content rounded-4" style="max-width: 500px;">
+        <div class="modal-content rounded-4">
           <div class="modal-header border-0 bg-primary text-white">
-            <h5 class="fw-bold mb-0">📝 Tambah Item Baru</h5>
+            <h5 class="fw-bold mb-0">📝 Tambah Item</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body p-4">
-            <input type="text" id="itemNama" class="form-control form-control-lg rounded-3" placeholder="Nama item / tugas">
+            <input type="text" id="itemNama" class="form-control form-control-lg rounded-3" placeholder="Nama item">
           </div>
           <div class="modal-footer border-0 pb-4 px-4">
             <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-            <button class="btn btn-primary rounded-pill px-4" onclick="saveItem()">Simpan Item</button>
+            <button class="btn btn-primary rounded-pill px-4" onclick="saveItem()">Simpan</button>
           </div>
         </div>
       </div>
@@ -593,17 +679,17 @@ window.editItem = function(kategoriId, itemId) {
   const modalHtml = `
     <div class="modal fade" id="itemModal" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered modal-md">
-        <div class="modal-content rounded-4" style="max-width: 500px;">
+        <div class="modal-content rounded-4">
           <div class="modal-header border-0 bg-primary text-white">
             <h5 class="fw-bold mb-0">✏️ Edit Item</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body p-4">
-            <input type="text" id="itemNama" class="form-control form-control-lg rounded-3" placeholder="Nama item / tugas">
+            <input type="text" id="itemNama" class="form-control form-control-lg rounded-3" placeholder="Nama item">
           </div>
           <div class="modal-footer border-0 pb-4 px-4">
             <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-            <button class="btn btn-primary rounded-pill px-4" onclick="saveItem()">Simpan Perubahan</button>
+            <button class="btn btn-primary rounded-pill px-4" onclick="saveItem()">Simpan</button>
           </div>
         </div>
       </div>
@@ -637,19 +723,30 @@ window.saveItem = async function() {
     return;
   }
   
-  if (editItemId) {
-    await update(ref(db, `data/catatan/${currentUser}/items/${editItemParentId}/${editItemId}`), { nama });
-    showNotif("Item berhasil diupdate", false, 'success');
-    editItemId = null;
-  } else {
-    await push(ref(db, `data/catatan/${currentUser}/items/${editItemParentId}`), { nama, selesai: false });
-    showNotif("Item berhasil ditambahkan", false, 'success');
+  showLoading("Menyimpan item...");
+  try {
+    if (editItemId) {
+      await update(ref(db, `data/catatan/${currentUser}/items/${editItemParentId}/${editItemId}`), { nama });
+      showNotif("Item berhasil diupdate", false, 'success');
+      editItemId = null;
+    } else {
+      await push(ref(db, `data/catatan/${currentUser}/items/${editItemParentId}`), { nama, selesai: false });
+      showNotif("Item berhasil ditambahkan", false, 'success');
+    }
+    
+    clearCache(`catatan_items_${currentUser}`);
+    await loadChecklistItemsOptimized(true);
+    renderKategori();
+    updateProgress();
+    generateAIRecommendations();
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('itemModal'));
+    if (modal) modal.hide();
+  } catch (err) {
+    showNotif("Gagal menyimpan", true, 'error');
+  } finally {
+    hideLoading();
   }
-  
-  const modal = bootstrap.Modal.getInstance(document.getElementById('itemModal'));
-  if (modal) modal.hide();
-  generateAIRecommendations();
 };
 
 window.initCatatan = initCatatan;
-window.generateAIRecommendations = generateAIRecommendations;
