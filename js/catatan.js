@@ -317,7 +317,7 @@ window.generateWeddingPlanning = async function(templateId = 'basic') {
   
   const confirmed = await showCustomConfirm(
     "Generate Planning Wedding", 
-    `Yakin ingin menggunakan template "${template.name}"? Data catatan yang ada akan diganti dengan template ini.`
+    `Yakin ingin menggunakan template "${template.name}"? Data catatan yang ada akan DIGANTI SEPENUHNYA dengan template ini.`
   );
   
   if (!confirmed) return;
@@ -325,17 +325,24 @@ window.generateWeddingPlanning = async function(templateId = 'basic') {
   showLoading("Membuat planning wedding...");
   
   try {
-    // Hapus semua kategori dan items yang ada
+    // ============ TUNGGU SAMPAI PROSES HAPUS SELESAI ============
     const kategoriRef = ref(db, `data/catatan/${currentUser}/kategori`);
     const itemsRef = ref(db, `data/catatan/${currentUser}/items`);
     
+    console.log("Menghapus data lama...");
     await remove(kategoriRef);
     await remove(itemsRef);
     
-    // Buat kategori baru dari template
+    // Beri jeda 500ms untuk memastikan Firebase menyelesaikan proses hapus
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    console.log("Data lama terhapus, mulai menulis template baru...");
+    
+    // ============ TULIS DATA BARU ============
     let totalEstimasi = 0;
     
     for (const kat of template.categories) {
+      // Buat kategori baru
       const newKatRef = await push(kategoriRef, {
         nama: kat.nama,
         icon: kat.icon,
@@ -351,26 +358,32 @@ window.generateWeddingPlanning = async function(templateId = 'basic') {
           selesai: false
         });
       }
+      
+      console.log(`Kategori "${kat.nama}" ditambahkan dengan ${kat.items.length} item`);
     }
     
-    // Set target keuangan berdasarkan total estimasi untuk current user
+    // Set target keuangan berdasarkan total estimasi
     await set(ref(db, `data/keuangan/${currentUser}/targetPernikahan`), totalEstimasi);
     
+    // Bersihkan cache dan reload data
     clearCache(`catatan_kategori_${currentUser}`);
     clearCache(`catatan_items_${currentUser}`);
+    
     await loadKategoriOptimized(true);
     await loadChecklistItemsOptimized(true);
+    
     renderKategori();
     updateProgress();
-    
-    showNotif(`✅ Template "${template.name}" berhasil diterapkan! Total estimasi: Rp ${totalEstimasi.toLocaleString('id-ID')}`, false, 'success');
+    generateAIRecommendations();
     
     // Refresh keuangan
     if (typeof window.initKeuangan === 'function') window.initKeuangan();
     
+    showNotif(`✅ Template "${template.name}" berhasil diterapkan! Total estimasi: Rp ${totalEstimasi.toLocaleString('id-ID')}`, false, 'success');
+    
   } catch (err) {
-    console.error(err);
-    showNotif("Gagal membuat planning wedding", true, 'error');
+    console.error("Error generating wedding planning:", err);
+    showNotif("❌ Gagal membuat planning wedding. Silakan coba lagi.", true, 'error');
   } finally {
     hideLoading();
   }
