@@ -1,10 +1,11 @@
-// js/moment.js
+// js/moment.js - Optimasi dengan Lazy Loading
 import { db, ref, push, update, remove } from './firebase-config.js';
-import { masterData, escapeHtml, showNotif, compressImage } from './utils.js';
+import { masterData, escapeHtml, showNotif, compressImage, showCustomConfirm, throttle, showLoading, hideLoading } from './utils.js';
 
 let currentViewDate = new Date();
 let currentDetailMomentId = null;
 let currentMomentPhotos = [];
+let isRenderingCalendar = false;
 
 function renderPhotoGrid() {
   const grid = document.getElementById('photoUploadGrid');
@@ -12,7 +13,7 @@ function renderPhotoGrid() {
   
   const existingPhotos = currentMomentPhotos.map((photo, idx) => `
     <div class="photo-preview-item">
-      <img src="${photo}" alt="Preview">
+      <img src="${photo}" alt="Preview" loading="lazy">
       <button class="remove-photo-btn" onclick="window.removePhotoAtIndex(${idx})">✕</button>
     </div>
   `).join('');
@@ -40,13 +41,13 @@ export async function handleMultiplePhotos(input) {
   showNotif('📸 Memproses foto...');
   
   for (const file of files) {
-    if (file.size > 5 * 1024 * 1024) {
-      showNotif(`❌ Foto ${file.name} terlalu besar (max 5MB)`, true);
+    if (file.size > 2 * 1024 * 1024) {
+      showNotif(`❌ Foto ${file.name} terlalu besar (max 2MB)`, true);
       continue;
     }
     
     try {
-      const compressed = await compressImage(file, 2);
+      const compressed = await compressImage(file, 1);
       currentMomentPhotos.push(compressed);
     } catch (err) {
       console.error('Compression error:', err);
@@ -67,6 +68,9 @@ export function removePhotoAtIndex(index) {
 }
 
 export function renderCalendar() {
+  if (isRenderingCalendar) return;
+  isRenderingCalendar = true;
+  
   const year = currentViewDate.getFullYear();
   const month = currentViewDate.getMonth();
   const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
@@ -82,7 +86,10 @@ export function renderCalendar() {
   today.setHours(0, 0, 0, 0);
   
   const grid = document.getElementById('calendarGrid');
-  if (!grid) return;
+  if (!grid) {
+    isRenderingCalendar = false;
+    return;
+  }
   
   const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
   let calendarHtml = dayNames.map(day => `<div class="calendar-day-name">${day}</div>`).join('');
@@ -135,7 +142,12 @@ export function renderCalendar() {
   }
   
   grid.innerHTML = calendarHtml;
+  isRenderingCalendar = false;
 }
+
+const throttledRenderMoments = throttle(() => {
+  renderMomentsList();
+}, 500);
 
 export function renderMomentsList() {
   const data = masterData;
@@ -169,23 +181,33 @@ export function renderMomentsList() {
     return;
   }
   
-  momentsListEl.innerHTML = momentsArray.map((moment) => {
+  // Gunakan fragment untuk performance
+  const fragment = document.createDocumentFragment();
+  const tempDiv = document.createElement('div');
+  
+  momentsArray.forEach((moment) => {
     const specialClass = moment.isSpecial ? 'special-card' : '';
     const firstPhoto = moment.photos && moment.photos[0] ? moment.photos[0] : null;
     const dateFormatted = moment.date ? moment.date.split('-').reverse().join('/') : '';
     
-    return `
+    tempDiv.innerHTML = `
       <div class="col-6 col-lg-3 col-md-4 mb-3">
         <div class="moment-card ${specialClass} h-100" onclick="window.viewMomentDetail('${moment.id}')">
-          ${firstPhoto ? `<img src="${firstPhoto}" class="moment-image" loading="lazy" style="height: 140px; width: 100%; object-fit: cover;">` : `<div class="moment-image-placeholder" style="height: 140px;"><i class="bi bi-camera-fill"></i></div>`}
+          ${firstPhoto ? `<img src="${firstPhoto}" class="moment-image" loading="lazy" style="height: 120px; width: 100%; object-fit: cover;" onerror="this.src='https://placehold.co/400x300?text=No+Image'">` : `<div class="moment-image-placeholder" style="height: 120px;"><i class="bi bi-camera-fill"></i></div>`}
           <div class="card-body p-2">
-            <h6 class="fw-bold mb-0 small">${escapeHtml(moment.title || 'Momen Tak Terlupakan')}</h6>
+            <h6 class="fw-bold mb-0 small">${escapeHtml(moment.title || 'Momen')}</h6>
             <small class="text-muted" style="font-size: 10px;">${dateFormatted}</small>
           </div>
         </div>
       </div>
     `;
-  }).join('');
+    while (tempDiv.firstChild) {
+      fragment.appendChild(tempDiv.firstChild);
+    }
+  });
+  
+  momentsListEl.innerHTML = '';
+  momentsListEl.appendChild(fragment);
 }
 
 export function selectMomentDate(dateKey) {
@@ -258,6 +280,8 @@ export async function saveMoment() {
     return;
   }
   
+  showLoading("Menyimpan momen...");
+  
   const momentData = {
     date: date,
     title: title || `Momen di ${date}`,
@@ -288,6 +312,8 @@ export async function saveMoment() {
   } catch (err) {
     console.error(err);
     showNotif('❌ Gagal menyimpan momen', true);
+  } finally {
+    hideLoading();
   }
 }
 
@@ -318,7 +344,7 @@ export async function viewMomentDetail(momentId) {
   } else {
     carouselInner.innerHTML = photos.map((photo, idx) => `
       <div class="carousel-item ${idx === 0 ? 'active' : ''}">
-        <img src="${photo}" style="width:100%; max-height: 300px; object-fit: contain;">
+        <img src="${photo}" style="width:100%; max-height: 300px; object-fit: contain;" loading="lazy">
       </div>
     `).join('');
     
@@ -344,7 +370,9 @@ export function editMomentFromDetail() {
 export async function deleteMomentFromDetail() {
   if (!currentDetailMomentId) return;
   
-  showConfirmDialog('Hapus Momen', 'Yakin ingin menghapus momen ini? Data yang dihapus tidak dapat dikembalikan.', async () => {
+  const confirmed = await showCustomConfirm("Hapus Momen", "Yakin ingin menghapus momen ini? Data yang dihapus tidak dapat dikembalikan.");
+  if (confirmed) {
+    showLoading("Menghapus momen...");
     try {
       await remove(ref(db, `data/moments/${currentDetailMomentId}`));
       showNotif('🗑️ Momen berhasil dihapus');
@@ -357,53 +385,10 @@ export async function deleteMomentFromDetail() {
     } catch (err) {
       console.error(err);
       showNotif('❌ Gagal menghapus momen', true);
+    } finally {
+      hideLoading();
     }
-  });
-}
-
-function showConfirmDialog(title, message, onConfirm) {
-  let confirmModal = document.getElementById('customConfirmModal');
-  
-  if (!confirmModal) {
-    const modalHtml = `
-      <div class="modal fade" id="customConfirmModal" tabindex="-1" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
-          <div class="modal-content rounded-4">
-            <div class="modal-header border-0 pt-4 pb-0">
-              <h5 class="fw-bold mb-0">${title}</h5>
-            </div>
-            <div class="modal-body text-center py-3">
-              <i class="bi bi-question-circle fs-1 text-warning mb-2 d-block"></i>
-              <p class="mb-0">${message}</p>
-            </div>
-            <div class="modal-footer border-0 justify-content-center gap-3 pb-4">
-              <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-              <button id="confirmDeleteActionBtn" class="btn btn-danger rounded-pill px-4">Hapus</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    confirmModal = document.getElementById('customConfirmModal');
   }
-  
-  confirmModal.querySelector('.modal-header .fw-bold').innerText = title;
-  confirmModal.querySelector('.modal-body p').innerHTML = message;
-  
-  const modal = new bootstrap.Modal(confirmModal);
-  
-  const handleConfirm = () => {
-    modal.hide();
-    onConfirm();
-  };
-  
-  const freshConfirmBtn = document.getElementById('confirmDeleteActionBtn');
-  freshConfirmBtn.replaceWith(freshConfirmBtn.cloneNode(true));
-  const newConfirmBtn = document.getElementById('confirmDeleteActionBtn');
-  newConfirmBtn.addEventListener('click', handleConfirm, { once: true });
-  
-  modal.show();
 }
 
 export function changeMonth(delta) {
