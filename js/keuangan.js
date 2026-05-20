@@ -1,12 +1,19 @@
-// js/keuangan.js - Dengan Relasi Data & Kategori Dinamis
+// js/keuangan.js - Optimasi dengan Caching
 import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
-import { showNotif, formatNumberRp, escapeHtml, showCustomPrompt, showCustomConfirm } from './utils.js';
+import { showNotif, formatNumberRp, escapeHtml, showCustomPrompt, showCustomConfirm, getCache, setCache, throttle, showLoading, hideLoading } from './utils.js';
 
 let currentUser = null;
 let transaksiList = [];
 let targetBersama = 0;
 let editTransaksiId = null;
 let dynamicCategories = ['Pernikahan', 'Makanan', 'Transportasi', 'Belanja', 'Tabungan', 'Hiburan', 'Kesehatan', 'Pendidikan', 'Tagihan', 'Lainnya'];
+let isInitialized = false;
+
+// Throttled render functions
+const throttledRenderTransaksi = throttle(() => {
+  renderTransaksi();
+  updateRingkasan();
+}, 300);
 
 export function initKeuangan() {
   currentUser = sessionStorage.getItem("progrowth_user");
@@ -15,31 +22,56 @@ export function initKeuangan() {
     return;
   }
   
+  if (isInitialized) {
+    // Refresh data saja
+    loadAllTransaksiOptimized();
+    return;
+  }
+  
+  showLoading("Memuat data keuangan...");
+  isInitialized = true;
+  
   const keuanganUserName = document.getElementById('keuanganUserName');
   if (keuanganUserName) {
     const displayName = currentUser === "FACHMI" ? "Fachmi" : "Azizah";
     keuanganUserName.innerHTML = `Keuangan ${displayName}`;
   }
   
-  loadDynamicCategories();
-  loadTargetBersama();
-  loadAllTransaksi();
+  // Parallel loading
+  Promise.all([
+    loadTargetBersama(),
+    loadDynamicCategories(),
+    loadAllTransaksiOptimized()
+  ]).finally(() => {
+    hideLoading();
+  });
 }
 
 async function loadDynamicCategories() {
-  // Load kategori dari catatan dan impian
+  const cacheKey = `categories_${currentUser}`;
+  const cached = getCache(cacheKey);
+  if (cached) {
+    dynamicCategories = cached;
+    updateKategoriSelect();
+    return;
+  }
+  
   try {
-    const catatanSnapshot = await get(ref(db, `data/catatan/${currentUser}/kategori`));
+    const [catatanSnapshot, impianSnapshot] = await Promise.all([
+      get(ref(db, `data/catatan/${currentUser}/kategori`)),
+      get(ref(db, `data/impian/${currentUser}`))
+    ]);
+    
     const catatanKategori = catatanSnapshot.val() || {};
     const catatanNama = Object.values(catatanKategori).map(k => k.nama?.replace(/[📋🏛️👗💍📸🍽️🎵📝💰👥]/g, '').trim());
     
-    const impianSnapshot = await get(ref(db, `data/impian/${currentUser}`));
     const impianData = impianSnapshot.val() || {};
     const impianKategori = Object.values(impianData).map(i => i.kategori);
     
     const allCategories = [...new Set([...dynamicCategories, ...catatanNama, ...impianKategori])];
     dynamicCategories = allCategories.filter(c => c && c.length > 0);
     
+    setCache(cacheKey, dynamicCategories, 10);
     updateKategoriSelect();
   } catch (err) {
     console.error("Error loading dynamic categories:", err);
@@ -54,41 +86,57 @@ function updateKategoriSelect() {
   select.innerHTML = options;
 }
 
-function loadAllTransaksi() {
-  const fetchTransaksi = () => {
-    Promise.all([
+async function loadAllTransaksiOptimized() {
+  const cacheKey = `keuangan_transaksi_${currentUser}`;
+  const cached = getCache(cacheKey);
+  if (cached) {
+    transaksiList = cached;
+    renderTransaksi();
+    updateRingkasan();
+    return;
+  }
+  
+  try {
+    const [fachmiSnap, azizahSnap] = await Promise.all([
       get(ref(db, `data/keuangan/FACHMI/transaksi`)),
       get(ref(db, `data/keuangan/AZIZAH/transaksi`))
-    ]).then(([fachmiSnap, azizahSnap]) => {
-      const fachmiData = fachmiSnap.val() || {};
-      const azizahData = azizahSnap.val() || {};
-      
-      const fachmiList = Object.entries(fachmiData).map(([id, val]) => ({ 
-        id, ...val, userId: 'FACHMI', userName: 'Fachmi' 
-      }));
-      
-      const azizahList = Object.entries(azizahData).map(([id, val]) => ({ 
-        id, ...val, userId: 'AZIZAH', userName: 'Azizah' 
-      }));
-      
-      transaksiList = [...fachmiList, ...azizahList];
-      renderTransaksi();
-      updateRingkasan();
-    });
-  };
-  
-  fetchTransaksi();
-  
-  onValue(ref(db, `data/keuangan/FACHMI/transaksi`), () => fetchTransaksi());
-  onValue(ref(db, `data/keuangan/AZIZAH/transaksi`), () => fetchTransaksi());
-  onValue(ref(db, `data/catatan/${currentUser}/kategori`), () => loadDynamicCategories());
-  onValue(ref(db, `data/impian/${currentUser}`), () => loadDynamicCategories());
+    ]);
+    
+    const fachmiData = fachmiSnap.val() || {};
+    const azizahData = azizahSnap.val() || {};
+    
+    const fachmiList = Object.entries(fachmiData).map(([id, val]) => ({ 
+      id, ...val, userId: 'FACHMI', userName: 'Fachmi' 
+    }));
+    
+    const azizahList = Object.entries(azizahData).map(([id, val]) => ({ 
+      id, ...val, userId: 'AZIZAH', userName: 'Azizah' 
+    }));
+    
+    transaksiList = [...fachmiList, ...azizahList];
+    
+    setCache(cacheKey, transaksiList, 3);
+    renderTransaksi();
+    updateRingkasan();
+  } catch (err) {
+    console.error("Error loading transaksi:", err);
+    showNotif("Gagal memuat data keuangan", true, 'error');
+  }
 }
 
 async function loadTargetBersama() {
+  const cacheKey = 'keuangan_target_bersama';
+  const cached = getCache(cacheKey);
+  if (cached !== null) {
+    targetBersama = cached;
+    updateTargetUI();
+    return;
+  }
+  
   try {
     const snapshot = await get(ref(db, `data/keuangan/targetBersama`));
     targetBersama = snapshot.val() || 0;
+    setCache(cacheKey, targetBersama, 30);
     updateTargetUI();
   } catch (err) {
     console.error("Error loading target:", err);
@@ -140,46 +188,57 @@ function renderTransaksi() {
   const container = document.getElementById('transaksiList');
   if (!container) return;
   
-  if (transaksiList.length === 0) {
+  if (!transaksiList || transaksiList.length === 0) {
     container.innerHTML = '<div class="text-center text-muted py-4">Belum ada transaksi</div>';
     return;
   }
   
-  const sortedList = [...transaksiList].sort((a, b) => b.tanggal - a.tanggal);
+  const sortedList = [...transaksiList].sort((a, b) => (b.tanggal || 0) - (a.tanggal || 0));
   
-  container.innerHTML = sortedList.map(t => `
-    <div class="list-group-item d-flex justify-content-between align-items-start ${t.userId === currentUser ? 'bg-light' : ''}" style="border-left: 3px solid ${t.userId === 'FACHMI' ? '#6366f1' : '#ec4899'}">
-      <div class="flex-grow-1">
-        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-          <span class="badge ${t.userId === 'FACHMI' ? 'bg-primary' : 'bg-pink'}">${escapeHtml(t.userName)}</span>
-          <span class="fw-medium">${escapeHtml(t.kategori)}</span>
-          ${t.fromImpian ? '<span class="badge bg-purple"><i class="bi bi-stars me-1"></i>Impian</span>' : ''}
-          ${t.fromCatatan ? '<span class="badge bg-warning"><i class="bi bi-journal me-1"></i>Catatan</span>' : ''}
-          ${t.sourceId ? `<span class="badge bg-secondary">🔗 Terhubung</span>` : ''}
-        </div>
-        <small class="d-block text-muted">${new Date(t.tanggal).toLocaleDateString('id-ID')}</small>
-        ${t.catatan ? `<small class="d-block text-muted">📝 ${escapeHtml(t.catatan)}</small>` : ''}
-      </div>
-      <div class="text-end ms-2">
-        <span class="fw-bold ${t.tipe === 'pemasukan' ? 'text-success' : 'text-danger'}">
-          ${t.tipe === 'pemasukan' ? '+' : '-'} ${formatNumberRp(t.nominal)}
-        </span>
-        ${t.userId === currentUser ? `
-          <div class="mt-1">
-            <button class="btn-icon btn-sm" onclick="editTransaksi('${t.id}', '${t.userId}')">
-              <i class="bi bi-pencil"></i>
-            </button>
-            <button class="btn-icon btn-sm" onclick="deleteTransaksi('${t.id}', '${t.userId}')">
-              <i class="bi bi-trash3"></i>
-            </button>
+  // Gunakan DocumentFragment untuk performance
+  const fragment = document.createDocumentFragment();
+  const tempDiv = document.createElement('div');
+  
+  sortedList.forEach(t => {
+    tempDiv.innerHTML = `
+      <div class="list-group-item d-flex justify-content-between align-items-start ${t.userId === currentUser ? 'bg-light' : ''}" style="border-left: 3px solid ${t.userId === 'FACHMI' ? '#6366f1' : '#ec4899'}; margin-bottom: 8px; border-radius: 12px;">
+        <div class="flex-grow-1">
+          <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+            <span class="badge ${t.userId === 'FACHMI' ? 'bg-primary' : 'bg-pink'}">${escapeHtml(t.userName)}</span>
+            <span class="fw-medium">${escapeHtml(t.kategori)}</span>
+            ${t.fromImpian ? '<span class="badge bg-purple"><i class="bi bi-stars me-1"></i>Impian</span>' : ''}
+            ${t.fromCatatan ? '<span class="badge bg-warning"><i class="bi bi-journal me-1"></i>Catatan</span>' : ''}
+            ${t.sourceId ? '<span class="badge bg-secondary">🔗 Terhubung</span>' : ''}
           </div>
-        ` : ''}
+          <small class="d-block text-muted">${t.tanggal ? new Date(t.tanggal).toLocaleDateString('id-ID') : '-'}</small>
+          ${t.catatan ? `<small class="d-block text-muted">📝 ${escapeHtml(t.catatan)}</small>` : ''}
+        </div>
+        <div class="text-end ms-2">
+          <span class="fw-bold ${t.tipe === 'pemasukan' ? 'text-success' : 'text-danger'}">
+            ${t.tipe === 'pemasukan' ? '+' : '-'} ${formatNumberRp(t.nominal)}
+          </span>
+          ${t.userId === currentUser ? `
+            <div class="mt-1">
+              <button class="btn-icon btn-sm" onclick="editTransaksi('${t.id}', '${t.userId}')">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn-icon btn-sm" onclick="deleteTransaksi('${t.id}', '${t.userId}')">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
+          ` : ''}
+        </div>
       </div>
-    </div>
-  `).join('');
+    `;
+    while (tempDiv.firstChild) {
+      fragment.appendChild(tempDiv.firstChild);
+    }
+  });
+  
+  container.innerHTML = '';
+  container.appendChild(fragment);
 }
 
-// Tambah transaksi dari luar dengan relasi
 export async function addTransaksiFromExternal(userId, data) {
   const transaksiData = {
     tipe: data.tipe || 'pengeluaran',
@@ -196,17 +255,17 @@ export async function addTransaksiFromExternal(userId, data) {
   };
   
   const newRef = await push(ref(db, `data/keuangan/${userId}/transaksi`), transaksiData);
+  // Clear cache
+  clearCache(`keuangan_transaksi_${userId}`);
   return { id: newRef.key, ...transaksiData };
 }
 
-// Hapus transaksi beserta relasinya
 export async function deleteTransaksiWithRelation(transaksiId, userId) {
   const transaksiSnap = await get(ref(db, `data/keuangan/${userId}/transaksi/${transaksiId}`));
   const transaksi = transaksiSnap.val();
   
   if (!transaksi) return;
   
-  // Jika transaksi berasal dari catatan, update status item catatan
   if (transaksi.fromCatatan && transaksi.sourceId && transaksi.sourceType === 'catatan_item') {
     const [kategoriId, itemId] = transaksi.sourceId.split('_');
     await update(ref(db, `data/catatan/${userId}/items/${kategoriId}/${itemId}`), { 
@@ -215,7 +274,6 @@ export async function deleteTransaksiWithRelation(transaksiId, userId) {
     });
   }
   
-  // Jika transaksi berasal dari impian, update progress impian
   if (transaksi.fromImpian && transaksi.sourceId) {
     const impianSnap = await get(ref(db, `data/impian/${userId}/${transaksi.sourceId}`));
     const impian = impianSnap.val();
@@ -229,7 +287,30 @@ export async function deleteTransaksiWithRelation(transaksiId, userId) {
   }
   
   await remove(ref(db, `data/keuangan/${userId}/transaksi/${transaksiId}`));
+  clearCache(`keuangan_transaksi_${userId}`);
 }
+
+// Setup realtime listeners dengan throttle
+let isListenerActive = false;
+function setupRealtimeListeners() {
+  if (isListenerActive) return;
+  isListenerActive = true;
+  
+  const throttledUpdate = throttle(() => {
+    loadAllTransaksiOptimized();
+    loadDynamicCategories();
+  }, 1000);
+  
+  onValue(ref(db, `data/keuangan/FACHMI/transaksi`), () => throttledUpdate());
+  onValue(ref(db, `data/keuangan/AZIZAH/transaksi`), () => throttledUpdate());
+  onValue(ref(db, `data/keuangan/targetBersama`), () => {
+    loadTargetBersama();
+    throttledUpdate();
+  });
+}
+
+// Panggil setup listeners setelah init
+setTimeout(() => setupRealtimeListeners(), 2000);
 
 window.openTransaksiModal = function(editId = null, editUserId = null) {
   editTransaksiId = editId;
@@ -321,23 +402,35 @@ window.saveTransaksi = async function() {
     return;
   }
   
+  showLoading("Menyimpan transaksi...");
+  
   const transaksiData = {
     tipe, kategori, nominal, tanggal: new Date(tanggal).getTime(), catatan, updatedAt: Date.now()
   };
   
-  if (editTransaksiId) {
-    await update(ref(db, `data/keuangan/${currentUser}/transaksi/${editTransaksiId}`), transaksiData);
-    showNotif("Transaksi berhasil diupdate", false, 'success');
-    editTransaksiId = null;
-  } else {
-    transaksiData.createdAt = Date.now();
-    transaksiData.createdBy = currentUser;
-    await push(ref(db, `data/keuangan/${currentUser}/transaksi`), transaksiData);
-    showNotif("Transaksi berhasil ditambahkan", false, 'success');
+  try {
+    if (editTransaksiId) {
+      await update(ref(db, `data/keuangan/${currentUser}/transaksi/${editTransaksiId}`), transaksiData);
+      showNotif("Transaksi berhasil diupdate", false, 'success');
+      editTransaksiId = null;
+    } else {
+      transaksiData.createdAt = Date.now();
+      transaksiData.createdBy = currentUser;
+      await push(ref(db, `data/keuangan/${currentUser}/transaksi`), transaksiData);
+      showNotif("Transaksi berhasil ditambahkan", false, 'success');
+    }
+    
+    clearCache(`keuangan_transaksi_${currentUser}`);
+    await loadAllTransaksiOptimized();
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('transaksiModal'));
+    if (modal) modal.hide();
+  } catch (err) {
+    console.error(err);
+    showNotif("Gagal menyimpan transaksi", true, 'error');
+  } finally {
+    hideLoading();
   }
-  
-  const modal = bootstrap.Modal.getInstance(document.getElementById('transaksiModal'));
-  if (modal) modal.hide();
 };
 
 window.editTransaksi = function(id, userId) {
@@ -356,8 +449,17 @@ window.deleteTransaksi = async function(id, userId) {
   
   const confirmed = await showCustomConfirm("Hapus Transaksi", "Yakin ingin menghapus transaksi ini? Data yang terhubung (Catatan/Impian) juga akan diperbarui.");
   if (confirmed) {
-    await deleteTransaksiWithRelation(id, userId);
-    showNotif("Transaksi dihapus", false, 'warning');
+    showLoading("Menghapus transaksi...");
+    try {
+      await deleteTransaksiWithRelation(id, userId);
+      showNotif("Transaksi dihapus", false, 'warning');
+      clearCache(`keuangan_transaksi_${currentUser}`);
+      await loadAllTransaksiOptimized();
+    } catch (err) {
+      showNotif("Gagal menghapus transaksi", true, 'error');
+    } finally {
+      hideLoading();
+    }
   }
 };
 
@@ -398,13 +500,21 @@ window.saveTarget = async function() {
   const target = parseInt(document.getElementById('targetInput').value);
   
   if (target && target > 0) {
-    await set(ref(db, `data/keuangan/targetBersama`), target);
-    targetBersama = target;
-    updateTargetUI();
-    updateRingkasan();
-    showNotif("Target tabungan bersama disimpan! 💪", false, 'success');
-    const modal = bootstrap.Modal.getInstance(document.getElementById('targetModal'));
-    if (modal) modal.hide();
+    showLoading("Menyimpan target...");
+    try {
+      await set(ref(db, `data/keuangan/targetBersama`), target);
+      targetBersama = target;
+      clearCache('keuangan_target_bersama');
+      updateTargetUI();
+      updateRingkasan();
+      showNotif("Target tabungan bersama disimpan! 💪", false, 'success');
+      const modal = bootstrap.Modal.getInstance(document.getElementById('targetModal'));
+      if (modal) modal.hide();
+    } catch (err) {
+      showNotif("Gagal menyimpan target", true, 'error');
+    } finally {
+      hideLoading();
+    }
   }
 };
 
