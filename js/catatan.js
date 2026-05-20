@@ -1,4 +1,4 @@
-// js/catatan.js - Versi revisi dengan fitur AI generate planning wedding
+// js/catatan.js - Versi Final (Fix Duplikasi & Default Data)
 import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
 import { 
   showNotif, escapeHtml, showCustomPrompt, showCustomConfirm, 
@@ -14,7 +14,7 @@ let editItemId = null;
 let isGeneratingAI = false;
 let isInitialized = false;
 
-// Template planning wedding default
+// Template planning wedding default (TIDAK akan otomatis terbuat)
 const weddingTemplates = {
   basic: {
     name: "Paket Basic (Minimalis)",
@@ -52,13 +52,8 @@ const weddingTemplates = {
   }
 };
 
-const defaultKategori = [
-  { nama: "Dokumen Penting", icon: "bi-files", estimasiBiaya: 500000, items: ["KTP (scan dan asli)", "KK (scan dan asli)", "Akta Kelahiran", "Ijazah terakhir"] },
-  { nama: "Venue & Dekorasi", icon: "bi-building", estimasiBiaya: 25000000, items: ["Survey venue", "Booking venue akad", "Dekorasi pelaminan", "Backdrop foto"] },
-  { nama: "Busana & Makeup", icon: "bi-person-standing", estimasiBiaya: 5000000, items: ["Baju akad pria", "Baju akad wanita", "MUA untuk akad", "Makeup trial"] },
-  { nama: "Dokumentasi", icon: "bi-camera", estimasiBiaya: 7000000, items: ["Cari fotografer", "Booking pre-wedding", "Foto akad", "Video documentary"] },
-  { nama: "Konsumsi", icon: "bi-cup-straw", estimasiBiaya: 15000000, items: ["Catering untuk tamu", "Menu utama resepsi", "Kue pernikahan", "Air mineral"] }
-];
+// DEFAULT KATEGORI TIDAK DIGUNAKAN LAGI - Biarkan kosong
+// User harus klik tombol generate template untuk membuat data
 
 // Throttled render
 const throttledRender = throttle(() => {
@@ -103,7 +98,7 @@ export async function initCatatan() {
     
     onValue(ref(db, `data/catatan/${currentUser}/kategori`), () => {
       clearCache(`catatan_kategori_${currentUser}`);
-      loadKategoriOptimized().then(() => throttledUpdate());
+      loadKategoriOptimized(true).then(() => throttledUpdate());
     });
     
   } catch (err) {
@@ -147,27 +142,9 @@ async function loadKategoriOptimized(forceRefresh = false) {
   if (saved && Object.keys(saved).length > 0) {
     kategoriList = Object.entries(saved).map(([id, val]) => ({ id, ...val }));
   } else {
-    // Load default dengan batch write
-    for (const kat of defaultKategori) {
-      const newRef = push(ref(db, `data/catatan/${currentUser}/kategori`));
-      const kategoriId = newRef.key;
-      await set(ref(db, `data/catatan/${currentUser}/kategori/${kategoriId}`), { 
-        nama: kat.nama, 
-        icon: kat.icon,
-        estimasiBiaya: kat.estimasiBiaya 
-      });
-      
-      const updates = {};
-      for (const item of kat.items) {
-        const itemRef = push(ref(db, `data/catatan/${currentUser}/items/${kategoriId}`));
-        updates[`data/catatan/${currentUser}/items/${kategoriId}/${itemRef.key}`] = { 
-          nama: item, 
-          selesai: false 
-        };
-      }
-      await update(ref(db), updates);
-    }
-    await loadKategoriOptimized(true);
+    // TIDAK MEMBUAT DEFAULT DATA OTOMATIS
+    // Biarkan kosong, user harus klik generate template
+    kategoriList = [];
   }
   
   setCache(cacheKey, kategoriList, 10);
@@ -227,7 +204,19 @@ function renderKategori() {
     container.innerHTML = `
       <div class="text-center text-muted py-5">
         <i class="bi bi-folder2-open fs-1"></i>
-        <p class="mt-2">Belum ada kategori. Klik tombol + Kategori untuk menambah atau gunakan AI Generate di atas.</p>
+        <p class="mt-2">Belum ada kategori persiapan pernikahan.</p>
+        <p class="small">Klik salah satu template di bawah untuk memulai:</p>
+        <div class="d-flex gap-2 justify-content-center mt-3">
+          <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="generateWeddingPlanning('basic')">
+            <i class="bi bi-stars me-1"></i> Basic Plan
+          </button>
+          <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="generateWeddingPlanning('premium')">
+            <i class="bi bi-diamond me-1"></i> Premium Plan
+          </button>
+          <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="generateWeddingPlanning('destination')">
+            <i class="bi bi-globe me-1"></i> Destination
+          </button>
+        </div>
       </div>
     `;
     return;
@@ -307,14 +296,17 @@ function renderKategori() {
   container.appendChild(fragment);
 }
 
-// Fungsi generate planning wedding
+// Fungsi generate planning wedding (VERSI FINAL - TIDAK DUPLIKASI)
 window.generateWeddingPlanning = async function(templateId = 'basic') {
   const template = weddingTemplates[templateId];
-  if (!template) return;
+  if (!template) {
+    showNotif("Template tidak ditemukan", true, 'error');
+    return;
+  }
   
   const confirmed = await showCustomConfirm(
     "Generate Planning Wedding", 
-    `Yakin ingin menggunakan template "${template.name}"? SEMUA data catatan yang ada akan DIHAPUS dan DIGANTI.`
+    `Yakin ingin menggunakan template "${template.name}"? Data catatan yang ada akan DIGANTI SEPENUHNYA.`
   );
   
   if (!confirmed) return;
@@ -322,20 +314,16 @@ window.generateWeddingPlanning = async function(templateId = 'basic') {
   showLoading("Membuat planning wedding...");
   
   try {
-    // ============ HAPUS SEMUA DATA ============
-    console.log("Menghapus semua data lama...");
+    // HAPUS SEMUA DATA LAMA
     await remove(ref(db, `data/catatan/${currentUser}`));
     
-    // Tunggu 1 detik untuk memastikan Firebase selesai
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Tunggu sebentar agar Firebase selesai menghapus
+    await new Promise(resolve => setTimeout(resolve, 500));
     
-    console.log("Data terhapus, mulai menulis template baru...");
-    
-    // ============ TULIS DATA BARU ============
+    // TULIS DATA BARU
     let totalEstimasi = 0;
     
     for (const kat of template.categories) {
-      // Gunakan push untuk ID unik
       const kategoriRef = push(ref(db, `data/catatan/${currentUser}/kategori`));
       await set(kategoriRef, {
         nama: kat.nama,
@@ -346,7 +334,6 @@ window.generateWeddingPlanning = async function(templateId = 'basic') {
       const kategoriId = kategoriRef.key;
       totalEstimasi += kat.estimasiBiaya;
       
-      // Buat items
       for (const item of kat.items) {
         const itemRef = push(ref(db, `data/catatan/${currentUser}/items/${kategoriId}`));
         await set(itemRef, {
@@ -355,7 +342,7 @@ window.generateWeddingPlanning = async function(templateId = 'basic') {
         });
       }
       
-      console.log(`✅ Kategori "${kat.nama}" ditambahkan`);
+      console.log(`✅ Kategori "${kat.nama}" ditambahkan dengan ${kat.items.length} item`);
     }
     
     // Bersihkan cache
@@ -373,12 +360,13 @@ window.generateWeddingPlanning = async function(templateId = 'basic') {
     showNotif(`✅ Template "${template.name}" berhasil! Total estimasi: Rp ${totalEstimasi.toLocaleString('id-ID')}`, false, 'success');
     
   } catch (err) {
-    console.error(err);
-    showNotif("❌ Gagal membuat planning", true, 'error');
+    console.error("Error generating wedding planning:", err);
+    showNotif("❌ Gagal membuat planning wedding. Silakan coba lagi.", true, 'error');
   } finally {
     hideLoading();
   }
 };
+
 // AI Recommendations dengan tombol generate template
 async function generateAIRecommendations() {
   if (isGeneratingAI) return;
@@ -436,7 +424,7 @@ async function generateAIRecommendations() {
         <span>Estimasi Total: Rp ${totalEstimasi.toLocaleString('id-ID')}</span>
       </div>
       
-      ${total === 0 ? `
+      ${kategoriList.length === 0 ? `
         <div class="alert alert-info alert-sm py-2 mb-0">
           <i class="bi bi-info-circle me-1"></i>
           Belum ada checklist. Klik salah satu template di atas untuk memulai planning pernikahan Anda!
