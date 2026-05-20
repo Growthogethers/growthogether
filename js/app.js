@@ -1,4 +1,4 @@
-// js/app.js - Main Application dengan Optimasi
+// js/app.js - Main Application dengan Optimasi (tanpa pengingat page)
 import { db, ref, onValue, set } from './firebase-config.js';
 import { 
   masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser, 
@@ -34,7 +34,7 @@ import {
 import { initKeuangan } from './keuangan.js';
 import { initCatatan } from './catatan.js';
 import { initImpian } from './impian.js';
-import { initPengingat } from './pengingat.js';
+// Hapus import initPengingat
 
 let firebaseListener = null;
 let currentPage = 'dashboard';
@@ -277,7 +277,7 @@ function attachEventListeners() {
     }
   });
   
-  // Navigation dengan throttle
+  // Navigation dengan throttle (tanpa pengingat)
   const throttledShowPage = throttle((page) => {
     showPage(page);
     if (window.innerWidth <= 768) {
@@ -314,7 +314,7 @@ function attachEventListeners() {
   // Online/Offline detection
   window.addEventListener('online', () => { 
     showNotif("📡 Koneksi kembali online", false, 'success');
-    clearCache(); // Clear cache saat online kembali
+    clearCache();
   });
   window.addEventListener('offline', () => { showNotif("⚠️ Koneksi terputus", true, 'error'); });
   window.addEventListener('resize', () => { handleResize(); });
@@ -356,9 +356,8 @@ function showPage(pageId) {
       if (typeof initCatatan === 'function') initCatatan();
     } else if (pageId === "impian") {
       if (typeof initImpian === 'function') initImpian();
-    } else if (pageId === "pengingat") {
-      if (typeof initPengingat === 'function') initPengingat();
     }
+    // Hapus case 'pengingat'
   }, 50);
 }
 
@@ -418,7 +417,7 @@ function initFirebaseListener() {
       const data = snapshot.val() || { 
         dreams: {}, plans: {}, finances: {}, settings: {}, 
         moments: {}, vendors: {}, profiles: {}, keuangan: {},
-        catatan: {}, impian: {}, pengingat: {}
+        catatan: {}, impian: {}
       };
       setMasterData(data);
       
