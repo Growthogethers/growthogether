@@ -1,4 +1,4 @@
-// js/keuangan.js - Perbaikan import
+// js/keuangan.js - Versi revisi: hapus target bersama, target dari catatan
 import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
 import { 
   showNotif, formatNumberRp, escapeHtml, showCustomPrompt, showCustomConfirm, 
@@ -7,7 +7,6 @@ import {
 
 let currentUser = null;
 let transaksiList = [];
-let targetBersama = 0;
 let editTransaksiId = null;
 let dynamicCategories = ['Pernikahan', 'Makanan', 'Transportasi', 'Belanja', 'Tabungan', 'Hiburan', 'Kesehatan', 'Pendidikan', 'Tagihan', 'Lainnya'];
 let isInitialized = false;
@@ -39,7 +38,6 @@ export function initKeuangan() {
   }
   
   Promise.all([
-    loadTargetBersama(),
     loadDynamicCategories(),
     loadAllTransaksiOptimized()
   ]).finally(() => {
@@ -124,23 +122,20 @@ async function loadAllTransaksiOptimized() {
   }
 }
 
-async function loadTargetBersama() {
-  const cacheKey = 'keuangan_target_bersama';
-  const cached = getCache(cacheKey);
-  if (cached !== null) {
-    targetBersama = cached;
-    updateTargetUI();
-    return;
+// Ambil target dari catatan
+async function getTargetFromCatatan() {
+  const currentUser = sessionStorage.getItem("progrowth_user");
+  if (!currentUser) return 0;
+  
+  const snapshot = await get(ref(db, `data/catatan/${currentUser}/kategori`));
+  const kategori = snapshot.val() || {};
+  let totalTarget = 0;
+  
+  for (const kat of Object.values(kategori)) {
+    totalTarget += kat.estimasiBiaya || 0;
   }
   
-  try {
-    const snapshot = await get(ref(db, `data/keuangan/targetBersama`));
-    targetBersama = snapshot.val() || 0;
-    setCache(cacheKey, targetBersama, 30);
-    updateTargetUI();
-  } catch (err) {
-    console.error("Error loading target:", err);
-  }
+  return totalTarget;
 }
 
 function updateRingkasan() {
@@ -164,24 +159,35 @@ function updateRingkasan() {
   const totalSaldoEl = document.getElementById('totalSaldo');
   const totalPemasukanEl = document.getElementById('totalPemasukan');
   const totalPengeluaranEl = document.getElementById('totalPengeluaran');
-  const terkumpulEl = document.getElementById('terkumpul');
-  const targetProgressEl = document.getElementById('targetProgress');
   const saldoDetailEl = document.getElementById('saldoDetail');
   
   if (totalSaldoEl) totalSaldoEl.innerHTML = formatNumberRp(userSaldo);
   if (totalPemasukanEl) totalPemasukanEl.innerHTML = formatNumberRp(userPemasukan);
   if (totalPengeluaranEl) totalPengeluaranEl.innerHTML = formatNumberRp(userPengeluaran);
-  if (terkumpulEl) terkumpulEl.innerHTML = formatNumberRp(totalSaldo);
   if (saldoDetailEl) saldoDetailEl.innerHTML = `Saldo Anda: ${formatNumberRp(userSaldo)} | Total bersama: ${formatNumberRp(totalSaldo)}`;
   
-  const percent = targetBersama > 0 ? (totalSaldo / targetBersama) * 100 : 0;
-  if (targetProgressEl) targetProgressEl.style.width = `${Math.min(percent, 100)}%`;
-}
-
-function updateTargetUI() {
-  const targetAmountEl = document.getElementById('targetAmount');
-  if (targetAmountEl) targetAmountEl.innerHTML = `Target Bersama: ${formatNumberRp(targetBersama)}`;
-  if (typeof window.renderDashboard === 'function') window.renderDashboard();
+  // Target dari Catatan
+  getTargetFromCatatan().then(target => {
+    const targetElement = document.getElementById('targetFromCatatan');
+    if (targetElement) {
+      if (target > 0) {
+        targetElement.innerHTML = `
+          <div class="alert alert-info mt-3 mb-0 py-2">
+            <i class="bi bi-journal-bookmark me-2"></i>
+            Target Pernikahan dari Catatan: <strong>${formatNumberRp(target)}</strong>
+            ${totalSaldo >= target ? '<span class="badge bg-success ms-2">Target Tercapai! 🎉</span>' : ''}
+          </div>
+        `;
+      } else {
+        targetElement.innerHTML = `
+          <div class="alert alert-secondary mt-3 mb-0 py-2">
+            <i class="bi bi-info-circle me-2"></i>
+            Belum ada target. Silakan buat checklist di menu <strong>Catatan</strong> terlebih dahulu.
+          </div>
+        `;
+      }
+    }
+  });
 }
 
 function renderTransaksi() {
@@ -300,10 +306,6 @@ function setupRealtimeListeners() {
   
   onValue(ref(db, `data/keuangan/FACHMI/transaksi`), () => throttledUpdate());
   onValue(ref(db, `data/keuangan/AZIZAH/transaksi`), () => throttledUpdate());
-  onValue(ref(db, `data/keuangan/targetBersama`), () => {
-    loadTargetBersama();
-    throttledUpdate();
-  });
 }
 
 setTimeout(() => setupRealtimeListeners(), 2000);
@@ -454,61 +456,6 @@ window.deleteTransaksi = async function(id, userId) {
       await loadAllTransaksiOptimized();
     } catch (err) {
       showNotif("Gagal menghapus transaksi", true, 'error');
-    } finally {
-      hideLoading();
-    }
-  }
-};
-
-window.setTargetTabungan = function() {
-  const modalHtml = `
-    <div class="modal fade" id="targetModal" tabindex="-1">
-      <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content rounded-4">
-          <div class="modal-header border-0 bg-primary text-white">
-            <h5 class="fw-bold mb-0">🎯 Target Tabungan Bersama</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body p-4">
-            <label class="fw-semibold mb-2">Target Tabungan Bersama</label>
-            <input type="number" id="targetInput" class="form-control form-control-lg rounded-3" placeholder="Masukkan target bersama" value="${targetBersama}">
-            <small class="text-muted mt-2 d-block">✨ Target ini akan terlihat oleh kedua pasangan</small>
-          </div>
-          <div class="modal-footer border-0 pb-4">
-            <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-            <button class="btn btn-primary rounded-pill px-4" onclick="saveTarget()">Simpan Target</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-  
-  let modal = document.getElementById('targetModal');
-  if (!modal) {
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    modal = document.getElementById('targetModal');
-  }
-  
-  const bsModal = new bootstrap.Modal(modal);
-  bsModal.show();
-};
-
-window.saveTarget = async function() {
-  const target = parseInt(document.getElementById('targetInput').value);
-  
-  if (target && target > 0) {
-    showLoading("Menyimpan target...");
-    try {
-      await set(ref(db, `data/keuangan/targetBersama`), target);
-      targetBersama = target;
-      clearCache('keuangan_target_bersama');
-      updateTargetUI();
-      updateRingkasan();
-      showNotif("Target tabungan bersama disimpan! 💪", false, 'success');
-      const modal = bootstrap.Modal.getInstance(document.getElementById('targetModal'));
-      if (modal) modal.hide();
-    } catch (err) {
-      showNotif("Gagal menyimpan target", true, 'error');
     } finally {
       hideLoading();
     }
