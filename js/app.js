@@ -1,4 +1,4 @@
-// js/app.js - Main Application dengan Optimasi (tanpa pengingat page)
+// js/app.js - Main Application dengan Optimasi (tanpa pengingat page & tanpa closeSidebarBtn)
 import { db, ref, onValue, set } from './firebase-config.js';
 import { 
   masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser, 
@@ -34,7 +34,6 @@ import {
 import { initKeuangan } from './keuangan.js';
 import { initCatatan } from './catatan.js';
 import { initImpian } from './impian.js';
-// Hapus import initPengingat
 
 let firebaseListener = null;
 let currentPage = 'dashboard';
@@ -129,49 +128,44 @@ function initDarkMode() {
 function initMenuToggle() {
   const menuToggle = document.getElementById("menuToggleHp");
   const sidebar = document.getElementById("app-sidebar");
-  const closeBtn = document.getElementById("closeSidebarBtn");
   
   if (!menuToggle || !sidebar) {
     setTimeout(() => {
       const retryMenuToggle = document.getElementById("menuToggleHp");
       const retrySidebar = document.getElementById("app-sidebar");
-      const retryCloseBtn = document.getElementById("closeSidebarBtn");
       if (retryMenuToggle && retrySidebar) {
-        setupMenuToggleListeners(retryMenuToggle, retrySidebar, retryCloseBtn);
+        setupMenuToggleListeners(retryMenuToggle, retrySidebar);
       }
     }, 500);
     return;
   }
   
-  setupMenuToggleListeners(menuToggle, sidebar, closeBtn);
+  setupMenuToggleListeners(menuToggle, sidebar);
 }
 
-function setupMenuToggleListeners(menuToggle, sidebar, closeBtn) {
+function setupMenuToggleListeners(menuToggle, sidebar) {
+  // Clone untuk menghindari duplicate listeners
   const newMenuToggle = menuToggle.cloneNode(true);
   menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
   
+  // Toggle sidebar saat menu diklik
   newMenuToggle.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
-    sidebar.classList.add("open");
-    isSidebarOpen = true;
-    document.body.style.overflow = "hidden";
-    document.body.classList.add("sidebar-open");
-  });
-  
-  if (closeBtn) {
-    const newCloseBtn = closeBtn.cloneNode(true);
-    closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
-    newCloseBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
+    if (sidebar.classList.contains("open")) {
       sidebar.classList.remove("open");
       isSidebarOpen = false;
       document.body.style.overflow = "";
       document.body.classList.remove("sidebar-open");
-    });
-  }
+    } else {
+      sidebar.classList.add("open");
+      isSidebarOpen = true;
+      document.body.style.overflow = "hidden";
+      document.body.classList.add("sidebar-open");
+    }
+  });
   
+  // Tutup sidebar saat klik di luar area sidebar (di mobile)
   document.addEventListener("click", (e) => {
     if (window.innerWidth <= 768 && 
         sidebar.classList.contains("open") && 
@@ -184,6 +178,7 @@ function setupMenuToggleListeners(menuToggle, sidebar, closeBtn) {
     }
   });
   
+  // Tutup sidebar saat resize ke desktop
   window.addEventListener("resize", () => {
     if (window.innerWidth > 768) {
       sidebar.classList.remove("open");
@@ -206,8 +201,13 @@ function fixMobileLayout() {
     menuBtn.addEventListener('click', () => {
       const sidebar = document.getElementById('app-sidebar');
       if (sidebar) {
-        sidebar.classList.add('open');
-        document.body.style.overflow = 'hidden';
+        if (sidebar.classList.contains('open')) {
+          sidebar.classList.remove('open');
+          document.body.style.overflow = '';
+        } else {
+          sidebar.classList.add('open');
+          document.body.style.overflow = 'hidden';
+        }
       }
     });
   }
@@ -236,7 +236,7 @@ function handleResize() {
   const menuToggle = document.getElementById("menuToggleHp");
   
   if (window.innerWidth > 768) {
-    if (menuToggle) menuToggle.style.display = "none";
+    if (menuToggle) menuToggle.style.display = "flex";
     if (appContent) appContent.style.marginLeft = "280px";
     if (sidebar) {
       sidebar.classList.remove("open");
@@ -357,7 +357,6 @@ function showPage(pageId) {
     } else if (pageId === "impian") {
       if (typeof initImpian === 'function') initImpian();
     }
-    // Hapus case 'pengingat'
   }, 50);
 }
 
