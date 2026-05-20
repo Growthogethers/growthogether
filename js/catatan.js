@@ -1,6 +1,6 @@
-// js/catatan.js - Dengan Rekomendasi AI & Koneksi Keuangan
+// js/catatan.js - Dengan AI Generate & Progress Otomatis dari Keuangan
 import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
-import { showNotif, escapeHtml } from './utils.js';
+import { showNotif, escapeHtml, showCustomPrompt, showCustomConfirm } from './utils.js';
 
 let currentUser = null;
 let kategoriList = [];
@@ -8,161 +8,164 @@ let checklistItems = {};
 let editKategoriId = null;
 let editItemParentId = null;
 let editItemId = null;
-let aiRecommendations = [];
+let isGeneratingAI = false;
 
-// Default kategori persiapan pernikahan dengan estimasi biaya
 const defaultKategori = [
-  { nama: "📋 Dokumen Penting", icon: "bi-files", estimasiBiaya: 500000, items: [
+  { nama: "Dokumen Penting", icon: "bi-files", estimasiBiaya: 500000, items: [
     "KTP (scan dan asli)", "KK (scan dan asli)", "Akta Kelahiran", "Ijazah terakhir", 
-    "Paspor (jika ada)", "Surat Keterangan Belum Menikah", "Fotokopi buku nikah orang tua"
+    "Paspor (jika ada)", "Surat Keterangan Belum Menikah"
   ]},
-  { nama: "🏛️ Venue & Dekorasi", icon: "bi-building", estimasiBiaya: 25000000, items: [
+  { nama: "Venue & Dekorasi", icon: "bi-building", estimasiBiaya: 25000000, items: [
     "Survey venue", "Booking venue akad", "Booking venue resepsi", "Dekorasi pelaminan",
-    "Dekorasi reception", "Tempat cuci muka pengantin", "Backdrop foto", "Sewa kursi & meja"
+    "Dekorasi reception", "Backdrop foto", "Sewa kursi & meja"
   ]},
-  { nama: "👗 Busana & Makeup", icon: "bi-person-standing", estimasiBiaya: 5000000, items: [
-    "Baju akad pria", "Baju akad wanita", "Baju resepsi pria (ganti)", "Baju resepsi wanita (ganti)",
-    "Sewa aksesoris", "MUA untuk akad", "MUA untuk resepsi", "Makeup trial"
+  { nama: "Busana & Makeup", icon: "bi-person-standing", estimasiBiaya: 5000000, items: [
+    "Baju akad pria", "Baju akad wanita", "Baju resepsi pria", "Baju resepsi wanita",
+    "Sewa aksesoris", "MUA untuk akad", "MUA untuk resepsi"
   ]},
-  { nama: "💍 Perlengkapan", icon: "bi-diamond", estimasiBiaya: 10000000, items: [
-    "Cincin kawin (2 pasang)", "Seserahan (lengkap)", "Mahar & mas kawin", "Kado pernikahan",
-    "Souvenir tamu (minimal 2 item)", "Buket pengantin", "Hantaran"
+  { nama: "Dokumentasi", icon: "bi-camera", estimasiBiaya: 7000000, items: [
+    "Cari fotografer", "Booking pre-wedding", "Foto akad", "Foto resepsi",
+    "Video documentary", "Video highlight"
   ]},
-  { nama: "📸 Dokumentasi", icon: "bi-camera", estimasiBiaya: 7000000, items: [
-    "Cari fotografer", "Booking pre-wedding", "Jadwal pre-wedding", "Cetak album pre-wedding",
-    "Foto akad", "Foto resepsi", "Video documentary", "Video highlight"
-  ]},
-  { nama: "🍽️ Konsumsi", icon: "bi-cup-straw", estimasiBiaya: 15000000, items: [
-    "Catering untuk tamu", "Snack untuk akad", "Menu utama resepsi", "Kue pernikahan (wedding cake)",
-    "Air mineral & minuman", "Tempat cuci piring"
-  ]},
-  { nama: "🎵 Hiburan", icon: "bi-music-note", estimasiBiaya: 5000000, items: [
-    "MC (Master of Ceremony)", "Band / Orgen tunggal", "Sewa sound system", "Sewa lighting",
-    "Fotobooth / selfie booth", "Karaoke"
-  ]},
-  { nama: "📝 Undangan", icon: "bi-envelope", estimasiBiaya: 2000000, items: [
-    "Desain undangan digital", "Desain undangan fisik", "Cetak undangan", 
-    "Distribusi undangan", "RSVP tamu", "Papan ucapan"
+  { nama: "Konsumsi", icon: "bi-cup-straw", estimasiBiaya: 15000000, items: [
+    "Catering untuk tamu", "Menu utama resepsi", "Kue pernikahan", "Air mineral"
   ]}
 ];
 
-// AI Recommendation Engine
-function generateAIRecommendations() {
-  const recommendations = [];
+// AI Generate Rekomendasi
+async function generateAIRecommendations() {
+  if (isGeneratingAI) return;
+  isGeneratingAI = true;
   
-  // Rekomendasi berdasarkan kategori yang belum lengkap
-  kategoriList.forEach(kat => {
-    const items = checklistItems[kat.id] ? Object.values(checklistItems[kat.id]) : [];
-    const completedItems = items.filter(item => item && item.selesai);
-    const incompleteItems = items.filter(item => item && !item.selesai);
-    
-    if (incompleteItems.length > 0 && completedItems.length < items.length) {
-      recommendations.push({
-        id: `reco_${Date.now()}_${kat.id}`,
-        title: `📋 Prioritaskan: ${kat.nama}`,
-        description: `Anda masih memiliki ${incompleteItems.length} item yang perlu diselesaikan di kategori ${kat.nama}.`,
-        action: `Selesaikan ${incompleteItems[0]?.nama || 'item yang tersisa'}`,
-        kategoriId: kat.id,
-        estimasiBiaya: kat.estimasiBiaya || 0,
-        urgent: incompleteItems.length > 3
-      });
-    }
-  });
-  
-  // Rekomendasi anggaran
-  const totalEstimasi = kategoriList.reduce((sum, kat) => sum + (kat.estimasiBiaya || 0), 0);
-  recommendations.push({
-    id: `reco_budget_${Date.now()}`,
-    title: `💰 Estimasi Total Biaya: Rp ${totalEstimasi.toLocaleString('id-ID')}`,
-    description: `Berdasarkan kategori yang Anda miliki, estimasi total biaya persiapan pernikahan adalah Rp ${totalEstimasi.toLocaleString('id-ID')}.`,
-    action: "Atur Target Keuangan",
-    actionLink: "keuangan",
-    estimasiBiaya: totalEstimasi
-  });
-  
-  // Rekomendasi waktu
-  const today = new Date();
-  const weddingDate = localStorage.getItem(`weddingDate_${currentUser}`);
-  if (weddingDate) {
-    const wedding = new Date(weddingDate);
-    const daysLeft = Math.ceil((wedding - today) / (1000 * 60 * 60 * 24));
-    if (daysLeft > 0 && daysLeft < 90) {
-      recommendations.push({
-        id: `reco_time_${Date.now()}`,
-        title: `⏰ H-${daysLeft} menuju hari H!`,
-        description: `Waktu persiapan tersisa ${daysLeft} hari. Segera selesaikan persiapan yang belum.`,
-        action: "Lihat Timeline",
-        urgent: daysLeft < 30
-      });
-    }
-  }
-  
-  return recommendations.slice(0, 5);
-}
-
-function renderAIRecommendations() {
   const container = document.getElementById('aiRecommendations');
-  if (!container) return;
-  
-  aiRecommendations = generateAIRecommendations();
-  
-  if (aiRecommendations.length === 0) {
-    container.innerHTML = `
-      <div class="text-center text-muted py-3">
-        <i class="bi bi-robot fs-4"></i>
-        <p class="small mb-0">AI akan memberikan rekomendasi setelah Anda menambahkan kategori</p>
-      </div>
-    `;
+  if (!container) {
+    isGeneratingAI = false;
     return;
   }
   
   container.innerHTML = `
-    <div class="d-flex align-items-center gap-2 mb-2">
-      <i class="bi bi-robot fs-5 text-purple"></i>
-      <span class="fw-bold small">Rekomendasi AI untuk Anda</span>
+    <div class="card p-3 mb-4" style="background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 16px;">
+      <div class="d-flex align-items-center gap-3">
+        <div class="spinner-border text-purple" role="status" style="width: 24px; height: 24px;"></div>
+        <span>AI sedang menganalisis persiapan pernikahan Anda...</span>
+      </div>
     </div>
-    <div class="row g-2">
-      ${aiRecommendations.map(rec => `
-        <div class="col-12 col-md-6">
-          <div class="card border-0 bg-light p-2 ${rec.urgent ? 'border-start border-danger border-3' : ''}">
-            <div class="d-flex justify-content-between align-items-start">
-              <div class="flex-grow-1">
-                <div class="fw-semibold small">${rec.title}</div>
-                <small class="text-muted d-block">${rec.description}</small>
-                ${rec.estimasiBiaya > 0 ? `<small class="text-success">💰 Estimasi: Rp ${rec.estimasiBiaya.toLocaleString('id-ID')}</small>` : ''}
-              </div>
-              <button class="btn btn-sm ${rec.urgent ? 'btn-danger' : 'btn-outline-primary'} rounded-pill ms-2" 
-                      onclick="applyAIRecommendation('${rec.id}')">
+  `;
+  
+  // Simulasi AI analysis (bisa diganti dengan API AI real)
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  
+  const completedItems = [];
+  const incompleteItems = [];
+  const totalEstimasi = kategoriList.reduce((sum, k) => sum + (k.estimasiBiaya || 0), 0);
+  
+  Object.entries(checklistItems).forEach(([katId, items]) => {
+    if (items) {
+      Object.entries(items).forEach(([itemId, item]) => {
+        if (item && item.selesai) {
+          completedItems.push({ ...item, kategoriId: katId });
+        } else if (item) {
+          incompleteItems.push({ ...item, kategoriId: katId });
+        }
+      });
+    }
+  });
+  
+  const progress = kategoriList.length > 0 ? (completedItems.length / (completedItems.length + incompleteItems.length)) * 100 : 0;
+  
+  // Generate rekomendasi berdasarkan data
+  let recommendations = [];
+  
+  if (incompleteItems.length > 0) {
+    recommendations.push({
+      title: "📋 Prioritas Checklist",
+      description: `Anda masih memiliki ${incompleteItems.length} item yang perlu diselesaikan.`,
+      action: "Lihat Checklist",
+      items: incompleteItems.slice(0, 3).map(i => i.nama)
+    });
+  }
+  
+  if (totalEstimasi > 0) {
+    recommendations.push({
+      title: "💰 Estimasi Biaya",
+      description: `Total estimasi biaya persiapan: Rp ${totalEstimasi.toLocaleString('id-ID')}`,
+      action: "Atur Keuangan",
+      actionLink: "keuangan"
+    });
+  }
+  
+  if (progress < 30) {
+    recommendations.push({
+      title: "🚀 Mulai Persiapan",
+      description: "Fokus pada dokumen penting dan venue terlebih dahulu.",
+      action: "Mulai Sekarang"
+    });
+  } else if (progress < 70) {
+    recommendations.push({
+      title: "🎯 Teruskan Semangat!",
+      description: `Progress Anda ${Math.round(progress)}%. Jangan lupa urus dokumentasi dan konsumsi.`,
+      action: "Lanjutkan"
+    });
+  } else if (progress >= 70) {
+    recommendations.push({
+      title: "🎉 Hampir Selesai!",
+      description: `Tinggal ${incompleteItems.length} item lagi. Persiapkan diri untuk hari H!`,
+      action: "Finalisasi"
+    });
+  }
+  
+  // Rekomendasi berdasarkan waktu
+  const weddingDate = localStorage.getItem(`weddingDate_${currentUser}`);
+  if (weddingDate) {
+    const wedding = new Date(weddingDate);
+    const today = new Date();
+    const daysLeft = Math.ceil((wedding - today) / (1000 * 60 * 60 * 24));
+    if (daysLeft > 0 && daysLeft < 90) {
+      recommendations.unshift({
+        title: `⏰ ${daysLeft} Hari Menuju Pernikahan!`,
+        description: "Segera selesaikan persiapan yang masih tertunda.",
+        action: "Lihat Timeline",
+        urgent: true
+      });
+    }
+  }
+  
+  container.innerHTML = `
+    <div class="card p-3 mb-4" style="background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 16px;">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-robot fs-4 text-purple"></i>
+          <span class="fw-bold">✨ Rekomendasi AI untuk Anda</span>
+        </div>
+        <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="generateAIRecommendations()">
+          <i class="bi bi-arrow-repeat me-1"></i> Generate Ulang
+        </button>
+      </div>
+      <div class="row g-2">
+        ${recommendations.map(rec => `
+          <div class="col-12 col-md-6">
+            <div class="p-3 bg-white rounded-3 ${rec.urgent ? 'border-start border-danger border-4' : ''}" style="background: var(--card-bg) !important;">
+              <div class="fw-semibold mb-1">${rec.title}</div>
+              <small class="text-muted d-block mb-2">${rec.description}</small>
+              ${rec.items ? `<small class="text-muted d-block mb-2">📌 ${rec.items.join(', ')}</small>` : ''}
+              <button class="btn btn-sm ${rec.urgent ? 'btn-danger' : 'btn-outline-primary'} rounded-pill mt-1" 
+                      onclick="applyAIRecommendation('${rec.actionLink || 'catatan'}')">
                 ${rec.action} <i class="bi bi-arrow-right ms-1"></i>
               </button>
             </div>
           </div>
-        </div>
-      `).join('')}
+        `).join('')}
+      </div>
     </div>
   `;
+  
+  isGeneratingAI = false;
 }
 
-window.applyAIRecommendation = function(recommendationId) {
-  const rec = aiRecommendations.find(r => r.id === recommendationId);
-  if (!rec) return;
-  
-  if (rec.actionLink === 'keuangan') {
+window.applyAIRecommendation = function(action) {
+  if (action === 'keuangan') {
     window.location.href = '#keuangan-page';
     showPage('keuangan');
-    setTimeout(() => {
-      window.setTargetTabungan();
-    }, 500);
-  } else if (rec.kategoriId) {
-    // Scroll ke kategori yang direkomendasikan
-    const kategoriElement = document.querySelector(`[data-kategori-id="${rec.kategoriId}"]`);
-    if (kategoriElement) {
-      kategoriElement.scrollIntoView({ behavior: 'smooth' });
-      kategoriElement.classList.add('border-warning');
-      setTimeout(() => {
-        kategoriElement.classList.remove('border-warning');
-      }, 2000);
-    }
   }
 };
 
@@ -170,30 +173,36 @@ export async function initCatatan() {
   currentUser = sessionStorage.getItem("progrowth_user");
   if (!currentUser) return;
   
-  // Inject AI Recommendations container di halaman catatan
-  injectAIContainer();
-  
   await loadKategori();
   renderKategori();
   updateProgress();
-  renderAIRecommendations();
+  generateAIRecommendations();
+  
+  // Setup listener untuk update progress otomatis dari keuangan
+  onValue(ref(db, `data/keuangan/${currentUser}/transaksi`), () => {
+    updateProgressFromKeuangan();
+  });
 }
 
-function injectAIContainer() {
-  const catatanPage = document.getElementById('catatan-page');
-  if (catatanPage && !document.getElementById('aiRecommendations')) {
-    const aiContainer = document.createElement('div');
-    aiContainer.id = 'aiRecommendations';
-    aiContainer.className = 'card p-3 mb-4 bg-gradient-ai';
-    aiContainer.style.background = 'linear-gradient(135deg, #667eea15, #764ba215)';
-    aiContainer.style.borderRadius = '16px';
-    
-    // Insert after progress overview
-    const progressCard = catatanPage.querySelector('.card.mb-4');
-    if (progressCard && progressCard.nextSibling) {
-      catatanPage.insertBefore(aiContainer, progressCard.nextSibling);
-    } else {
-      catatanPage.insertBefore(aiContainer, catatanPage.firstChild);
+async function updateProgressFromKeuangan() {
+  // Ambil semua transaksi yang terhubung dengan catatan
+  const transaksiSnap = await get(ref(db, `data/keuangan/${currentUser}/transaksi`));
+  const transaksi = transaksiSnap.val() || {};
+  
+  for (const [katId, items] of Object.entries(checklistItems)) {
+    if (items) {
+      for (const [itemId, item] of Object.entries(items)) {
+        if (item && item.sourceId) {
+          // Cek apakah ada transaksi dengan sourceId ini
+          const hasTransaction = Object.values(transaksi).some(t => t.sourceId === `${katId}_${itemId}`);
+          if (hasTransaction !== item.selesai) {
+            await update(ref(db, `data/catatan/${currentUser}/items/${katId}/${itemId}`), { 
+              selesai: hasTransaction,
+              updatedFromKeuangan: true
+            });
+          }
+        }
+      }
     }
   }
 }
@@ -233,7 +242,6 @@ function loadChecklistItems() {
     checklistItems = snapshot.val() || {};
     updateProgress();
     renderKategori();
-    renderAIRecommendations();
   });
 }
 
@@ -264,7 +272,7 @@ function updateProgress() {
   if (progressPercentEl) progressPercentEl.innerHTML = `${Math.round(percent)}%`;
   if (catatanProgressEl) catatanProgressEl.style.width = `${percent}%`;
   if (estimasiBiayaEl) {
-    estimasiBiayaEl.innerHTML = `💰 Estimasi Total: Rp ${totalEstimasiBiaya.toLocaleString('id-ID')} | Tercapai: Rp ${Math.round(estimasiTerselesaikan).toLocaleString('id-ID')}`;
+    estimasiBiayaEl.innerHTML = `💰 Estimasi Total: Rp ${totalEstimasiBiaya.toLocaleString('id-ID')} | Terpakai: Rp ${Math.round(estimasiTerselesaikan).toLocaleString('id-ID')}`;
   }
 }
 
@@ -319,13 +327,13 @@ function renderKategori() {
             ${validItems.map(([itemId, item]) => `
               <div class="checklist-item d-flex align-items-center justify-content-between p-3 border-bottom">
                 <div class="d-flex align-items-center gap-3 flex-grow-1">
-                  <input type="checkbox" class="form-check-input fs-5" id="item_${itemId}" ${item.selesai ? 'checked' : ''} onchange="toggleItem('${kat.id}', '${itemId}', this.checked)">
+                  <input type="checkbox" class="form-check-input fs-5" id="item_${itemId}" ${item.selesai ? 'checked' : ''} onchange="toggleItem('${kat.id}', '${itemId}', this.checked)" ${item.updatedFromKeuangan ? 'disabled' : ''}>
                   <label class="checklist-label mb-0 ${item.selesai ? 'text-decoration-line-through text-muted' : ''}" for="item_${itemId}">${escapeHtml(item.nama)}</label>
                 </div>
                 <div>
-                  <button class="btn-icon btn-sm" onclick="addItemToKeuangan('${kat.id}', '${itemId}', '${escapeHtml(item.nama)}')" title="Tambah ke Keuangan">
+                  ${!item.selesai ? `<button class="btn-icon btn-sm" onclick="addItemToKeuangan('${kat.id}', '${itemId}', '${escapeHtml(item.nama)}')" title="Tambah ke Keuangan">
                     <i class="bi bi-wallet2 text-success"></i>
-                  </button>
+                  </button>` : ''}
                   <button class="btn-icon btn-sm" onclick="editItem('${kat.id}', '${itemId}')">
                     <i class="bi bi-pencil"></i>
                   </button>
@@ -347,33 +355,40 @@ function renderKategori() {
   }).join('');
 }
 
-// Fungsi untuk menambah biaya item ke keuangan
+// Tambah item ke keuangan dengan relasi
 window.addItemToKeuangan = async function(kategoriId, itemId, itemNama) {
   const kat = kategoriList.find(k => k.id === kategoriId);
   const estimasiBiaya = kat?.estimasiBiaya || 0;
-  const biayaPerItem = Math.round(estimasiBiaya / 10) || 100000; // Estimasi biaya per item
+  const biayaPerItem = Math.round(estimasiBiaya / 10) || 100000;
   
-  const nominal = prompt(`Masukkan nominal untuk "${itemNama}"\nEstimasi: Rp ${biayaPerItem.toLocaleString('id-ID')}`, biayaPerItem);
+  const nominal = await showCustomPrompt(`Masukkan nominal untuk "${itemNama}"`, `Estimasi: Rp ${biayaPerItem.toLocaleString('id-ID')}`, biayaPerItem);
   
   if (nominal && !isNaN(nominal) && parseInt(nominal) > 0) {
-    if (confirm(`Tambahkan keuangan untuk "${itemNama}" sebesar Rp ${parseInt(nominal).toLocaleString('id-ID')}?`)) {
-      await window.addTransaksiFromExternal(currentUser, {
+    const confirmed = await showCustomConfirm("Konfirmasi", `Tambahkan keuangan untuk "${itemNama}" sebesar Rp ${parseInt(nominal).toLocaleString('id-ID')}?`);
+    if (confirmed) {
+      const transaksi = await window.addTransaksiFromExternal(currentUser, {
         tipe: 'pengeluaran',
         kategori: 'Pernikahan',
         nominal: parseInt(nominal),
         catatan: `Biaya untuk: ${itemNama} (dari Catatan Persiapan)`,
         fromCatatan: true,
-        sumber: itemNama
+        sourceType: 'catatan_item',
+        sourceId: `${kategoriId}_${itemId}`
       });
       
-      // Tandai item sebagai selesai
-      await update(ref(db, `data/catatan/${currentUser}/items/${kategoriId}/${itemId}`), { selesai: true });
-      showNotif(`✅ "${itemNama}" ditambahkan ke keuangan dan ditandai selesai!`, false, 'success');
+      await update(ref(db, `data/catatan/${currentUser}/items/${kategoriId}/${itemId}`), { 
+        selesai: true,
+        linkedTransactionId: transaksi.id,
+        updatedFromKeuangan: true
+      });
+      
+      showNotif(`✅ "${itemNama}" ditambahkan ke keuangan!`, false, 'success');
+      updateProgress();
+      generateAIRecommendations();
     }
   }
 };
 
-// Fungsi untuk menambah budget seluruh kategori ke keuangan
 window.addBudgetToKeuangan = async function(kategoriId) {
   const kat = kategoriList.find(k => k.id === kategoriId);
   if (!kat || !kat.estimasiBiaya) {
@@ -381,16 +396,60 @@ window.addBudgetToKeuangan = async function(kategoriId) {
     return;
   }
   
-  if (confirm(`Tambahkan budget untuk "${kat.nama}" sebesar Rp ${kat.estimasiBiaya.toLocaleString('id-ID')} ke dalam rencana keuangan?`)) {
+  const confirmed = await showCustomConfirm("Konfirmasi", `Tambahkan budget untuk "${kat.nama}" sebesar Rp ${kat.estimasiBiaya.toLocaleString('id-ID')} ke dalam rencana keuangan?`);
+  if (confirmed) {
     await window.addTransaksiFromExternal(currentUser, {
       tipe: 'pengeluaran',
       kategori: 'Pernikahan',
       nominal: kat.estimasiBiaya,
       catatan: `Budget untuk: ${kat.nama} (dari Catatan Persiapan)`,
       fromCatatan: true,
-      sumber: kat.nama
+      sourceType: 'catatan_kategori',
+      sourceId: kategoriId
     });
     showNotif(`✅ Budget "${kat.nama}" ditambahkan ke keuangan!`, false, 'success');
+  }
+};
+
+window.toggleItem = async function(kategoriId, itemId, selesai) {
+  if (selesai) {
+    // Jika mencoba mencentang manual, arahkan ke tambah keuangan
+    const item = checklistItems[kategoriId]?.[itemId];
+    if (item && !item.linkedTransactionId) {
+      showNotif("Silakan tambahkan item ini ke Keuangan terlebih dahulu", false, 'warning');
+      addItemToKeuangan(kategoriId, itemId, item.nama);
+      return;
+    }
+  }
+  await update(ref(db, `data/catatan/${currentUser}/items/${kategoriId}/${itemId}`), { selesai });
+  updateProgress();
+};
+
+window.deleteItem = async function(kategoriId, itemId) {
+  const confirmed = await showCustomConfirm("Hapus Item", "Yakin ingin menghapus item ini?");
+  if (confirmed) {
+    const item = checklistItems[kategoriId]?.[itemId];
+    if (item && item.linkedTransactionId) {
+      await window.deleteTransaksiWithRelation(item.linkedTransactionId, currentUser);
+    }
+    await remove(ref(db, `data/catatan/${currentUser}/items/${kategoriId}/${itemId}`));
+    showNotif("Item dihapus", false, 'warning');
+  }
+};
+
+window.deleteKategori = async function(id) {
+  const confirmed = await showCustomConfirm("Hapus Kategori", "Yakin ingin menghapus kategori ini? Semua item di dalamnya juga akan terhapus.");
+  if (confirmed) {
+    const items = checklistItems[id] || {};
+    for (const [itemId, item] of Object.entries(items)) {
+      if (item && item.linkedTransactionId) {
+        await window.deleteTransaksiWithRelation(item.linkedTransactionId, currentUser);
+      }
+    }
+    await remove(ref(db, `data/catatan/${currentUser}/kategori/${id}`));
+    await remove(ref(db, `data/catatan/${currentUser}/items/${id}`));
+    showNotif("Kategori dihapus", false, 'warning');
+    await loadKategori();
   }
 };
 
@@ -486,25 +545,11 @@ window.saveKategori = async function() {
   const modal = bootstrap.Modal.getInstance(document.getElementById('kategoriModal'));
   if (modal) modal.hide();
   await loadKategori();
+  generateAIRecommendations();
 };
 
 window.editKategori = function(id) {
   openKategoriModal(id);
-};
-
-window.deleteKategori = async function(id) {
-  if (confirm("Yakin ingin menghapus kategori ini? Semua item di dalamnya juga akan terhapus.")) {
-    await remove(ref(db, `data/catatan/${currentUser}/kategori/${id}`));
-    await remove(ref(db, `data/catatan/${currentUser}/items/${id}`));
-    showNotif("Kategori dihapus", false, 'warning');
-    await loadKategori();
-  }
-};
-
-window.toggleItem = async function(kategoriId, itemId, selesai) {
-  await update(ref(db, `data/catatan/${currentUser}/items/${kategoriId}/${itemId}`), { selesai });
-  updateProgress();
-  renderAIRecommendations();
 };
 
 window.addItemToKategori = function(kategoriId) {
@@ -603,13 +648,8 @@ window.saveItem = async function() {
   
   const modal = bootstrap.Modal.getInstance(document.getElementById('itemModal'));
   if (modal) modal.hide();
-};
-
-window.deleteItem = async function(kategoriId, itemId) {
-  if (confirm("Yakin ingin menghapus item ini?")) {
-    await remove(ref(db, `data/catatan/${currentUser}/items/${kategoriId}/${itemId}`));
-    showNotif("Item dihapus", false, 'warning');
-  }
+  generateAIRecommendations();
 };
 
 window.initCatatan = initCatatan;
+window.generateAIRecommendations = generateAIRecommendations;
