@@ -1,6 +1,9 @@
 // js/app.js - Main Application dengan Optimasi
 import { db, ref, onValue, set } from './firebase-config.js';
-import { masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser, showLoading, hideLoading, getCache, setCache, clearCache, throttle } from './utils.js';
+import { 
+  masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser, 
+  showLoading, hideLoading, getCache, setCache, clearCache, throttle 
+} from './utils.js';
 import { 
   handleLogin, 
   updateCloudPassword, 
