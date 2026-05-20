@@ -106,7 +106,7 @@
   <!-- Target Tabungan -->
   <div class="card p-3 mb-4">
     <div class="d-flex justify-content-between align-items-center mb-2">
-      <h6 class="fw-bold mb-0"><i class="bi bi-piggy-bank me-2"></i>Target Tabungan Saya</h6>
+      <h6 class="fw-bold mb-0"><i class="bi bi-piggy-bank me-2"></i>Target Tabungan Bersama</h6>
       <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="setTargetTabungan()">Atur Target</button>
     </div>
     <div class="progress mb-2" style="height: 10px;">
@@ -114,8 +114,9 @@
     </div>
     <div class="d-flex justify-content-between small">
       <span id="terkumpul">Rp 0</span>
-      <span id="targetAmount">Target: Rp 0</span>
+      <span id="targetAmount">Target Bersama: Rp 0</span>
     </div>
+    <small class="text-muted mt-2">✨ Target ini akan terlihat oleh kedua pasangan</small>
   </div>
 
   <!-- Riwayat Transaksi -->
@@ -125,11 +126,16 @@
 
 <!-- CATATAN PAGE -->
 <section id="catatan-page" style="display: none">
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <h3 class="fw-bold"><i class="bi bi-journal-bookmark-fill me-2 text-warning"></i>Catatan Persiapan</h3>
-    <button class="btn btn-warning btn-sm rounded-pill" onclick="openKategoriModal()">
-      <i class="bi bi-folder-plus me-1"></i> Kategori
-    </button>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="window.location.href='#keuangan-page'; showPage('keuangan')">
+        <i class="bi bi-wallet2 me-1"></i> Keuangan
+      </button>
+      <button class="btn btn-warning btn-sm rounded-pill" onclick="openKategoriModal()">
+        <i class="bi bi-folder-plus me-1"></i> Kategori
+      </button>
+    </div>
   </div>
 
   <!-- Progress Overview -->
@@ -141,7 +147,13 @@
     <div class="progress mb-2" style="height: 8px;">
       <div id="catatanProgress" class="progress-bar bg-warning" style="width: 0%"></div>
     </div>
+    <div class="d-flex justify-content-between small text-muted mt-1">
+      <span id="estimasiBiaya">💰 Estimasi Total: Rp 0</span>
+    </div>
   </div>
+
+  <!-- AI Recommendations akan di-inject oleh JavaScript -->
+  <div id="aiRecommendations"></div>
 
   <!-- Kategori & Checklist -->
   <div id="kategoriContainer" class="accordion" id="catatanAccordion"></div>
@@ -149,12 +161,20 @@
 
 <!-- IMPIAN PAGE -->
 <section id="impian-page" style="display: none">
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <h3 class="fw-bold"><i class="bi bi-stars me-2 text-purple"></i>Impian Kita</h3>
-    <button class="btn btn-purple btn-sm rounded-pill" onclick="openImpianModal()">
-      <i class="bi bi-plus-lg me-1"></i> Tambah Impian
-    </button>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="window.location.href='#keuangan-page'; showPage('keuangan')">
+        <i class="bi bi-wallet2 me-1"></i> Keuangan
+      </button>
+      <button class="btn btn-purple btn-sm rounded-pill" onclick="openImpianModal()">
+        <i class="bi bi-plus-lg me-1"></i> Tambah Impian
+      </button>
+    </div>
   </div>
+
+  <!-- AI Recommendations akan di-inject oleh JavaScript -->
+  <div id="aiImpianRecommendations"></div>
 
   <div id="impianList" class="row g-2 g-md-3"></div>
 </section>
@@ -171,3 +191,434 @@
   <!-- Daftar Pengingat -->
   <div id="pengingatList" class="list-group list-group-flush"></div>
 </section>
+
+<!-- MODAL TAMBAH/EDIT MOMEN -->
+<div class="modal fade" id="momentModal" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-content rounded-4">
+      <div class="modal-header border-0 bg-gradient bg-danger text-white py-3">
+        <h5 class="fw-bold mb-0">
+          <i class="bi bi-camera-fill me-2"></i>
+          <span id="momentModalTitle">Tambah Momen</span>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto">
+        <input type="hidden" id="momentEditId">
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">📅 Tanggal <span class="text-danger">*</span></label>
+          <input type="date" id="momentDate" class="form-control rounded-3">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">✏️ Judul Momen</label>
+          <input type="text" id="momentTitle" class="form-control rounded-3" placeholder="Misal: Pertama Kali Bertemu">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">📝 Cerita / Deskripsi</label>
+          <textarea id="momentStory" class="form-control rounded-3" rows="3" placeholder="Ceritakan momen spesial ini..."></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">🖼️ Foto (max 5 foto)</label>
+          <div class="photo-upload-grid" id="photoUploadGrid">
+            <div class="photo-upload-item" onclick="document.getElementById('momentPhotoInput').click()">
+              <i class="bi bi-plus-circle-fill"></i>
+              <span>Tambah Foto</span>
+            </div>
+          </div>
+          <input type="file" id="momentPhotoInput" accept="image/jpeg,image/png,image.jpg" multiple style="display: none" onchange="handleMultiplePhotos(this)">
+          <small class="text-muted">Klik untuk upload, maksimal 5 foto (max 2MB per foto)</small>
+        </div>
+
+        <div class="form-check">
+          <input type="checkbox" id="momentIsSpecial" class="form-check-input">
+          <label class="form-check-label">⭐ Jadikan sebagai momen spesial (highlight)</label>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0 pb-4">
+        <button type="button" class="btn btn-secondary rounded-3 px-4" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-danger rounded-3 px-4" onclick="saveMoment()">
+          <i class="bi bi-save me-2"></i>Simpan
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETAIL MOMEN -->
+<div class="modal fade" id="momentDetailModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-content rounded-4">
+      <div class="modal-header border-0 py-3">
+        <h5 class="fw-bold mb-0" id="detailTitle">Momen Spesial</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div id="detailCarousel" class="carousel slide" data-bs-ride="false">
+          <div class="carousel-inner" id="detailCarouselInner"></div>
+          <button class="carousel-control-prev" type="button" data-bs-target="#detailCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon bg-dark rounded-circle p-2"></span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#detailCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon bg-dark rounded-circle p-2"></span>
+          </button>
+        </div>
+
+        <div class="p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div class="d-flex gap-2">
+              <span class="badge bg-danger px-3 py-2" id="detailMood">❤️ Momen Berkesan</span>
+              <span class="badge bg-secondary px-3 py-2" id="detailDate"></span>
+            </div>
+            <div class="dropdown">
+              <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <a class="dropdown-item" onclick="editMomentFromDetail()">
+                    <i class="bi bi-pencil me-2"></i>Edit Momen
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <a class="dropdown-item text-danger" onclick="deleteMomentFromDetail()">
+                    <i class="bi bi-trash me-2"></i>Hapus Momen
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <p id="detailStory" class="mb-3" style="line-height: 1.6"></p>
+
+          <hr>
+
+          <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted" id="detailAuthor"></small>
+            <small class="text-muted" id="detailDateCreated"></small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TAMBAH/EDIT KATEGORI CATATAN -->
+<div class="modal fade" id="kategoriModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-content rounded-4" style="max-width: 500px;">
+      <div class="modal-header border-0 bg-warning text-dark py-3">
+        <h5 class="fw-bold mb-0" id="kategoriModalTitle">📁 Tambah Kategori</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body modal-form p-4">
+        <div class="mb-3">
+          <label class="fw-semibold mb-2">Nama Kategori</label>
+          <input type="text" id="kategoriNama" class="form-control form-control-lg rounded-3" placeholder="Contoh: Dokumentasi Pernikahan">
+        </div>
+        <div class="mb-3">
+          <label class="fw-semibold mb-2">Icon</label>
+          <select id="kategoriIcon" class="form-select form-select-lg rounded-3">
+            <option value="bi-files">📋 Dokumen</option>
+            <option value="bi-building">🏛️ Venue</option>
+            <option value="bi-person-standing">👗 Busana</option>
+            <option value="bi-diamond">💍 Perlengkapan</option>
+            <option value="bi-camera">📸 Dokumentasi</option>
+            <option value="bi-cup-straw">🍽️ Konsumsi</option>
+            <option value="bi-music-note">🎵 Hiburan</option>
+            <option value="bi-envelope">📝 Undangan</option>
+            <option value="bi-wallet2">💰 Anggaran</option>
+            <option value="bi-people">👥 Tamu</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="fw-semibold mb-2">Estimasi Biaya (Rp)</label>
+          <input type="number" id="kategoriEstimasi" class="form-control form-control-lg rounded-3" placeholder="Estimasi biaya untuk kategori ini">
+          <small class="text-muted">Biaya ini akan terhubung dengan menu Keuangan</small>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pb-4 px-4">
+        <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-warning rounded-pill px-4" onclick="saveKategori()">Simpan Kategori</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TAMBAH/EDIT ITEM CATATAN -->
+<div class="modal fade" id="itemModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-content rounded-4" style="max-width: 500px;">
+      <div class="modal-header border-0 bg-primary text-white">
+        <h5 class="fw-bold mb-0" id="itemModalTitle">📝 Tambah Item Baru</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <input type="text" id="itemNama" class="form-control form-control-lg rounded-3" placeholder="Nama item / tugas">
+      </div>
+      <div class="modal-footer border-0 pb-4 px-4">
+        <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-primary rounded-pill px-4" onclick="saveItem()">Simpan Item</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TAMBAH/EDIT IMPIAN -->
+<div class="modal fade" id="impianModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4">
+      <div class="modal-header border-0 bg-purple text-white">
+        <h5 class="fw-bold mb-0" id="impianModalTitle">⭐ Tambah Impian Baru</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body modal-form p-4">
+        <div class="mb-3">
+          <label class="fw-semibold">Judul Impian</label>
+          <input type="text" id="impianJudul" class="form-control" placeholder="Contoh: Beli Rumah Impian">
+        </div>
+        <div class="mb-3">
+          <label class="fw-semibold">Kategori</label>
+          <select id="impianKategori" class="form-select">
+            <option value="Rumah">🏠 Rumah</option>
+            <option value="Kendaraan">🚗 Kendaraan</option>
+            <option value="Travel">✈️ Travel / Bulan Madu</option>
+            <option value="Pendidikan">📚 Pendidikan</option>
+            <option value="Bisnis">💼 Bisnis</option>
+            <option value="Investasi">📈 Investasi</option>
+            <option value="Pernikahan">💍 Pernikahan</option>
+            <option value="Lainnya">✨ Lainnya</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="fw-semibold">Target Nominal (Rp)</label>
+          <input type="number" id="impianTarget" class="form-control" placeholder="Masukkan target nominal">
+          <small class="text-muted">Target ini akan terhubung dengan menu Keuangan</small>
+        </div>
+        <div class="mb-3">
+          <label class="fw-semibold">Progress (0-100%)</label>
+          <div class="d-flex align-items-center gap-3">
+            <input type="range" id="impianProgress" class="form-range flex-grow-1" min="0" max="100" value="0">
+            <span id="progressValue" class="fw-bold text-purple" style="min-width: 45px;">0%</span>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="fw-semibold">Deskripsi / Cerita</label>
+          <textarea id="impianDeskripsi" class="form-control" rows="3" placeholder="Ceritakan impianmu..."></textarea>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" id="impianTercapai" class="form-check-input">
+          <label class="form-check-label">✨ Impian ini sudah tercapai</label>
+        </div>
+        <div class="form-check mt-2">
+          <input type="checkbox" id="impianHubungkanKeuangan" class="form-check-input">
+          <label class="form-check-label">🔗 Hubungkan dengan menu Keuangan (otomatis menambah transaksi)</label>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pb-4">
+        <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-purple rounded-pill px-4" onclick="saveImpian()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TAMBAH/EDIT TRANSKSI KEUANGAN -->
+<div class="modal fade" id="transaksiModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-content rounded-4" style="max-width: 500px;">
+      <div class="modal-header border-0 bg-success text-white py-3">
+        <h5 class="fw-bold mb-0" id="transaksiModalTitle">💰 Tambah Transaksi</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body modal-form p-4">
+        <div class="mb-3">
+          <label class="fw-semibold mb-2">Tipe Transaksi</label>
+          <select id="transaksiTipe" class="form-select form-select-lg rounded-3">
+            <option value="pemasukan">📥 + Pemasukan</option>
+            <option value="pengeluaran">📤 - Pengeluaran</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="fw-semibold mb-2">Kategori</label>
+          <select id="transaksiKategori" class="form-select form-select-lg rounded-3">
+            <option value="Makanan">🍜 Makanan & Minuman</option>
+            <option value="Transportasi">🚗 Transportasi</option>
+            <option value="Belanja">🛍️ Belanja</option>
+            <option value="Tabungan">🏦 Tabungan</option>
+            <option value="Hiburan">🎬 Hiburan</option>
+            <option value="Kesehatan">🏥 Kesehatan</option>
+            <option value="Pendidikan">📚 Pendidikan</option>
+            <option value="Tagihan">💡 Tagihan</option>
+            <option value="Pernikahan">💍 Pernikahan</option>
+            <option value="Lainnya">📝 Lainnya</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="fw-semibold mb-2">Nominal</label>
+          <input type="number" id="transaksiNominal" class="form-control form-control-lg rounded-3" placeholder="Masukkan nominal">
+        </div>
+        <div class="mb-3">
+          <label class="fw-semibold mb-2">Tanggal</label>
+          <input type="date" id="transaksiTanggal" class="form-control form-control-lg rounded-3">
+        </div>
+        <div class="mb-3">
+          <label class="fw-semibold mb-2">Catatan (Opsional)</label>
+          <textarea id="transaksiCatatan" class="form-control rounded-3" rows="3" placeholder="Tambahkan catatan..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pb-4 px-4">
+        <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-success rounded-pill px-4" onclick="saveTransaksi()">Simpan Transaksi</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SET TARGET TABUNGAN BERSAMA -->
+<div class="modal fade" id="targetModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content rounded-4">
+      <div class="modal-header border-0 bg-primary text-white">
+        <h5 class="fw-bold mb-0">🎯 Target Tabungan Bersama</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <label class="fw-semibold mb-2">Target Tabungan Bersama</label>
+        <input type="number" id="targetInput" class="form-control form-control-lg rounded-3" placeholder="Masukkan target bersama">
+        <small class="text-muted mt-2 d-block">✨ Target ini akan terlihat oleh kedua pasangan</small>
+      </div>
+      <div class="modal-footer border-0 pb-4">
+        <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-primary rounded-pill px-4" onclick="saveTarget()">Simpan Target</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TAMBAH/EDIT PENGINGAT -->
+<div class="modal fade" id="pengingatModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-content rounded-4" style="max-width: 500px;">
+      <div class="modal-header border-0 bg-danger text-white py-3">
+        <h5 class="fw-bold mb-0" id="pengingatModalTitle">🔔 Tambah Pengingat</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body modal-form p-4">
+        <div class="mb-3">
+          <label class="fw-semibold mb-2">Jenis Pengingat</label>
+          <select id="pengingatJenis" class="form-select form-select-lg rounded-3" onchange="togglePengingatJenis()">
+            <option value="custom">📝 Pengingat Biasa</option>
+            <option value="ulangtahun">🎂 Ulang Tahun Partner</option>
+          </select>
+        </div>
+        <div id="customFields">
+          <div class="mb-3">
+            <label class="fw-semibold mb-2">Judul Pengingat</label>
+            <input type="text" id="pengingatJudul" class="form-control form-control-lg rounded-3" placeholder="Contoh: Bayar Tagihan Listrik">
+          </div>
+          <div class="mb-3">
+            <label class="fw-semibold mb-2">Tanggal</label>
+            <input type="date" id="pengingatTanggal" class="form-control form-control-lg rounded-3">
+          </div>
+        </div>
+        <div id="ulangtahunFields" style="display: none;">
+          <div class="mb-3">
+            <label class="fw-semibold mb-2">Untuk User</label>
+            <select id="pengingatUser" class="form-select form-select-lg rounded-3">
+              <option value="FACHMI">✨ Fachmi</option>
+              <option value="AZIZAH">🌸 Azizah</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="fw-semibold mb-2">Tanggal Ulang Tahun</label>
+            <input type="date" id="pengingatTanggalUlangtahun" class="form-control form-control-lg rounded-3">
+          </div>
+          <div class="alert alert-info small">
+            <i class="bi bi-info-circle me-1"></i>
+            Pengingat ulang tahun akan muncul setiap tahun otomatis dan berbunyi.
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="fw-semibold mb-2">Icon</label>
+          <select id="pengingatIcon" class="form-select form-select-lg rounded-3">
+            <option value="bi-calendar-event">📅 Umum</option>
+            <option value="bi-heart">❤️ Anniversary</option>
+            <option value="bi-gift">🎁 Ulang Tahun</option>
+            <option value="bi-file-medical">🏥 Kesehatan</option>
+            <option value="bi-cart">🛒 Belanja</option>
+            <option value="bi-credit-card">💳 Tagihan</option>
+            <option value="bi-truck">🚚 Pengiriman</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pb-4 px-4">
+        <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-danger rounded-pill px-4" onclick="savePengingat()">Simpan Pengingat</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL WEDDING DATE -->
+<div class="modal fade" id="weddingDateModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content rounded-4">
+      <div class="modal-header border-0">
+        <h5 class="fw-bold">Tanggal Pernikahan</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="date" id="weddingDateInput" class="form-control rounded-3">
+        <small class="text-muted">Masukkan tanggal pernikahan yang direncanakan</small>
+      </div>
+      <div class="modal-footer border-0">
+        <button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-primary rounded-pill" onclick="saveWeddingDate()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ULANG TAHUN PARTNER -->
+<div class="modal fade" id="birthdayModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content rounded-4">
+      <div class="modal-header border-0">
+        <h5 class="fw-bold">Ulang Tahun Partner</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="date" id="birthdayModalInput" class="form-control rounded-3">
+        <small class="text-muted">Masukkan tanggal ulang tahun pasangan Anda</small>
+      </div>
+      <div class="modal-footer border-0">
+        <button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-primary rounded-pill" onclick="saveBirthdayFromModal()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE MODAL -->
+<div class="modal fade" id="customConfirmModal" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content rounded-4">
+      <div class="modal-header border-0 pt-4 pb-0">
+        <h5 class="fw-bold mb-0">Hapus Item</h5>
+      </div>
+      <div class="modal-body text-center py-3">
+        <i class="bi bi-question-circle fs-1 text-warning mb-2 d-block"></i>
+        <p class="mb-0">Yakin ingin menghapus item ini?</p>
+      </div>
+      <div class="modal-footer border-0 justify-content-center gap-3 pb-4">
+        <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+        <button id="confirmDeleteActionBtn" class="btn btn-danger rounded-pill px-4">Hapus</button>
+      </div>
+    </div>
+  </div>
+</div>
