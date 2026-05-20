@@ -310,14 +310,11 @@ function renderKategori() {
 // Fungsi generate planning wedding
 window.generateWeddingPlanning = async function(templateId = 'basic') {
   const template = weddingTemplates[templateId];
-  if (!template) {
-    showNotif("Template tidak ditemukan", true, 'error');
-    return;
-  }
+  if (!template) return;
   
   const confirmed = await showCustomConfirm(
     "Generate Planning Wedding", 
-    `Yakin ingin menggunakan template "${template.name}"? Data catatan yang ada akan DIGANTI SEPENUHNYA dengan template ini.`
+    `Yakin ingin menggunakan template "${template.name}"? SEMUA data catatan yang ada akan DIHAPUS dan DIGANTI.`
   );
   
   if (!confirmed) return;
@@ -325,50 +322,47 @@ window.generateWeddingPlanning = async function(templateId = 'basic') {
   showLoading("Membuat planning wedding...");
   
   try {
-    // ============ TUNGGU SAMPAI PROSES HAPUS SELESAI ============
-    const kategoriRef = ref(db, `data/catatan/${currentUser}/kategori`);
-    const itemsRef = ref(db, `data/catatan/${currentUser}/items`);
+    // ============ HAPUS SEMUA DATA ============
+    console.log("Menghapus semua data lama...");
+    await remove(ref(db, `data/catatan/${currentUser}`));
     
-    console.log("Menghapus data lama...");
-    await remove(kategoriRef);
-    await remove(itemsRef);
+    // Tunggu 1 detik untuk memastikan Firebase selesai
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Beri jeda 500ms untuk memastikan Firebase menyelesaikan proses hapus
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    console.log("Data lama terhapus, mulai menulis template baru...");
+    console.log("Data terhapus, mulai menulis template baru...");
     
     // ============ TULIS DATA BARU ============
     let totalEstimasi = 0;
     
     for (const kat of template.categories) {
-      // Buat kategori baru
-      const newKatRef = await push(kategoriRef, {
+      // Gunakan push untuk ID unik
+      const kategoriRef = push(ref(db, `data/catatan/${currentUser}/kategori`));
+      await set(kategoriRef, {
         nama: kat.nama,
         icon: kat.icon,
         estimasiBiaya: kat.estimasiBiaya
       });
-      const kategoriId = newKatRef.key;
+      
+      const kategoriId = kategoriRef.key;
       totalEstimasi += kat.estimasiBiaya;
       
-      // Buat items untuk kategori ini
+      // Buat items
       for (const item of kat.items) {
-        await push(ref(db, `data/catatan/${currentUser}/items/${kategoriId}`), {
+        const itemRef = push(ref(db, `data/catatan/${currentUser}/items/${kategoriId}`));
+        await set(itemRef, {
           nama: item,
           selesai: false
         });
       }
       
-      console.log(`Kategori "${kat.nama}" ditambahkan dengan ${kat.items.length} item`);
+      console.log(`✅ Kategori "${kat.nama}" ditambahkan`);
     }
     
-    // Set target keuangan berdasarkan total estimasi
-    await set(ref(db, `data/keuangan/${currentUser}/targetPernikahan`), totalEstimasi);
-    
-    // Bersihkan cache dan reload data
+    // Bersihkan cache
     clearCache(`catatan_kategori_${currentUser}`);
     clearCache(`catatan_items_${currentUser}`);
     
+    // Reload data
     await loadKategoriOptimized(true);
     await loadChecklistItemsOptimized(true);
     
@@ -376,19 +370,15 @@ window.generateWeddingPlanning = async function(templateId = 'basic') {
     updateProgress();
     generateAIRecommendations();
     
-    // Refresh keuangan
-    if (typeof window.initKeuangan === 'function') window.initKeuangan();
-    
-    showNotif(`✅ Template "${template.name}" berhasil diterapkan! Total estimasi: Rp ${totalEstimasi.toLocaleString('id-ID')}`, false, 'success');
+    showNotif(`✅ Template "${template.name}" berhasil! Total estimasi: Rp ${totalEstimasi.toLocaleString('id-ID')}`, false, 'success');
     
   } catch (err) {
-    console.error("Error generating wedding planning:", err);
-    showNotif("❌ Gagal membuat planning wedding. Silakan coba lagi.", true, 'error');
+    console.error(err);
+    showNotif("❌ Gagal membuat planning", true, 'error');
   } finally {
     hideLoading();
   }
 };
-
 // AI Recommendations dengan tombol generate template
 async function generateAIRecommendations() {
   if (isGeneratingAI) return;
