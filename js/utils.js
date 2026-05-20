@@ -1,9 +1,8 @@
-// js/utils.js
+// js/utils.js - Tambahan fungsi custom modal
 export let currentUser = null;
 export let masterData = null;
 export let privacyHidden = false;
 
-// ============ CUSTOM TOAST (BUKAN BROWSER DEFAULT) ============
 let toastQueue = [];
 let isToastShowing = false;
 
@@ -54,6 +53,128 @@ export function showNotif(msg, isErr = false, type = 'success') {
       }
     }, 300);
   }, 2700);
+}
+
+// Custom Prompt Modal (menggantikan prompt bawaan browser)
+export function showCustomPrompt(title, placeholder, defaultValue = '') {
+  return new Promise((resolve) => {
+    let modalElement = document.getElementById('customPromptModal');
+    
+    if (!modalElement) {
+      const modalHtml = `
+        <div class="modal fade" id="customPromptModal" tabindex="-1" data-bs-backdrop="static">
+          <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content rounded-4">
+              <div class="modal-header border-0 pt-4">
+                <h5 class="fw-bold mb-0" id="promptTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body py-2">
+                <input type="number" id="promptInput" class="form-control form-control-lg rounded-3" placeholder="">
+              </div>
+              <div class="modal-footer border-0 justify-content-center gap-3 pb-4">
+                <button class="btn btn-secondary rounded-pill px-4" id="promptCancelBtn">Batal</button>
+                <button class="btn btn-primary rounded-pill px-4" id="promptConfirmBtn">OK</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+      modalElement = document.getElementById('customPromptModal');
+    }
+    
+    document.getElementById('promptTitle').innerText = title;
+    const input = document.getElementById('promptInput');
+    input.placeholder = placeholder;
+    input.value = defaultValue;
+    input.type = 'number';
+    
+    const modal = new bootstrap.Modal(modalElement);
+    
+    const handleConfirm = () => {
+      modal.hide();
+      resolve(input.value);
+    };
+    
+    const handleCancel = () => {
+      modal.hide();
+      resolve(null);
+    };
+    
+    const confirmBtn = document.getElementById('promptConfirmBtn');
+    const cancelBtn = document.getElementById('promptCancelBtn');
+    
+    confirmBtn.onclick = handleConfirm;
+    cancelBtn.onclick = handleCancel;
+    
+    modalElement.addEventListener('hidden.bs.modal', () => {
+      confirmBtn.onclick = null;
+      cancelBtn.onclick = null;
+    }, { once: true });
+    
+    modal.show();
+    input.focus();
+  });
+}
+
+// Custom Confirm Modal (menggantikan confirm bawaan browser)
+export function showCustomConfirm(title, message) {
+  return new Promise((resolve) => {
+    let modalElement = document.getElementById('customConfirmModalDialog');
+    
+    if (!modalElement) {
+      const modalHtml = `
+        <div class="modal fade" id="customConfirmModalDialog" tabindex="-1" data-bs-backdrop="static">
+          <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content rounded-4">
+              <div class="modal-header border-0 pt-4 pb-0">
+                <h5 class="fw-bold mb-0" id="confirmTitle"></h5>
+              </div>
+              <div class="modal-body text-center py-3">
+                <i class="bi bi-question-circle fs-1 text-warning mb-2 d-block"></i>
+                <p class="mb-0" id="confirmMessage"></p>
+              </div>
+              <div class="modal-footer border-0 justify-content-center gap-3 pb-4">
+                <button class="btn btn-secondary rounded-pill px-4" id="confirmCancelBtn">Batal</button>
+                <button class="btn btn-danger rounded-pill px-4" id="confirmOkBtn">Ya, Hapus</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+      modalElement = document.getElementById('customConfirmModalDialog');
+    }
+    
+    document.getElementById('confirmTitle').innerText = title;
+    document.getElementById('confirmMessage').innerText = message;
+    
+    const modal = new bootstrap.Modal(modalElement);
+    
+    const handleConfirm = () => {
+      modal.hide();
+      resolve(true);
+    };
+    
+    const handleCancel = () => {
+      modal.hide();
+      resolve(false);
+    };
+    
+    const confirmBtn = document.getElementById('confirmOkBtn');
+    const cancelBtn = document.getElementById('confirmCancelBtn');
+    
+    confirmBtn.onclick = handleConfirm;
+    cancelBtn.onclick = handleCancel;
+    
+    modalElement.addEventListener('hidden.bs.modal', () => {
+      confirmBtn.onclick = null;
+      cancelBtn.onclick = null;
+    }, { once: true });
+    
+    modal.show();
+  });
 }
 
 export function formatNumberRp(val) { 
@@ -115,7 +236,8 @@ export function compressImage(file, maxSizeMB = 2) {
   });
 }
 
-// Expose
 window.showNotif = showNotif;
 window.formatNumberRp = formatNumberRp;
 window.togglePrivacy = togglePrivacy;
+window.showCustomPrompt = showCustomPrompt;
+window.showCustomConfirm = showCustomConfirm;
