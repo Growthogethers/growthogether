@@ -1,6 +1,9 @@
 // js/impian.js - Optimasi dengan Caching
 import { db, ref, push, onValue, remove, update, get } from './firebase-config.js';
-import { showNotif, formatNumberRp, escapeHtml, showCustomConfirm, getCache, setCache, throttle, showLoading, hideLoading } from './utils.js';
+import { 
+  showNotif, formatNumberRp, escapeHtml, showCustomConfirm, 
+  getCache, setCache, clearCache, throttle, showLoading, hideLoading 
+} from './utils.js';
 
 let currentUser = null;
 let editImpianId = null;
