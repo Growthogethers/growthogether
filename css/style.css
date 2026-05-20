@@ -1283,3 +1283,104 @@ button,
     scroll-behavior: auto !important;
   }
 }
+
+/* ============ FIX DROPDOWN MENU TERTIMPA (TAMBAHKAN DI BAWAH) ============ */
+
+/* Pastikan dropdown menu muncul di atas semua elemen */
+.dropdown-menu {
+  z-index: 9999 !important;
+  position: absolute !important;
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border-light) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-lg) !important;
+  min-width: 160px !important;
+}
+
+/* Fix untuk card yang memiliki overflow hidden */
+.card {
+  overflow: visible !important;
+}
+
+/* Fix untuk card-header yang mungkin memotong dropdown */
+.card-header {
+  overflow: visible !important;
+  position: relative;
+  z-index: 10;
+}
+
+/* Fix untuk container kategori */
+#kategoriContainer .card {
+  overflow: visible !important;
+  position: relative;
+}
+
+/* Fix untuk dropdown button */
+.btn-icon[data-bs-toggle="dropdown"] {
+  position: relative;
+  z-index: 5;
+}
+
+/* Dropdown item styling */
+.dropdown-item {
+  padding: 8px 16px !important;
+  cursor: pointer !important;
+  color: var(--text-primary) !important;
+}
+
+.dropdown-item:hover {
+  background: var(--bg-light) !important;
+}
+
+.dropdown-item.text-danger:hover {
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+
+/* Dropdown divider */
+.dropdown-divider {
+  margin: 4px 0 !important;
+  border-color: var(--border-light) !important;
+}
+
+/* Fix untuk modal yang mungkin menutupi dropdown */
+.modal {
+  z-index: 1050 !important;
+}
+
+.modal-backdrop {
+  z-index: 1040 !important;
+}
+
+/* Dropdown harus di atas modal backdrop */
+.dropdown-menu {
+  z-index: 1060 !important;
+}
+
+/* Fix untuk position relative yang memotong */
+.position-relative {
+  overflow: visible !important;
+}
+
+/* Pastikan body tidak memotong dropdown */
+body {
+  overflow-x: visible !important;
+}
+
+/* Untuk mobile, pastikan dropdown tetap terlihat */
+@media (max-width: 768px) {
+  .dropdown-menu {
+    position: fixed !important;
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: 16px !important;
+    max-width: 90vw !important;
+    min-width: 140px !important;
+  }
+  
+  /* Alternatif: gunakan position absolute dengan transform */
+  .dropdown-menu-end {
+    right: 0 !important;
+    left: auto !important;
+  }
+}
