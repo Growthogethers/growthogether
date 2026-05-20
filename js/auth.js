@@ -1,5 +1,7 @@
+// js/auth.js - Versi update dengan panggil birthday
 import { db, ref, get, update } from './firebase-config.js';
 import { showNotif, setCurrentUser, compressImage } from './utils.js';
+import { renderBirthdayInProfile } from './pengingat.js';
 
 // ============ GLOBAL STATE PROFILE ============
 let currentProfilePhoto = null;
@@ -152,10 +154,6 @@ export function updateProfileUI() {
   // Update greeting in dashboard
   const userGreet = document.getElementById("userGreet");
   if (userGreet) userGreet.innerText = displayName;
-  
-  // Update active user badge in sidebar
-  const activeUserBadge = document.getElementById("activeUserBadge");
-  if (activeUserBadge) activeUserBadge.innerText = displayName;
 }
 
 // ============ LOGIN HANDLER ============
@@ -350,6 +348,11 @@ export async function updateCloudPassword() {
 export function openProfileModal() {
   console.log("openProfileModal called");
   updateProfileUI();
+  
+  // Panggil render birthday di profile
+  if (typeof renderBirthdayInProfile === 'function') {
+    renderBirthdayInProfile();
+  }
   
   const modalElement = document.getElementById("profileModal");
   
