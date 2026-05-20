@@ -1,6 +1,9 @@
 // js/catatan.js - Optimasi dengan Caching
 import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
-import { showNotif, escapeHtml, showCustomPrompt, showCustomConfirm, getCache, setCache, throttle, showLoading, hideLoading } from './utils.js';
+import { 
+  showNotif, escapeHtml, showCustomPrompt, showCustomConfirm, 
+  getCache, setCache, clearCache, throttle, showLoading, hideLoading 
+} from './utils.js';
 
 let currentUser = null;
 let kategoriList = [];
