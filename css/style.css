@@ -1,4 +1,4 @@
-/* style.css - UI/UX Enhanced Version - FULL CSS (Final) */
+/* style.css - UI/UX Enhanced Version dengan Animasi Pixel */
 
 * {
   margin: 0;
@@ -61,20 +61,82 @@ body {
   color: var(--text-primary);
 }
 
-/* ============ TYPOGRAPHY ============ */
-h1, h2, h3, h4, h5, h6 {
-  font-weight: 600;
-  line-height: 1.3;
+/* ============ ANIMASI PIXEL BERGERAK ============ */
+.particle-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9998;
 }
 
-.text-gradient {
-  background: linear-gradient(135deg, var(--primary), #8b5cf6);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+.confetti {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  background-color: #f00;
+  position: absolute;
+  animation: confetti-fall 3s linear forwards;
+  z-index: 10000;
+  pointer-events: none;
 }
 
-/* ============ LOGIN SCREEN ============ */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.pixel-particle {
+  position: fixed;
+  width: 4px;
+  height: 4px;
+  background: var(--primary);
+  border-radius: 1px;
+  pointer-events: none;
+  z-index: 9999;
+  animation: pixel-float 2s ease-out forwards;
+}
+
+@keyframes pixel-float {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--tx, 50px), var(--ty, -100px)) scale(0);
+    opacity: 0;
+  }
+}
+
+/* Floating hearts animation */
+.floating-heart {
+  position: fixed;
+  font-size: 20px;
+  pointer-events: none;
+  z-index: 9999;
+  animation: float-up 2s ease-out forwards;
+}
+
+@keyframes float-up {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* ============ LOGIN SCREEN ENHANCED ============ */
 #login-screen {
   position: fixed;
   top: 0;
@@ -86,81 +148,183 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+}
+
+/* Animated background bubbles */
+#login-screen::before {
+  content: '';
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 1%, transparent 1%);
+  background-size: 50px 50px;
+  animation: bubbleMove 20s linear infinite;
+  opacity: 0.5;
+}
+
+@keyframes bubbleMove {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* Floating hearts in login */
+.floating-heart-bg {
+  position: absolute;
+  font-size: 24px;
+  opacity: 0.3;
+  animation: floatHeart 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes floatHeart {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(10deg);
+  }
 }
 
 .login-container {
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
   padding: 1rem;
+  position: relative;
+  z-index: 10;
 }
 
-.login-card-minimal {
+.login-card-modern {
   background: rgba(255, 255, 255, 0.98);
-  border-radius: 32px;
-  padding: 2rem 1.5rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(10px);
+  border-radius: 48px;
+  padding: 2.5rem 2rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: transform 0.3s ease;
 }
 
-.brand-circle {
-  width: 64px;
-  height: 64px;
+.login-card-modern:hover {
+  transform: translateY(-5px);
+}
+
+.brand-circle-modern {
+  width: 80px;
+  height: 80px;
   background: linear-gradient(135deg, var(--primary), #8b5cf6);
-  border-radius: 32px;
+  border-radius: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+  animation: pulse 2s ease-in-out infinite;
 }
 
-.brand-circle i {
-  font-size: 32px;
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 12px 30px rgba(99, 102, 241, 0.5);
+  }
+}
+
+.brand-circle-modern i {
+  font-size: 40px;
   color: white;
 }
 
-.greeting-text {
-  font-size: 1.5rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #1e293b, #334155);
+.greeting-text-modern {
+  font-size: 1.8rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #1e293b, #4f46e5);
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
+  margin-bottom: 0.5rem;
 }
 
-.sub-greeting {
-  font-size: 0.8rem;
+.sub-greeting-modern {
+  font-size: 0.9rem;
   color: var(--text-muted);
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
-.uniform-control {
+/* Modern input style */
+.input-modern {
   width: 100%;
-  border: 1.5px solid var(--border-light);
-  border-radius: 16px;
-  padding: 0.85rem 1rem;
+  border: 2px solid var(--border-light);
+  border-radius: 60px;
+  padding: 1rem 1.5rem;
   font-size: 1rem;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   background: white;
 }
 
-.uniform-control:focus {
+.input-modern:focus {
   border-color: var(--primary);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+  transform: translateY(-2px);
 }
 
-.login-btn {
+.input-icon {
+  position: relative;
+  margin-bottom: 1.25rem;
+}
+
+.input-icon i {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  z-index: 1;
+}
+
+.input-icon .input-modern {
+  padding-left: 48px;
+}
+
+.login-btn-modern {
   background: linear-gradient(135deg, var(--primary), #8b5cf6);
   border: none;
-  border-radius: 40px;
-  padding: 0.9rem;
-  font-weight: 600;
+  border-radius: 60px;
+  padding: 1rem;
+  font-weight: 700;
   font-size: 1rem;
   color: white;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.3s ease;
   cursor: pointer;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
 }
 
-.login-btn:active {
+.login-btn-modern::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.login-btn-modern:hover::before {
+  left: 100%;
+}
+
+.login-btn-modern:active {
   transform: scale(0.98);
 }
 
@@ -353,32 +517,6 @@ section {
   margin-bottom: 6px;
   font-size: 0.85rem;
   color: var(--text-muted);
-}
-
-.input-group {
-  display: flex;
-  align-items: stretch;
-}
-
-.input-group-text {
-  background: var(--bg-light);
-  border: 1.5px solid var(--border-light);
-  border-right: none;
-  border-radius: var(--radius-md) 0 0 var(--radius-md);
-  padding: 0 14px;
-  display: flex;
-  align-items: center;
-  color: var(--text-muted);
-}
-
-.input-group .form-control {
-  border-left: none;
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
-}
-
-.input-group .form-control:focus {
-  border-left: none;
-  box-shadow: none;
 }
 
 /* ============ BOTTOM NAVIGATION ============ */
@@ -634,11 +772,6 @@ section {
   border: 2px solid var(--warning);
 }
 
-.calendar-day.has-moment .day-number {
-  font-weight: 600;
-}
-
-/* Love emoji indicator on calendar */
 .moment-love {
   position: absolute;
   bottom: 2px;
@@ -647,36 +780,10 @@ section {
 }
 
 @keyframes heartbeat {
-  0% { transform: scale(1); }
+  0%, 100% { transform: scale(1); }
   25% { transform: scale(1.2); }
   40% { transform: scale(1); }
   60% { transform: scale(1.1); }
-  100% { transform: scale(1); }
-}
-
-.calendar-day.has-moment .moment-love {
-  color: #ef4444;
-  text-shadow: 0 0 2px rgba(239, 68, 68, 0.5);
-}
-
-.calendar-day.special-moment .moment-love {
-  color: #f59e0b;
-  font-size: 14px;
-  animation: heartbeat 0.8s ease infinite;
-}
-
-.calendar-day.today .moment-love {
-  color: white;
-  text-shadow: 0 0 2px rgba(255,255,255,0.5);
-}
-
-/* Dark mode support for love emoji */
-body.dark .calendar-day.has-moment .moment-love {
-  color: #f87171;
-}
-
-body.dark .calendar-day.special-moment .moment-love {
-  color: #fbbf24;
 }
 
 /* ============ MOMENT CARD ============ */
@@ -696,9 +803,7 @@ body.dark .calendar-day.special-moment .moment-love {
 
 .moment-card.special-card {
   border: 2px solid var(--warning);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
   position: relative;
-  background: linear-gradient(135deg, var(--card-bg), #fffef5);
 }
 
 .moment-card.special-card::before {
@@ -715,7 +820,6 @@ body.dark .calendar-day.special-moment .moment-love {
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   z-index: 1;
 }
 
@@ -930,21 +1034,23 @@ body.dark .calendar-day.special-moment .moment-love {
   background: var(--bg-body);
 }
 
-/* ============ STAT BADGES ============ */
-.badge-fachmi {
-  background: linear-gradient(135deg, var(--primary), #818cf8);
-  color: white;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.7rem;
+/* ============ KEUANGAN KATEGORI CARD ============ */
+.category-progress-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  margin-bottom: 8px;
+  border-left: 4px solid var(--primary);
+  transition: all 0.2s ease;
 }
 
-.badge-azizah {
-  background: linear-gradient(135deg, #ec4899, #f472b6);
-  color: white;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.7rem;
+.category-progress-card:hover {
+  transform: translateX(4px);
+  box-shadow: var(--shadow-sm);
+}
+
+.category-progress-card .progress {
+  height: 6px;
 }
 
 /* ============ UTILITY CLASSES ============ */
@@ -990,24 +1096,7 @@ body.dark .calendar-day.special-moment .moment-love {
   background: rgba(239, 68, 68, 0.1) !important;
 }
 
-.dropdown-divider {
-  margin: 4px 0 !important;
-  border-color: var(--border-light) !important;
-}
-
-.modal {
-  z-index: 1050 !important;
-}
-
-.modal-backdrop {
-  z-index: 1040 !important;
-}
-
-.position-relative {
-  overflow: visible !important;
-}
-
-/* ============ HILANGKAN KOTAK HITAM/HIGHLIGHT ============ */
+/* ============ HILANGKAN KOTAK HITAM ============ */
 *:focus,
 *:focus-visible,
 *:active {
@@ -1026,127 +1115,34 @@ button:active,
 .dropdown-item:focus,
 .dropdown-item:focus-visible,
 .status-badge:focus,
-.status-badge:focus-visible,
-[role="button"]:focus,
-[role="button"]:focus-visible,
-.btn-icon:focus,
-.btn-icon:focus-visible,
-.change-photo-btn:focus,
-.change-photo-btn:focus-visible {
+.status-badge:focus-visible {
   outline: none !important;
   box-shadow: none !important;
 }
 
-/* Tetap tampilkan outline hanya untuk keyboard navigation (aksesibilitas) */
-@media (prefers-reduced-motion: no-preference) {
-  *:focus-visible:not(.status-badge):not(.btn-icon):not(.change-photo-btn) {
-    outline: 2px solid var(--primary) !important;
-    outline-offset: 2px !important;
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3) !important;
-  }
-}
-
-/* Khusus untuk modal profile */
-#profileModal button:focus,
-#profileModal button:focus-visible,
-#profileModal .btn:focus,
-#profileModal .btn:focus-visible {
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-/* ============ DARK MODE SPECIFIC OVERRIDES ============ */
+/* ============ DARK MODE ============ */
 body.dark .calendar-day {
   background: #1f2937;
   border-color: #374151;
 }
 
-body.dark .calendar-day .day-number {
-  color: #e5e7eb;
-}
-
 body.dark .calendar-day.has-moment {
   background: #064e3b;
-  border-color: #10b981;
 }
 
 body.dark .calendar-day.special-moment {
   background: #451a03;
-  border-color: #f59e0b;
 }
 
 body.dark .moment-card {
   background: #1f2937;
-  border-color: #374151;
-}
-
-body.dark .moment-card.special-card {
-  background: linear-gradient(135deg, #1f2937, #2d1f00);
-  border-color: #f59e0b;
-}
-
-body.dark .photo-upload-item {
-  background: #1f2937;
-  border-color: #374151;
-}
-
-body.dark .photo-upload-item:hover {
-  border-color: var(--primary);
 }
 
 body.dark .modal-content {
   background: var(--card-bg);
 }
 
-/* ============ SKIP LINK ============ */
-.skip-link {
-  position: absolute;
-  top: -40px;
-  left: 0;
-  background: var(--primary);
-  color: white;
-  padding: 8px 16px;
-  z-index: 10000;
-  text-decoration: none;
-  border-radius: 0 0 8px 0;
-}
-
-.skip-link:focus {
-  top: 0;
-}
-
-/* ============ TOUCH TARGET MINIMUM SIZE ============ */
-button, 
-.nav-link, 
-.bottom-nav-item,
-[role="button"],
-.clickable,
-.btn-icon {
-  min-height: 44px;
-  min-width: 44px;
-}
-
-/* ============ SCROLLBAR ============ */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--border-light);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--primary);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-dark);
-}
-
-/* ============ RESPONSIVE STYLES ============ */
+/* ============ RESPONSIVE ============ */
 @media (min-width: 769px) {
   #app-content {
     padding: 1.5rem 2rem;
@@ -1154,9 +1150,7 @@ button,
 }
 
 @media (max-width: 768px) {
-  html {
-    font-size: 14px;
-  }
+  html { font-size: 14px; }
   
   .sidebar, #app-sidebar {
     transform: translateX(-100%);
@@ -1167,19 +1161,6 @@ button,
   
   .sidebar.open, #app-sidebar.open {
     transform: translateX(0);
-    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
-  }
-  
-  .mobile-close-btn {
-    display: block;
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: var(--text-muted);
-    cursor: pointer;
   }
   
   #app-content {
@@ -1187,248 +1168,50 @@ button,
     padding: 70px 12px 80px !important;
   }
   
-  .bottom-nav {
-    display: flex;
-  }
+  .bottom-nav { display: flex; }
+  .menu-toggle-hp { display: flex; }
+  .dark-mode-fab { bottom: 80px; right: 12px; }
   
-  .menu-toggle-hp {
-    display: flex;
-  }
+  .calendar-grid { gap: 4px; padding: 12px; }
+  .calendar-day { min-width: 35px; }
   
-  .dark-mode-fab {
-    bottom: 80px;
-    right: 12px;
-  }
+  .moment-image, .moment-image-placeholder { height: 130px; }
   
-  .card-body {
-    padding: 0.75rem !important;
-  }
-  
-  .btn {
-    padding: 10px 16px;
-  }
-  
-  .form-control,
-  .form-select {
-    padding: 10px 12px;
-    font-size: 14px;
-  }
-  
-  .calendar-grid {
-    gap: 4px;
-    padding: 12px;
-  }
-  
-  .calendar-day {
-    min-width: 35px;
-  }
-  
-  .photo-upload-grid {
-    grid-template-columns: repeat(auto-fill, minmax(70px, 70px));
-  }
-  
-  .photo-upload-item {
-    width: 70px;
-    height: 70px;
-  }
-  
-  .photo-preview-item {
-    width: 70px;
-    height: 70px;
-  }
-  
-  .moment-image,
-  .moment-image-placeholder {
-    height: 130px;
-  }
-  
-  .moment-card.special-card::before {
-    width: 24px;
-    height: 24px;
-    font-size: 12px;
-    top: -8px;
-    right: -8px;
-  }
-  
-  #recentMomentsPreview .col-4,
-  #momentsList .col-6.col-md-4.col-lg-3 {
-    flex: 0 0 50%;
-    max-width: 50%;
-    padding: 0 4px;
-  }
-  
-  #keuanganSummary .col-6 {
-    padding: 0 4px;
-  }
-  
-  #keuanganSummary .card {
-    padding: 8px;
-  }
-  
-  #keuanganSummary h4 {
-    font-size: 0.9rem;
-  }
-  
-  .modal-dialog {
-    margin: 8px;
-  }
-  
-  .modal-dialog.modal-md {
-    max-width: calc(100% - 16px);
-    margin: 8px auto;
-  }
-  
-  .modal-body {
-    padding: 16px;
-  }
-  
-  .modal-header {
-    padding: 12px 16px;
-  }
-  
-  input, select, textarea {
-    font-size: 16px !important;
-  }
-  
-  .profile-avatar {
-    width: 60px;
-    height: 60px;
-  }
-  
-  .profile-status {
-    width: 18px;
-    height: 18px;
-    bottom: 3px;
-    right: 3px;
-  }
-  
-  .edit-profile-badge {
-    width: 22px;
-    height: 22px;
-    bottom: -3px;
-    right: -3px;
-  }
-  
-  section h3 {
-    font-size: 1.2rem;
-  }
-  
-  section h5 {
-    font-size: 0.95rem;
-  }
-  
-  /* Dropdown mobile fix */
   .dropdown-menu {
     position: fixed !important;
-    top: auto !important;
-    bottom: auto !important;
-    left: auto !important;
     right: 16px !important;
     max-width: 90vw !important;
-    min-width: 140px !important;
   }
   
-  .dropdown-menu-end {
-    right: 0 !important;
-    left: auto !important;
+  .login-card-modern {
+    padding: 1.5rem;
+  }
+  
+  .greeting-text-modern {
+    font-size: 1.4rem;
   }
 }
 
 @media (max-width: 480px) {
-  .row {
-    margin-left: -6px;
-    margin-right: -6px;
-  }
-  
-  .col-6,
-  .col-md-4,
-  .col-lg-3 {
-    padding-left: 6px;
-    padding-right: 6px;
-  }
-  
-  .calendar-day {
-    font-size: 0.65rem;
-    min-width: 32px;
-  }
-  
-  .bg-gradient-success h2 {
-    font-size: 1.3rem;
-  }
+  .calendar-day { font-size: 0.65rem; min-width: 32px; }
+  .bg-gradient-success h2 { font-size: 1.3rem; }
 }
 
-@media (max-width: 768px) and (orientation: landscape) {
-  .bottom-nav {
-    padding: 4px 8px 12px;
-  }
-  
-  .calendar-day {
-    min-height: 45px;
-  }
-  
-  .moment-image,
-  .moment-image-placeholder {
-    height: 100px;
-  }
-  
-  .modal-dialog.modal-md {
-    max-height: 85vh;
-    overflow-y: auto;
-  }
-}
-
-/* Safe Area untuk Android dengan notches */
-@supports (padding: max(0px)) {
-  .bottom-nav { 
-    padding-bottom: max(12px, env(safe-area-inset-bottom)); 
-    padding-left: max(8px, env(safe-area-inset-left));
-    padding-right: max(8px, env(safe-area-inset-right));
-  }
-  
-  .menu-toggle-hp { 
-    top: max(12px, env(safe-area-inset-top)); 
-    left: max(12px, env(safe-area-inset-left)); 
-  }
-  
-  .dark-mode-fab {
-    bottom: max(70px, calc(env(safe-area-inset-bottom) + 70px));
-    right: max(16px, env(safe-area-inset-right));
-  }
-  
-  #app-content {
-    padding-left: max(12px, env(safe-area-inset-left));
-    padding-right: max(12px, env(safe-area-inset-right));
-  }
-}
-
-/* Touch feedback untuk Android */
+/* Touch feedback */
 @media (max-width: 768px) {
   button:active, 
   .bottom-nav-item:active, 
   .calendar-day:active,
-  .moment-card:active,
-  .nav-link:active {
+  .moment-card:active {
     transform: scale(0.97);
     transition: transform 0.05s;
   }
-  
-  .nav-link:hover {
-    transform: none;
-  }
-  
-  .moment-card:hover {
-    transform: none;
-  }
 }
 
-/* Reduced motion support */
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  * {
     animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
   }
 }
