@@ -1,9 +1,9 @@
-// js/app.js - Main Application (DENGAN PERBAIKAN LENGKAP)
+// js/app.js - Main Application (Dengan Perbaikan Critical: Memory Leak + Session Validation)
 import { db, ref, onValue, set } from './firebase-config.js';
 import { 
   masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser, 
   showLoading, hideLoading, getCache, setCache, clearCache, throttle,
-  triggerConfetti, initClickAnimation
+  triggerConfetti, initClickAnimation, escapeHtml
 } from './utils.js';
 import { 
   handleLogin, 
@@ -16,7 +16,9 @@ import {
   openChangePasswordFromProfile,
   forceRefreshProfile,
   updateProfileUI,
-  initProfile
+  initProfile,
+  validateSession,
+  cleanupAuthListeners
 } from './auth.js';
 import { renderDashboard } from './dashboard.js';
 import { 
@@ -30,67 +32,60 @@ import {
   openMomentModal, 
   handleMultiplePhotos, 
   removePhotoAtIndex, 
-  editMomentFromDetail 
+  editMomentFromDetail,
+  clearCalendarCache
 } from './moment.js';
 import { initKeuangan } from './keuangan.js';
 import { initCatatan } from './catatan.js';
 import { initImpian } from './impian.js';
+import { addBackupButtonToProfile } from './backup.js';
 
 let firebaseListener = null;
 let currentPage = 'dashboard';
 let appInitialized = false;
 let offlineIndicator = null;
+let activeListeners = []; // ARRAY UNTUK MENYIMPAN SEMUA LISTENER
 
-// ============ PERBAIKAN #6: OFFLINE INDICATOR ============
-function initOfflineIndicator() {
-  if (offlineIndicator) return;
+// ============ FUNGSI CLEANUP SEMUA LISTENER (CRITICAL #1) ============
+export function cleanupAllListeners() {
+  console.log("Cleaning up all Firebase listeners...");
   
-  offlineIndicator = document.createElement('div');
-  offlineIndicator.id = 'offlineIndicator';
-  offlineIndicator.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: white;
-    text-align: center;
-    padding: 10px;
-    font-size: 12px;
-    font-weight: 500;
-    z-index: 10001;
-    transform: translateY(-100%);
-    transition: transform 0.3s ease;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  `;
-  offlineIndicator.innerHTML = `
-    <i class="bi bi-wifi-off me-2"></i>
-    Offline - Perubahan tidak akan tersimpan sampai koneksi kembali
-  `;
-  document.body.appendChild(offlineIndicator);
+  // Cleanup main Firebase listener
+  if (firebaseListener) {
+    firebaseListener();
+    firebaseListener = null;
+  }
   
-  window.addEventListener('online', () => {
-    if (offlineIndicator) {
-      offlineIndicator.style.transform = 'translateY(-100%)';
-    }
-    showNotif('📡 Koneksi kembali online!', false, 'success');
-    clearCache();
-  });
+  // Cleanup listeners from other modules
+  if (activeListeners.length > 0) {
+    activeListeners.forEach(listener => {
+      if (typeof listener === 'function') {
+        listener();
+      }
+    });
+    activeListeners = [];
+  }
   
-  window.addEventListener('offline', () => {
-    if (offlineIndicator) {
-      offlineIndicator.style.transform = 'translateY(0)';
-    }
-    showNotif('⚠️ Koneksi terputus. Perubahan tidak akan tersimpan.', true, 'error');
-  });
+  // Cleanup auth listeners
+  if (typeof cleanupAuthListeners === 'function') {
+    cleanupAuthListeners();
+  }
+  
+  // Clear calendar cache
+  if (typeof clearCalendarCache === 'function') {
+    clearCalendarCache();
+  }
+  
+  // Clear all caches
+  clearCache();
+  
+  console.log("All listeners cleaned up");
 }
 
-// ============ PERBAIKAN #1: CLEANUP FIREBASE LISTENER ============
-function cleanupFirebaseListener() {
-  if (firebaseListener) {
-    console.log("Cleaning up Firebase listener...");
-    firebaseListener(); // unsubscribe dari onValue
-    firebaseListener = null;
+// Tambahkan listener ke array untuk tracking
+export function registerListener(listener) {
+  if (typeof listener === 'function') {
+    activeListeners.push(listener);
   }
 }
 
@@ -163,7 +158,7 @@ async function loadComponents() {
   }
 }
 
-// ============ DARK MODE FIXED + PERBAIKAN #7 ============
+// ============ DARK MODE FIXED ============
 function initDarkMode() {
   console.log("Initializing dark mode...");
   
@@ -235,6 +230,51 @@ function handleResize() {
   }
 }
 
+// ============ OFFLINE INDICATOR ============
+function initOfflineIndicator() {
+  if (offlineIndicator) return;
+  
+  offlineIndicator = document.createElement('div');
+  offlineIndicator.id = 'offlineIndicator';
+  offlineIndicator.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    text-align: center;
+    padding: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    z-index: 10001;
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  `;
+  offlineIndicator.innerHTML = `
+    <i class="bi bi-wifi-off me-2"></i>
+    Offline - Perubahan tidak akan tersimpan sampai koneksi kembali
+  `;
+  document.body.appendChild(offlineIndicator);
+  
+  window.addEventListener('online', () => {
+    if (offlineIndicator) {
+      offlineIndicator.style.transform = 'translateY(-100%)';
+    }
+    showNotif('📡 Koneksi kembali online!', false, 'success');
+    clearCache();
+  });
+  
+  window.addEventListener('offline', () => {
+    if (offlineIndicator) {
+      offlineIndicator.style.transform = 'translateY(0)';
+    }
+    showNotif('⚠️ Koneksi terputus. Perubahan tidak akan tersimpan.', true, 'error');
+  });
+}
+
+// ============ ATTACH EVENT LISTENERS ============
 function attachEventListeners() {
   console.log("Attaching event listeners...");
   
@@ -246,6 +286,9 @@ function attachEventListeners() {
       e.stopPropagation();
       if (typeof openProfileModal === 'function') {
         openProfileModal();
+      }
+      if (typeof addBackupButtonToProfile === 'function') {
+        setTimeout(addBackupButtonToProfile, 100);
       }
     };
     profileTrigger.addEventListener('click', profileTrigger._profileListener);
@@ -260,6 +303,9 @@ function attachEventListeners() {
       console.log("Profile button clicked from bottom nav");
       if (typeof openProfileModal === 'function') {
         openProfileModal();
+      }
+      if (typeof addBackupButtonToProfile === 'function') {
+        setTimeout(addBackupButtonToProfile, 100);
       }
     };
     profileMenuBtn.addEventListener('click', profileMenuBtn._mobileProfileListener);
@@ -409,18 +455,26 @@ function setupAppSession(u) {
   }, 500);
 }
 
+// ============ CHECK AUTH DENGAN VALIDASI SESSION (CRITICAL #2) ============
 function checkAuth() {
   const savedUser = sessionStorage.getItem("progrowth_user");
-  if (savedUser) {
+  
+  // Panggil fungsi validasi dari auth.js
+  if (savedUser && validateSession && validateSession()) {
     setCurrentUser(savedUser);
     setupAppSession(savedUser);
+  } else if (savedUser) {
+    // Session tidak valid, force logout
+    console.log("Invalid session, forcing logout");
+    sessionStorage.clear();
+    location.reload();
   }
 }
 
-// ============ PERBAIKAN #1: FIXED FIREBASE LISTENER ============
+// ============ FIREBASE LISTENER DENGAN CLEANUP (CRITICAL #1) ============
 function initFirebaseListener() {
   // Cleanup existing listener sebelum buat baru
-  cleanupFirebaseListener();
+  cleanupAllListeners();
   
   if (!appInitialized) {
     console.log("Initializing Firebase listener...");
@@ -438,7 +492,7 @@ function initFirebaseListener() {
       }
       
       const loggedUser = sessionStorage.getItem("progrowth_user");
-      if (loggedUser && appInitialized) {
+      if (loggedUser && appInitialized && validateSession && validateSession()) {
         if (currentPage === "dashboard" && typeof renderDashboard === 'function') renderDashboard();
         else if (currentPage === "moment" && typeof renderCalendar === 'function') { 
           renderCalendar(); 
@@ -446,6 +500,7 @@ function initFirebaseListener() {
         }
         else if (currentPage === "keuangan" && typeof initKeuangan === 'function') initKeuangan();
         else if (currentPage === "catatan" && typeof initCatatan === 'function') initCatatan();
+        else if (currentPage === "impian" && typeof initImpian === 'function') initImpian();
       }
       
       console.log("Firebase data synced");
@@ -472,12 +527,22 @@ function injectToastContainer() {
   }
 }
 
+// Override handleLogout untuk cleanup semua listener
+const originalHandleLogout = handleLogout;
+window.handleLogout = function() {
+  console.log("Logout with cleanup...");
+  cleanupAllListeners();
+  if (typeof originalHandleLogout === 'function') {
+    originalHandleLogout();
+  }
+};
+
 async function init() {
   console.log("🚀 Initializing Growthogether App...");
   showInitialLoading();
   
   injectToastContainer();
-  initOfflineIndicator(); // PERBAIKAN #6
+  initOfflineIndicator();
   await loadComponents();
   checkAuth();
   initFirebaseListener();
@@ -494,13 +559,6 @@ async function init() {
   
   console.log("✅ App initialized successfully");
 }
-
-// Override handleLogout untuk cleanup listener
-const originalHandleLogout = handleLogout;
-window.handleLogout = function() {
-  cleanupFirebaseListener();
-  originalHandleLogout();
-};
 
 // Exports
 window.setupAppSession = setupAppSession;
@@ -527,5 +585,7 @@ window.changeMonth = changeMonth;
 window.triggerConfetti = triggerConfetti;
 window.confirmLogout = confirmLogout;
 window.handleLogout = window.handleLogout;
+window.cleanupAllListeners = cleanupAllListeners;
+window.registerListener = registerListener;
 
 document.addEventListener("DOMContentLoaded", init);
