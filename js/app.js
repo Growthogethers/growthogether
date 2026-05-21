@@ -1,4 +1,4 @@
-// js/app.js - Main Application (Tanpa Toggle Sidebar)
+// js/app.js - Main Application (Dark Mode Fixed + Mobile Navbar Fixed)
 import { db, ref, onValue, set } from './firebase-config.js';
 import { 
   masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser, 
@@ -109,27 +109,70 @@ async function loadComponents() {
   }
 }
 
+// ============ DARK MODE FIXED ============
 function initDarkMode() {
-  const darkFab = document.getElementById("darkModeFab");
-  if (darkFab) {
-    const saved = localStorage.getItem("darkMode");
-    if (saved === "enabled") document.body.classList.add("dark");
-    
-    // Update icon sesuai mode
-    if (document.body.classList.contains("dark")) {
-      darkFab.innerHTML = '<i class="bi bi-brightness-high-fill fs-5"></i>';
-    } else {
-      darkFab.innerHTML = '<i class="bi bi-moon-stars fs-5"></i>';
-    }
-    
-    darkFab.onclick = () => {
-      document.body.classList.toggle("dark");
-      const isDark = document.body.classList.contains("dark");
-      localStorage.setItem("darkMode", isDark ? "enabled" : "disabled");
-      darkFab.innerHTML = isDark ? '<i class="bi bi-brightness-high-fill fs-5"></i>' : '<i class="bi bi-moon-stars fs-5"></i>';
-      showNotif(isDark ? "🌙 Mode Gelap Aktif" : "☀️ Mode Terang Aktif", false, 'info');
-    };
+  console.log("Initializing dark mode...");
+  
+  // Cari atau buat dark mode FAB
+  let darkFab = document.getElementById("darkModeFab");
+  if (!darkFab) {
+    darkFab = document.createElement('button');
+    darkFab.id = 'darkModeFab';
+    darkFab.className = 'dark-mode-fab';
+    darkFab.setAttribute('aria-label', 'Mode gelap/terang');
+    document.body.appendChild(darkFab);
   }
+  
+  // Cek localStorage untuk preferensi dark mode
+  const savedMode = localStorage.getItem("darkMode");
+  const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  
+  // Tentukan mode awal
+  let isDark = false;
+  if (savedMode === "enabled") {
+    isDark = true;
+  } else if (savedMode === "disabled") {
+    isDark = false;
+  } else {
+    isDark = systemDark;
+  }
+  
+  // Terapkan mode
+  applyDarkMode(isDark, darkFab);
+  
+  // Event listener untuk toggle
+  darkFab.onclick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const isCurrentlyDark = document.body.classList.contains("dark");
+    const newDarkState = !isCurrentlyDark;
+    
+    applyDarkMode(newDarkState, darkFab);
+    localStorage.setItem("darkMode", newDarkState ? "enabled" : "disabled");
+    
+    showNotif(newDarkState ? "🌙 Mode Gelap Aktif" : "☀️ Mode Terang Aktif", false, 'info');
+    console.log("Dark mode toggled, isDark:", newDarkState);
+  };
+  
+  console.log("Dark mode initialized, isDark:", isDark);
+}
+
+function applyDarkMode(isDark, darkFab) {
+  if (isDark) {
+    document.body.classList.add("dark");
+    if (darkFab) darkFab.innerHTML = '<i class="bi bi-brightness-high-fill fs-5"></i>';
+  } else {
+    document.body.classList.remove("dark");
+    if (darkFab) darkFab.innerHTML = '<i class="bi bi-moon-stars fs-5"></i>';
+  }
+  
+  // Update CSS variables untuk semua elemen
+  document.documentElement.style.setProperty('--bg-body', isDark ? '#0f172a' : '#f8fafc');
+  document.documentElement.style.setProperty('--card-bg', isDark ? '#1e293b' : '#ffffff');
+  document.documentElement.style.setProperty('--text-primary', isDark ? '#f1f5f9' : '#1e293b');
+  document.documentElement.style.setProperty('--text-muted', isDark ? '#94a3b8' : '#64748b');
+  document.documentElement.style.setProperty('--border-light', isDark ? '#334155' : '#e2e8f0');
 }
 
 function handleResize() {
@@ -145,51 +188,65 @@ function handleResize() {
   }
 }
 
+// ============ ATTACH EVENT LISTENERS ============
 function attachEventListeners() {
   console.log("Attaching event listeners...");
   
-  // Profile trigger dari sidebar (desktop)
-  document.body.addEventListener('click', (e) => {
-    const profileTrigger = e.target.closest('#profileTrigger');
-    if (profileTrigger) {
+  // ============ PROFILE TRIGGER UNTUK DESKTOP (dari sidebar) ============
+  const profileTrigger = document.getElementById('profileTrigger');
+  if (profileTrigger) {
+    profileTrigger.removeEventListener('click', profileTrigger._profileListener);
+    profileTrigger._profileListener = (e) => {
       e.preventDefault();
       e.stopPropagation();
       if (typeof openProfileModal === 'function') {
         openProfileModal();
       }
-    }
-  });
+    };
+    profileTrigger.addEventListener('click', profileTrigger._profileListener);
+  }
   
-  // Profile menu dari bottom nav (mobile)
+  // ============ PROFILE MENU DARI BOTTOM NAV (MOBILE) ============
   const profileMenuBtn = document.getElementById('profileMenuBtn');
   if (profileMenuBtn) {
-    profileMenuBtn.addEventListener('click', (e) => {
+    profileMenuBtn.removeEventListener('click', profileMenuBtn._mobileProfileListener);
+    profileMenuBtn._mobileProfileListener = (e) => {
       e.preventDefault();
+      e.stopPropagation();
+      console.log("Profile button clicked from bottom nav");
       if (typeof openProfileModal === 'function') {
         openProfileModal();
       }
-    });
+    };
+    profileMenuBtn.addEventListener('click', profileMenuBtn._mobileProfileListener);
   }
   
-  // Logout dari bottom nav (mobile)
+  // ============ LOGOUT DARI BOTTOM NAV (MOBILE) ============
   const logoutMenuBtn = document.getElementById('logoutMenuBtn');
   if (logoutMenuBtn) {
-    logoutMenuBtn.addEventListener('click', (e) => {
+    logoutMenuBtn.removeEventListener('click', logoutMenuBtn._logoutListener);
+    logoutMenuBtn._logoutListener = (e) => {
       e.preventDefault();
+      e.stopPropagation();
+      console.log("Logout button clicked from bottom nav");
       confirmLogout();
-    });
+    };
+    logoutMenuBtn.addEventListener('click', logoutMenuBtn._logoutListener);
   }
   
-  // Logout dari sidebar (desktop)
+  // ============ LOGOUT DARI SIDEBAR (DESKTOP) ============
   const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
   if (sidebarLogoutBtn) {
-    sidebarLogoutBtn.addEventListener('click', (e) => {
+    sidebarLogoutBtn.removeEventListener('click', sidebarLogoutBtn._sidebarLogoutListener);
+    sidebarLogoutBtn._sidebarLogoutListener = (e) => {
       e.preventDefault();
+      e.stopPropagation();
       confirmLogout();
-    });
+    };
+    sidebarLogoutBtn.addEventListener('click', sidebarLogoutBtn._sidebarLogoutListener);
   }
   
-  // Privacy toggle
+  // ============ PRIVACY TOGGLE ============
   document.querySelectorAll("#privacyToggleDash").forEach(btn => {
     if (btn) {
       btn.removeEventListener('click', btn._privacyListener);
@@ -201,13 +258,13 @@ function attachEventListeners() {
     }
   });
   
-  // Navigation
+  // ============ NAVIGATION ============
   const throttledShowPage = throttle((page) => {
     showPage(page);
   }, 300);
   
   document.querySelectorAll(".nav-link, .bottom-nav-item").forEach(el => {
-    // Skip khusus untuk profile dan logout
+    // Skip khusus untuk profile dan logout (mereka bukan navigasi page)
     if (el.id === 'profileMenuBtn' || el.id === 'logoutMenuBtn') return;
     
     el.removeEventListener('click', el._navListener);
@@ -220,7 +277,7 @@ function attachEventListeners() {
     el.addEventListener('click', el._navListener);
   });
   
-  // Online/Offline detection
+  // ============ ONLINE/OFFLINE DETECTION ============
   window.addEventListener('online', () => { 
     showNotif("📡 Koneksi kembali online", false, 'success');
     clearCache();
@@ -419,5 +476,7 @@ window.editMomentFromDetail = editMomentFromDetail;
 window.deleteMomentFromDetail = deleteMomentFromDetail;
 window.changeMonth = changeMonth;
 window.triggerConfetti = triggerConfetti;
+window.confirmLogout = confirmLogout;
+window.handleLogout = handleLogout;
 
 document.addEventListener("DOMContentLoaded", init);
