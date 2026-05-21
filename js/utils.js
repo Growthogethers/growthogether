@@ -1,4 +1,4 @@
-// js/utils.js - Lengkap dengan semua export (VERSI DIPERBAIKI)
+// js/utils.js - Lengkap dengan Enhanced XSS Protection & Security
 export let currentUser = null;
 export let masterData = null;
 export let privacyHidden = false;
@@ -88,16 +88,15 @@ export function showLoading(message = 'Memuat data...') {
     <div class="spinner-border text-light" role="status" style="width: 44px; height: 44px;">
       <span class="visually-hidden">Loading...</span>
     </div>
-    <div class="text-white mt-3 fw-bold" style="font-size: 14px;">${message}</div>
+    <div class="text-white mt-3 fw-bold" style="font-size: 14px;">${escapeHtml(message)}</div>
     <div class="text-white-50 small mt-1">Mohon tunggu sebentar...</div>
   `;
   document.body.appendChild(loadingOverlay);
   
-  // PERBAIKAN #3: Loading timeout dari 10 detik jadi 5 detik
   loadingTimeout = setTimeout(() => {
     hideLoading();
     showNotif("⏰ Koneksi lambat, coba refresh", true, 'error');
-  }, 5000); // <-- DIUBAH DARI 10000 MENJADI 5000
+  }, 5000);
 }
 
 export function hideLoading() {
@@ -114,12 +113,11 @@ export function hideLoading() {
   }
 }
 
-// ============ TOAST NOTIFICATION + PERBAIKAN #5 (Keyboard fix) ============
+// ============ TOAST NOTIFICATION ============
 let toastQueue = [];
 let isToastShowing = false;
 let originalToastBottom = '80px';
 
-// Fungsi untuk menyesuaikan posisi toast saat keyboard muncul
 function initToastKeyboardFix() {
   document.addEventListener('focusin', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
@@ -229,9 +227,9 @@ export function showCustomPrompt(title, placeholder, defaultValue = '') {
       modalElement = document.getElementById('customPromptModal');
     }
     
-    document.getElementById('promptTitle').innerText = title;
+    document.getElementById('promptTitle').innerText = escapeHtml(title);
     const input = document.getElementById('promptInput');
-    input.placeholder = placeholder;
+    input.placeholder = escapeHtml(placeholder);
     input.value = defaultValue;
     input.type = 'number';
     
@@ -291,8 +289,8 @@ export function showCustomConfirm(title, message) {
       modalElement = document.getElementById('customConfirmModalDialog');
     }
     
-    document.getElementById('confirmTitle').innerText = title;
-    document.getElementById('confirmMessage').innerText = message;
+    document.getElementById('confirmTitle').innerText = escapeHtml(title);
+    document.getElementById('confirmMessage').innerText = escapeHtml(message);
     
     const modal = new bootstrap.Modal(modalElement);
     
@@ -321,16 +319,38 @@ export function showCustomConfirm(title, message) {
   });
 }
 
+// ============ CRITICAL #5: ENHANCED XSS PROTECTION ============
+export function escapeHtml(str) { 
+  if (!str) return ""; 
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .replace(/`/g, "&#96;")
+    .replace(/\//g, "&#x2F;");
+}
+
+// Sanitasi input untuk mencegah XSS
+export function sanitizeInput(str) {
+  if (!str) return "";
+  // Trim whitespace dan batasi panjang
+  return escapeHtml(str.trim().substring(0, 500));
+}
+
+// Validasi angka aman
+export function sanitizeNumber(val) {
+  const num = parseInt(val);
+  return isNaN(num) ? 0 : Math.max(0, Math.min(num, 999999999));
+}
+
 // ============ UTILITY FUNCTIONS ============
 export function formatNumberRp(val) { 
   if (privacyHidden) return "●●● ●●●";
   if (val === undefined || val === null) return "Rp 0";
-  return `Rp ${val.toLocaleString('id-ID')}`;
-}
-
-export function escapeHtml(str) { 
-  if (!str) return ""; 
-  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  const safeVal = sanitizeNumber(val);
+  return `Rp ${safeVal.toLocaleString('id-ID')}`;
 }
 
 export function togglePrivacy() { 
@@ -339,8 +359,14 @@ export function togglePrivacy() {
   if (window.renderDashboard) window.renderDashboard();
 }
 
-export function setCurrentUser(user) { currentUser = user; }
-export function setMasterData(data) { masterData = data; window.masterData = data; }
+export function setCurrentUser(user) { 
+  currentUser = user; 
+}
+
+export function setMasterData(data) { 
+  masterData = data; 
+  window.masterData = data; 
+}
 
 // ============ THROTTLE FUNCTION ============
 export function throttle(func, delay) {
@@ -503,5 +529,7 @@ window.togglePrivacy = togglePrivacy;
 window.showCustomPrompt = showCustomPrompt;
 window.showCustomConfirm = showCustomConfirm;
 window.escapeHtml = escapeHtml;
+window.sanitizeInput = sanitizeInput;
+window.sanitizeNumber = sanitizeNumber;
 window.throttle = throttle;
 window.debounce = debounce;
