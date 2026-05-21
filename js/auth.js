@@ -26,9 +26,8 @@ function simpleHash(str) {
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
+    hash = hash & hash;
   }
-  // Konversi ke base64 sederhana
   return btoa(Math.abs(hash).toString(16) + str.length.toString(16) + "gh");
 }
 
@@ -47,7 +46,6 @@ export function validateSession() {
     return false;
   }
   
-  // Cek apakah session sudah lebih dari 24 jam
   const now = Date.now();
   const sessionAge = now - parseInt(savedTimestamp);
   if (sessionAge > 24 * 60 * 60 * 1000) {
@@ -55,7 +53,6 @@ export function validateSession() {
     return false;
   }
   
-  // Validasi token
   const expectedToken = generateSessionToken(savedUser, savedTimestamp);
   if (savedToken !== expectedToken) {
     console.log("Invalid session token");
@@ -147,7 +144,6 @@ export function updateProfileUI() {
   
   console.log("Updating profile UI for:", displayName, "Status:", currentStatus);
   
-  // Update sidebar profile
   const profileAvatar = document.getElementById("profileAvatar");
   const profileName = document.getElementById("profileName");
   const profileStatusText = document.getElementById("profileStatusText");
@@ -177,7 +173,6 @@ export function updateProfileUI() {
     profileStatusIndicator.innerHTML = `<i class="${iconClass}"></i>`;
   }
   
-  // Update modal profile
   const modalAvatar = document.getElementById("modalProfileAvatar");
   const modalName = document.getElementById("modalProfileName");
   const modalEmail = document.getElementById("modalProfileEmail");
@@ -196,7 +191,6 @@ export function updateProfileUI() {
     modalEmail.innerText = email;
   }
   
-  // Update active status badge in modal
   document.querySelectorAll('.status-badge').forEach(badge => {
     const status = badge.getAttribute('data-status');
     if (status === currentStatus) {
@@ -206,18 +200,17 @@ export function updateProfileUI() {
     }
   });
   
-  // Update greeting in dashboard
   const userGreet = document.getElementById("userGreet");
   if (userGreet) userGreet.innerText = escapeHtml(displayName);
 }
 
-// ============ LOGIN HANDLER DENGAN PASSWORD HASH (CRITICAL #3) ============
+// ============ LOGIN HANDLER ============
 export async function handleLogin() {
   const u = document.getElementById("loginUser")?.value;
   const p = document.getElementById("loginPass")?.value;
   const errorDiv = document.getElementById("loginErrorMsg");
   const errorSpan = document.getElementById("errorText");
-  const loginBtn = document.querySelector(".login-btn");
+  const loginBtn = document.querySelector(".login-btn-modern");
   
   if (!p || !p.trim()) { 
     if (errorSpan) errorSpan.innerText = "❌ Password tidak boleh kosong!"; 
@@ -239,17 +232,13 @@ export async function handleLogin() {
     const snap = await get(ref(db, `data/auth/${u}`));
     const storedValue = snap.val();
     
-    // Cek apakah storedValue adalah hash (bukan plain text)
     let isValid = false;
     
     if (storedValue && storedValue.length > 20 && storedValue.includes('==')) {
-      // Ini adalah hash
       isValid = (simpleHash(p) === storedValue);
     } else {
-      // Ini plain text (data lama) - untuk backward compatibility
       isValid = (storedValue === p);
       
-      // Jika valid, update ke hash (migrasi otomatis)
       if (isValid && storedValue !== simpleHash(p)) {
         await update(ref(db), { [`data/auth/${u}`]: simpleHash(p) });
         console.log("Password migrated to hash for:", u);
@@ -257,7 +246,6 @@ export async function handleLogin() {
     }
     
     if (isValid) {
-      // Buat session dengan token
       const timestamp = Date.now();
       const token = generateSessionToken(u, timestamp);
       
@@ -358,7 +346,7 @@ export async function updateStatus(status) {
   }
 }
 
-// ============ UPDATE PASSWORD DENGAN HASH (CRITICAL #3) ============
+// ============ UPDATE PASSWORD ============
 export async function updateCloudPassword() {
   const p1 = document.getElementById("newPass")?.value;
   const p2 = document.getElementById("confirmPass")?.value;
@@ -390,7 +378,6 @@ export async function updateCloudPassword() {
   }
   
   try {
-    // Simpan sebagai hash, bukan plain text
     const hashedPassword = simpleHash(p1);
     await update(ref(db), { [`data/auth/${currentUser}`]: hashedPassword });
     
@@ -432,7 +419,6 @@ export function openProfileModal() {
   console.log("openProfileModal called");
   updateProfileUI();
   
-  // Panggil render birthday di profile
   if (typeof renderBirthdayInProfile === 'function') {
     renderBirthdayInProfile();
   }
@@ -461,7 +447,7 @@ export function openProfileModal() {
   }
 }
 
-// ============ OPEN CHANGE PASSWORD FROM PROFILE ============
+// ============ OPEN CHANGE PASSWORD ============
 export function openChangePasswordFromProfile() {
   console.log("openChangePasswordFromProfile called");
   
@@ -512,15 +498,45 @@ export async function handleProfilePhotoUpload(input) {
 
 // ============ LOGOUT FUNCTIONS ============
 export function confirmLogout() {
+  console.log("confirmLogout called");
   const modalEl = document.getElementById("confirmLogoutModal");
-  if (modalEl) {
-    const modal = new bootstrap.Modal(modalEl);
-    modal.show();
+  
+  if (!modalEl) {
+    console.error("confirmLogoutModal not found!");
+    handleLogout();
+    return;
   }
+  
+  const confirmBtn = document.getElementById("confirmLogoutBtn");
+  if (confirmBtn) {
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+    
+    newConfirmBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log("Confirm logout button clicked");
+      const modal = bootstrap.Modal.getInstance(modalEl);
+      if (modal) modal.hide();
+      handleLogout();
+    });
+  }
+  
+  const modal = new bootstrap.Modal(modalEl);
+  modal.show();
 }
 
 export function handleLogout() {
-  console.log("Logging out...");
+  console.log("Executing logout...");
+  
+  const modals = ['profileModal', 'passModal', 'confirmLogoutModal', 'momentModal', 'momentDetailModal', 'transaksiModal', 'impianModal', 'kategoriModal', 'itemModal'];
+  modals.forEach(modalId => {
+    const modalEl = document.getElementById(modalId);
+    if (modalEl) {
+      const modal = bootstrap.Modal.getInstance(modalEl);
+      if (modal) modal.hide();
+    }
+  });
   
   const appContent = document.getElementById("app-content");
   if (appContent) {
@@ -568,11 +584,7 @@ export function handleLogout() {
     }
     
     showNotif("👋 Anda telah keluar");
-    
-    const modal = bootstrap.Modal.getInstance(document.getElementById("confirmLogoutModal"));
-    if (modal) modal.hide();
-    
-    console.log("Logout complete, state reset");
+    console.log("Logout complete");
   }, 300);
 }
 
@@ -587,7 +599,6 @@ export async function initProfile() {
   }
 }
 
-// Auto-init
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initProfile);
 } else {
