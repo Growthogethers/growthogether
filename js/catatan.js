@@ -1,10 +1,9 @@
-// js/catatan.js - Versi dengan shared database (bersama)
-
+// js/catatan.js - Versi lengkap dengan Search & Export
 import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
 import { 
   showNotif, escapeHtml, showCustomPrompt, showCustomConfirm, 
   getCache, setCache, clearCache, throttle, showLoading, hideLoading,
-  triggerConfetti, triggerFloatingHearts 
+  triggerConfetti
 } from './utils.js';
 
 let currentUser = null;
@@ -16,7 +15,7 @@ let editItemId = null;
 let isGeneratingAI = false;
 let isInitialized = false;
 
-// Wedding Templates (sama seperti sebelumnya)
+// Wedding Templates
 const weddingTemplates = {
   basic: {
     name: "Paket Basic (Minimalis)",
@@ -59,6 +58,66 @@ const throttledRender = throttle(() => {
   updateProgress();
 }, 300);
 
+// ============ SEARCH FUNCTIONS ============
+function initSearchCatatan() {
+  const searchInput = document.getElementById('searchCatatan');
+  if (searchInput) {
+    searchInput.addEventListener('input', function(e) {
+      const searchTerm = e.target.value.toLowerCase();
+      filterKategoriBySearch(searchTerm);
+    });
+  }
+}
+
+function filterKategoriBySearch(searchTerm) {
+  const container = document.getElementById('kategoriContainer');
+  if (!container) return;
+  
+  const cards = container.querySelectorAll('.card');
+  cards.forEach(card => {
+    const text = card.innerText.toLowerCase();
+    if (searchTerm === '' || text.includes(searchTerm)) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+// ============ EXPORT FUNCTIONS ============
+window.exportCatatanToCSV = function() {
+  const headers = ['Kategori', 'Item', 'Status', 'Estimasi Biaya'];
+  const rows = [];
+  
+  kategoriList.forEach(kat => {
+    const items = checklistItems[kat.id] ? Object.values(checklistItems[kat.id]) : [];
+    items.forEach(item => {
+      if (item) {
+        rows.push([
+          `"${kat.nama}"`,
+          `"${item.nama}"`,
+          item.selesai ? 'Selesai' : 'Belum',
+          kat.estimasiBiaya || 0
+        ]);
+      }
+    });
+  });
+  
+  const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+  const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.href = url;
+  link.setAttribute('download', `catatan_${new Date().toISOString().split('T')[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  
+  showNotif(`✅ Laporan catatan berhasil diexport! (${rows.length} item)`, false, 'success');
+};
+
+// ============ CORE FUNCTIONS ============
 export async function initCatatan() {
   currentUser = sessionStorage.getItem("progrowth_user");
   if (!currentUser) return;
@@ -80,6 +139,7 @@ export async function initCatatan() {
     renderKategori();
     updateProgress();
     generateAIRecommendations();
+    initSearchCatatan();
     
     const throttledUpdate = throttle(() => {
       updateProgress();
@@ -87,7 +147,6 @@ export async function initCatatan() {
       generateAIRecommendations();
     }, 1000);
     
-    // Shared database path (bersama)
     onValue(ref(db, `data/catatan/bersama/items`), (snapshot) => {
       checklistItems = snapshot.val() || {};
       setCache(`catatan_items_bersama`, checklistItems, 3);
@@ -198,13 +257,13 @@ function renderKategori() {
         <p class="mt-2">Belum ada kategori persiapan pernikahan.</p>
         <p class="small">Klik salah satu template di bawah untuk memulai:</p>
         <div class="d-flex gap-2 justify-content-center mt-3 flex-wrap">
-          <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="generateWeddingPlanning('basic')">
+          <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="window.generateWeddingPlanning('basic')">
             <i class="bi bi-stars me-1"></i> Basic Plan
           </button>
-          <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="generateWeddingPlanning('premium')">
+          <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="window.generateWeddingPlanning('premium')">
             <i class="bi bi-diamond me-1"></i> Premium Plan
           </button>
-          <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="generateWeddingPlanning('destination')">
+          <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="window.generateWeddingPlanning('destination')">
             <i class="bi bi-globe me-1"></i> Destination
           </button>
         </div>
@@ -238,9 +297,9 @@ function renderKategori() {
               <i class="bi bi-three-dots-vertical"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" onclick="editKategori('${kat.id}')"><i class="bi bi-pencil me-2"></i>Edit Kategori</a></li>
+              <li><a class="dropdown-item" onclick="window.editKategori('${kat.id}')"><i class="bi bi-pencil me-2"></i>Edit Kategori</a></li>
               <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item text-danger" onclick="deleteKategori('${kat.id}')"><i class="bi bi-trash3 me-2"></i>Hapus Kategori</a></li>
+              <li><a class="dropdown-item text-danger" onclick="window.deleteKategori('${kat.id}')"><i class="bi bi-trash3 me-2"></i>Hapus Kategori</a></li>
             </ul>
           </div>
         </div>
@@ -252,21 +311,21 @@ function renderKategori() {
             ${validItems.map(([itemId, item]) => `
               <div class="checklist-item d-flex align-items-center justify-content-between p-3 border-bottom">
                 <div class="d-flex align-items-center gap-3 flex-grow-1">
-                  <input type="checkbox" class="form-check-input fs-5" id="item_${itemId}" ${item.selesai ? 'checked' : ''} onchange="toggleItem('${kat.id}', '${itemId}', this.checked)">
+                  <input type="checkbox" class="form-check-input fs-5" id="item_${itemId}" ${item.selesai ? 'checked' : ''} onchange="window.toggleItem('${kat.id}', '${itemId}', this.checked)">
                   <label class="checklist-label mb-0 ${item.selesai ? 'text-decoration-line-through text-muted' : ''}" for="item_${itemId}">${escapeHtml(item.nama)}</label>
                 </div>
                 <div>
-                  <button class="btn-icon btn-sm" onclick="editItem('${kat.id}', '${itemId}')">
+                  <button class="btn-icon btn-sm" onclick="window.editItem('${kat.id}', '${itemId}')">
                     <i class="bi bi-pencil"></i>
                   </button>
-                  <button class="btn-icon btn-sm" onclick="deleteItem('${kat.id}', '${itemId}')">
+                  <button class="btn-icon btn-sm" onclick="window.deleteItem('${kat.id}', '${itemId}')">
                     <i class="bi bi-trash3"></i>
                   </button>
                 </div>
               </div>
             `).join('')}
             <div class="p-3 text-center">
-              <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="addItemToKategori('${kat.id}')">
+              <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="window.addItemToKategori('${kat.id}')">
                 <i class="bi bi-plus-lg me-1"></i> Tambah Item
               </button>
             </div>
@@ -337,7 +396,6 @@ window.generateWeddingPlanning = async function(templateId = 'basic') {
     
     showNotif(`✅ Template "${template.name}" berhasil! Total estimasi: Rp ${totalEstimasi.toLocaleString('id-ID')}`, false, 'success');
     
-    // Trigger confetti
     if (typeof triggerConfetti === 'function') triggerConfetti();
     
   } catch (err) {
@@ -381,13 +439,13 @@ async function generateAIRecommendations() {
           <span class="fw-bold small">✨ AI Planning Assistant</span>
         </div>
         <div class="btn-group btn-group-sm" role="group">
-          <button class="btn btn-outline-primary rounded-pill" onclick="generateWeddingPlanning('basic')" style="font-size: 11px;">
+          <button class="btn btn-outline-primary rounded-pill" onclick="window.generateWeddingPlanning('basic')" style="font-size: 11px;">
             <i class="bi bi-stars me-1"></i> Basic Plan
           </button>
-          <button class="btn btn-outline-primary rounded-pill" onclick="generateWeddingPlanning('premium')" style="font-size: 11px;">
+          <button class="btn btn-outline-primary rounded-pill" onclick="window.generateWeddingPlanning('premium')" style="font-size: 11px;">
             <i class="bi bi-diamond me-1"></i> Premium Plan
           </button>
-          <button class="btn btn-outline-primary rounded-pill" onclick="generateWeddingPlanning('destination')" style="font-size: 11px;">
+          <button class="btn btn-outline-primary rounded-pill" onclick="window.generateWeddingPlanning('destination')" style="font-size: 11px;">
             <i class="bi bi-globe me-1"></i> Destination
           </button>
         </div>
@@ -465,6 +523,14 @@ window.deleteKategori = async function(id) {
 window.openKategoriModal = function(editId = null) {
   editKategoriId = editId;
   
+  let modal = document.getElementById('kategoriModal');
+  if (modal) {
+    if (editId) loadKategoriData(editId);
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+    return;
+  }
+  
   const modalHtml = `
     <div class="modal fade" id="kategoriModal" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered modal-md">
@@ -496,22 +562,16 @@ window.openKategoriModal = function(editId = null) {
           </div>
           <div class="modal-footer border-0 pb-4 px-4">
             <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-            <button class="btn btn-warning rounded-pill px-4" onclick="saveKategori()">Simpan</button>
+            <button class="btn btn-warning rounded-pill px-4" onclick="window.saveKategori()">Simpan</button>
           </div>
         </div>
       </div>
     </div>
   `;
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  modal = document.getElementById('kategoriModal');
   
-  let modal = document.getElementById('kategoriModal');
-  if (!modal) {
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    modal = document.getElementById('kategoriModal');
-  }
-  
-  if (editId) {
-    loadKategoriData(editId);
-  }
+  if (editId) loadKategoriData(editId);
   
   const bsModal = new bootstrap.Modal(modal);
   bsModal.show();
@@ -570,6 +630,13 @@ window.addItemToKategori = function(kategoriId) {
   editItemParentId = kategoriId;
   editItemId = null;
   
+  let modal = document.getElementById('itemModal');
+  if (modal) {
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+    return;
+  }
+  
   const modalHtml = `
     <div class="modal fade" id="itemModal" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered modal-md">
@@ -583,18 +650,14 @@ window.addItemToKategori = function(kategoriId) {
           </div>
           <div class="modal-footer border-0 pb-4 px-4">
             <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-            <button class="btn btn-primary rounded-pill px-4" onclick="saveItem()">Simpan</button>
+            <button class="btn btn-primary rounded-pill px-4" onclick="window.saveItem()">Simpan</button>
           </div>
         </div>
       </div>
     </div>
   `;
-  
-  let modal = document.getElementById('itemModal');
-  if (!modal) {
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    modal = document.getElementById('itemModal');
-  }
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  modal = document.getElementById('itemModal');
   
   const bsModal = new bootstrap.Modal(modal);
   bsModal.show();
@@ -604,28 +667,27 @@ window.editItem = function(kategoriId, itemId) {
   editItemParentId = kategoriId;
   editItemId = itemId;
   
-  const modalHtml = `
-    <div class="modal fade" id="itemModal" tabindex="-1">
-      <div class="modal-dialog modal-dialog-centered modal-md">
-        <div class="modal-content rounded-4">
-          <div class="modal-header border-0 bg-primary text-white">
-            <h5 class="fw-bold mb-0">✏️ Edit Item</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body p-4">
-            <input type="text" id="itemNama" class="form-control form-control-lg rounded-3" placeholder="Nama item">
-          </div>
-          <div class="modal-footer border-0 pb-4 px-4">
-            <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-            <button class="btn btn-primary rounded-pill px-4" onclick="saveItem()">Simpan</button>
+  let modal = document.getElementById('itemModal');
+  if (!modal) {
+    const modalHtml = `
+      <div class="modal fade" id="itemModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-md">
+          <div class="modal-content rounded-4">
+            <div class="modal-header border-0 bg-primary text-white">
+              <h5 class="fw-bold mb-0">✏️ Edit Item</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+              <input type="text" id="itemNama" class="form-control form-control-lg rounded-3" placeholder="Nama item">
+            </div>
+            <div class="modal-footer border-0 pb-4 px-4">
+              <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+              <button class="btn btn-primary rounded-pill px-4" onclick="window.saveItem()">Simpan</button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  `;
-  
-  let modal = document.getElementById('itemModal');
-  if (!modal) {
+    `;
     document.body.insertAdjacentHTML('beforeend', modalHtml);
     modal = document.getElementById('itemModal');
   }
