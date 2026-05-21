@@ -9,11 +9,24 @@
     </button>
   </div>
 
+  <!-- GRAFIK KEUANGAN -->
+  <div class="card p-3 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <h5 class="fw-bold mb-0"><i class="bi bi-graph-up me-2 text-success"></i>Grafik Keuangan</h5>
+      <div class="btn-group btn-group-sm">
+        <button class="btn btn-outline-secondary rounded-pill" onclick="window.changeChartPeriod('week')">Minggu</button>
+        <button class="btn btn-outline-secondary rounded-pill" onclick="window.changeChartPeriod('month')">Bulan</button>
+        <button class="btn btn-outline-secondary rounded-pill" onclick="window.changeChartPeriod('year')">Tahun</button>
+      </div>
+    </div>
+    <canvas id="keuanganChart" style="max-height: 300px; width: 100%;"></canvas>
+  </div>
+
   <!-- Ringkasan Keuangan Per User -->
   <div class="mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <h5 class="fw-bold mb-0"><i class="bi bi-graph-up me-2 text-success"></i>Ringkasan Keuangan</h5>
-      <button class="btn btn-sm btn-outline-success rounded-pill" onclick="window.location.href='#keuangan-page'; showPage('keuangan')">
+      <h5 class="fw-bold mb-0"><i class="bi bi-wallet2 me-2 text-success"></i>Ringkasan Keuangan</h5>
+      <button class="btn btn-sm btn-outline-success rounded-pill" onclick="window.location.href='#keuangan-page'; window.showPage('keuangan')">
         <i class="bi bi-arrow-right me-1"></i> Detail
       </button>
     </div>
@@ -24,7 +37,7 @@
   <div class="card p-3 mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h5 class="fw-bold mb-0"><i class="bi bi-clock-history me-2"></i>Momen Terbaru</h5>
-      <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="window.location.href='#moment-page'; showPage('moment')">
+      <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="window.location.href='#moment-page'; window.showPage('moment')">
         <i class="bi bi-arrow-right me-1"></i> Lihat Semua
       </button>
     </div>
@@ -38,18 +51,18 @@
     <h3 class="fw-bold">
       <i class="bi bi-calendar-heart-fill me-2 text-danger"></i>Momen Spesial Kita
     </h3>
-    <button class="btn btn-danger btn-sm rounded-pill" onclick="openMomentModal(null)">
+    <button class="btn btn-danger btn-sm rounded-pill" onclick="window.openMomentModal(null)">
       <i class="bi bi-plus-lg me-1"></i> Tambah Momen
     </button>
   </div>
 
   <div class="card p-2 p-md-4 mb-4 border-0 shadow-sm">
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <button class="btn btn-sm btn-outline-secondary rounded-circle" onclick="changeMonth(-1)">
+      <button class="btn btn-sm btn-outline-secondary rounded-circle" onclick="window.changeMonth(-1)">
         <i class="bi bi-chevron-left"></i>
       </button>
       <h4 class="fw-bold mb-0" id="currentMonthYear"></h4>
-      <button class="btn btn-sm btn-outline-secondary rounded-circle" onclick="changeMonth(1)">
+      <button class="btn btn-sm btn-outline-secondary rounded-circle" onclick="window.changeMonth(1)">
         <i class="bi bi-chevron-right"></i>
       </button>
     </div>
@@ -66,13 +79,36 @@
   <div id="momentsList" class="row g-2 g-md-3"></div>
 </section>
 
-<!-- KEUANGAN PAGE -->
+<!-- KEUANGAN PAGE dengan Search & Filter -->
 <section id="keuangan-page" style="display: none">
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <h3 class="fw-bold"><i class="bi bi-wallet2 me-2 text-success"></i><span id="keuanganUserName">Keuangan Saya</span></h3>
-    <button class="btn btn-success btn-sm rounded-pill" onclick="openTransaksiModal()">
+    <button class="btn btn-success btn-sm rounded-pill" onclick="window.openTransaksiModal()">
       <i class="bi bi-plus-lg me-1"></i> Tambah
     </button>
+  </div>
+
+  <!-- Search & Filter -->
+  <div class="card p-3 mb-4">
+    <div class="row g-2">
+      <div class="col-md-5">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" id="searchTransaksi" class="form-control" placeholder="Cari transaksi...">
+        </div>
+      </div>
+      <div class="col-md-3">
+        <input type="date" id="filterDateStart" class="form-control" placeholder="Dari tanggal">
+      </div>
+      <div class="col-md-3">
+        <input type="date" id="filterDateEnd" class="form-control" placeholder="Sampai tanggal">
+      </div>
+      <div class="col-md-1">
+        <button class="btn btn-outline-secondary w-100" onclick="window.resetFilters()">
+          <i class="bi bi-x-circle"></i>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Saldo Card -->
@@ -100,27 +136,43 @@
     </div>
   </div>
 
-  <!-- Progress Tabungan per Kategori (dari Catatan) -->
+  <!-- Progress Tabungan per Kategori -->
   <div class="card p-3 mb-4">
     <div id="kategoriProgressContainer"></div>
   </div>
 
   <!-- Riwayat Transaksi -->
-  <h6 class="fw-bold mb-3"><i class="bi bi-list-ul me-2"></i>Riwayat Transaksi</h6>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h6 class="fw-bold mb-0"><i class="bi bi-list-ul me-2"></i>Riwayat Transaksi</h6>
+    <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="window.exportKeuanganToCSV()">
+      <i class="bi bi-download me-1"></i> Export CSV
+    </button>
+  </div>
   <div id="transaksiList" class="list-group list-group-flush"></div>
 </section>
 
-<!-- CATATAN PAGE -->
+<!-- CATATAN PAGE dengan Search -->
 <section id="catatan-page" style="display: none">
   <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <h3 class="fw-bold"><i class="bi bi-journal-bookmark-fill me-2 text-warning"></i>Catatan Persiapan</h3>
     <div class="d-flex gap-2">
-      <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="window.location.href='#keuangan-page'; showPage('keuangan')">
+      <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="window.location.href='#keuangan-page'; window.showPage('keuangan')">
         <i class="bi bi-wallet2 me-1"></i> Keuangan
       </button>
-      <button class="btn btn-warning btn-sm rounded-pill" onclick="openKategoriModal()">
+      <button class="btn btn-warning btn-sm rounded-pill" onclick="window.openKategoriModal()">
         <i class="bi bi-folder-plus me-1"></i> Kategori
       </button>
+      <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="window.exportCatatanToCSV()">
+        <i class="bi bi-download me-1"></i> Export
+      </button>
+    </div>
+  </div>
+
+  <!-- Search Catatan -->
+  <div class="card p-3 mb-4">
+    <div class="input-group">
+      <span class="input-group-text"><i class="bi bi-search"></i></span>
+      <input type="text" id="searchCatatan" class="form-control" placeholder="Cari item catatan...">
     </div>
   </div>
 
@@ -138,7 +190,7 @@
     </div>
   </div>
 
-  <!-- AI Recommendations akan di-inject oleh JavaScript -->
+  <!-- AI Recommendations -->
   <div id="aiRecommendations"></div>
 
   <!-- Kategori & Checklist -->
@@ -150,16 +202,62 @@
   <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <h3 class="fw-bold"><i class="bi bi-stars me-2 text-purple"></i>Impian Kita</h3>
     <div class="d-flex gap-2">
-      <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="window.location.href='#keuangan-page'; showPage('keuangan')">
+      <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="window.location.href='#keuangan-page'; window.showPage('keuangan')">
         <i class="bi bi-wallet2 me-1"></i> Keuangan
       </button>
-      <button class="btn btn-purple btn-sm rounded-pill" onclick="openImpianModal()">
+      <button class="btn btn-purple btn-sm rounded-pill" onclick="window.openImpianModal()">
         <i class="bi bi-plus-lg me-1"></i> Tambah Impian
       </button>
     </div>
   </div>
 
   <div id="impianList" class="row g-2 g-md-3"></div>
+</section>
+
+<!-- LAPORAN PAGE -->
+<section id="laporan-page" style="display: none">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold"><i class="bi bi-file-text-fill me-2 text-primary"></i>Laporan & Export Data</h3>
+  </div>
+
+  <div class="card p-3 mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <i class="bi bi-wallet2 fs-2 text-success me-3"></i>
+        <span class="fw-bold fs-5">Laporan Keuangan</span>
+        <p class="text-muted small mb-0">Export riwayat transaksi keuangan ke CSV</p>
+      </div>
+      <button class="btn btn-success rounded-pill" onclick="window.exportKeuanganToCSV()">
+        <i class="bi bi-download me-2"></i> Export CSV
+      </button>
+    </div>
+  </div>
+
+  <div class="card p-3 mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <i class="bi bi-journal-bookmark-fill fs-2 text-warning me-3"></i>
+        <span class="fw-bold fs-5">Laporan Catatan</span>
+        <p class="text-muted small mb-0">Export daftar checklist persiapan ke CSV</p>
+      </div>
+      <button class="btn btn-warning rounded-pill" onclick="window.exportCatatanToCSV()">
+        <i class="bi bi-download me-2"></i> Export CSV
+      </button>
+    </div>
+  </div>
+
+  <div class="card p-3">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <i class="bi bi-database fs-2 text-primary me-3"></i>
+        <span class="fw-bold fs-5">Backup Semua Data</span>
+        <p class="text-muted small mb-0">Export semua data (keuangan, catatan, impian) ke JSON</p>
+      </div>
+      <button class="btn btn-primary rounded-pill" onclick="window.exportAllDataToJSON()">
+        <i class="bi bi-cloud-download me-2"></i> Backup JSON
+      </button>
+    </div>
+  </div>
 </section>
 
 <!-- MODAL TAMBAH/EDIT MOMEN -->
@@ -175,22 +273,18 @@
       </div>
       <div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto">
         <input type="hidden" id="momentEditId">
-
         <div class="mb-3">
           <label class="form-label fw-semibold small">📅 Tanggal <span class="text-danger">*</span></label>
           <input type="date" id="momentDate" class="form-control rounded-3">
         </div>
-
         <div class="mb-3">
           <label class="form-label fw-semibold small">✏️ Judul Momen</label>
           <input type="text" id="momentTitle" class="form-control rounded-3" placeholder="Misal: Pertama Kali Bertemu">
         </div>
-
         <div class="mb-3">
           <label class="form-label fw-semibold small">📝 Cerita / Deskripsi</label>
           <textarea id="momentStory" class="form-control rounded-3" rows="3" placeholder="Ceritakan momen spesial ini..."></textarea>
         </div>
-
         <div class="mb-3">
           <label class="form-label fw-semibold small">🖼️ Foto (max 5 foto)</label>
           <div class="photo-upload-grid" id="photoUploadGrid">
@@ -199,10 +293,9 @@
               <span>Tambah Foto</span>
             </div>
           </div>
-          <input type="file" id="momentPhotoInput" accept="image/jpeg,image/png,image.jpg" multiple style="display: none" onchange="handleMultiplePhotos(this)">
+          <input type="file" id="momentPhotoInput" accept="image/jpeg,image/png,image.jpg" multiple style="display: none" onchange="window.handleMultiplePhotos(this)">
           <small class="text-muted">Klik untuk upload, maksimal 5 foto (max 2MB per foto)</small>
         </div>
-
         <div class="form-check">
           <input type="checkbox" id="momentIsSpecial" class="form-check-input">
           <label class="form-check-label">⭐ Jadikan sebagai momen spesial (highlight)</label>
@@ -210,7 +303,7 @@
       </div>
       <div class="modal-footer border-0 pt-0 pb-4">
         <button type="button" class="btn btn-secondary rounded-3 px-4" data-bs-dismiss="modal">Batal</button>
-        <button type="button" class="btn btn-danger rounded-3 px-4" onclick="saveMoment()">
+        <button type="button" class="btn btn-danger rounded-3 px-4" onclick="window.saveMoment()">
           <i class="bi bi-save me-2"></i>Simpan
         </button>
       </div>
@@ -236,7 +329,6 @@
             <span class="carousel-control-next-icon bg-dark rounded-circle p-2"></span>
           </button>
         </div>
-
         <div class="p-4">
           <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <div class="d-flex gap-2">
@@ -248,25 +340,14 @@
                 <i class="bi bi-three-dots-vertical"></i>
               </button>
               <ul class="dropdown-menu dropdown-menu-end">
-                <li>
-                  <a class="dropdown-item" onclick="editMomentFromDetail()">
-                    <i class="bi bi-pencil me-2"></i>Edit Momen
-                  </a>
-                </li>
+                <li><a class="dropdown-item" onclick="window.editMomentFromDetail()"><i class="bi bi-pencil me-2"></i>Edit Momen</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li>
-                  <a class="dropdown-item text-danger" onclick="deleteMomentFromDetail()">
-                    <i class="bi bi-trash me-2"></i>Hapus Momen
-                  </a>
-                </li>
+                <li><a class="dropdown-item text-danger" onclick="window.deleteMomentFromDetail()"><i class="bi bi-trash me-2"></i>Hapus Momen</a></li>
               </ul>
             </div>
           </div>
-
           <p id="detailStory" class="mb-3" style="line-height: 1.6"></p>
-
           <hr>
-
           <div class="d-flex justify-content-between align-items-center">
             <small class="text-muted" id="detailAuthor"></small>
             <small class="text-muted" id="detailDateCreated"></small>
@@ -313,7 +394,7 @@
       </div>
       <div class="modal-footer border-0 pb-4 px-4">
         <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-warning rounded-pill px-4" onclick="saveKategori()">Simpan Kategori</button>
+        <button class="btn btn-warning rounded-pill px-4" onclick="window.saveKategori()">Simpan Kategori</button>
       </div>
     </div>
   </div>
@@ -332,7 +413,7 @@
       </div>
       <div class="modal-footer border-0 pb-4 px-4">
         <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-primary rounded-pill px-4" onclick="saveItem()">Simpan Item</button>
+        <button class="btn btn-primary rounded-pill px-4" onclick="window.saveItem()">Simpan Item</button>
       </div>
     </div>
   </div>
@@ -386,7 +467,7 @@
       </div>
       <div class="modal-footer border-0 pb-4">
         <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-purple rounded-pill px-4" onclick="saveImpian()">Simpan</button>
+        <button class="btn btn-purple rounded-pill px-4" onclick="window.saveImpian()">Simpan</button>
       </div>
     </div>
   </div>
@@ -438,7 +519,7 @@
       </div>
       <div class="modal-footer border-0 pb-4 px-4">
         <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-success rounded-pill px-4" onclick="saveTransaksi()">Simpan Transaksi</button>
+        <button class="btn btn-success rounded-pill px-4" onclick="window.saveTransaksi()">Simpan Transaksi</button>
       </div>
     </div>
   </div>
