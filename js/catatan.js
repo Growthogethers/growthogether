@@ -1,4 +1,4 @@
-// js/catatan.js - Versi lengkap dengan Search & Export
+// js/catatan.js - Versi lengkap dengan Search & Export (Tombol Langsung, Tanpa Dropdown)
 import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
 import { 
   showNotif, escapeHtml, showCustomPrompt, showCustomConfirm, 
@@ -246,6 +246,7 @@ function updateProgress() {
   }
 }
 
+// ============ RENDER KATEGORI DENGAN TOMBOL LANGSUNG (TANPA DROPDOWN) ============
 function renderKategori() {
   const container = document.getElementById('kategoriContainer');
   if (!container) return;
@@ -281,9 +282,10 @@ function renderKategori() {
     const completedCount = validItems.filter(([_, item]) => item.selesai).length;
     const percentItem = validItems.length > 0 ? (completedCount / validItems.length) * 100 : 0;
     
+    // MENGGUNAKAN TOMBOL LANGSUNG, BUKAN DROPDOWN
     tempDiv.innerHTML = `
       <div class="card mb-3 border-0 shadow-sm" data-kategori-id="${kat.id}">
-        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center p-3">
+        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center p-3 flex-wrap gap-2">
           <div class="d-flex align-items-center gap-2" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#collapse${idx}">
             <i class="bi ${kat.icon} fs-4 text-primary"></i>
             <div>
@@ -292,15 +294,13 @@ function renderKategori() {
             </div>
             <span class="badge bg-secondary rounded-pill">${completedCount}/${validItems.length}</span>
           </div>
-          <div class="dropdown">
-            <button class="btn-icon" data-bs-toggle="dropdown">
-              <i class="bi bi-three-dots-vertical"></i>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="window.editKategori('${kat.id}')">
+              <i class="bi bi-pencil me-1"></i> Edit
             </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" onclick="window.editKategori('${kat.id}')"><i class="bi bi-pencil me-2"></i>Edit Kategori</a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item text-danger" onclick="window.deleteKategori('${kat.id}')"><i class="bi bi-trash3 me-2"></i>Hapus Kategori</a></li>
-            </ul>
+            <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="window.deleteKategori('${kat.id}')">
+              <i class="bi bi-trash3 me-1"></i> Hapus
+            </button>
           </div>
         </div>
         <div class="progress rounded-0" style="height: 3px;">
@@ -314,11 +314,11 @@ function renderKategori() {
                   <input type="checkbox" class="form-check-input fs-5" id="item_${itemId}" ${item.selesai ? 'checked' : ''} onchange="window.toggleItem('${kat.id}', '${itemId}', this.checked)">
                   <label class="checklist-label mb-0 ${item.selesai ? 'text-decoration-line-through text-muted' : ''}" for="item_${itemId}">${escapeHtml(item.nama)}</label>
                 </div>
-                <div>
-                  <button class="btn-icon btn-sm" onclick="window.editItem('${kat.id}', '${itemId}')">
+                <div class="d-flex gap-1">
+                  <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="window.editItem('${kat.id}', '${itemId}')">
                     <i class="bi bi-pencil"></i>
                   </button>
-                  <button class="btn-icon btn-sm" onclick="window.deleteItem('${kat.id}', '${itemId}')">
+                  <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="window.deleteItem('${kat.id}', '${itemId}')">
                     <i class="bi bi-trash3"></i>
                   </button>
                 </div>
@@ -342,6 +342,7 @@ function renderKategori() {
   container.appendChild(fragment);
 }
 
+// ============ GENERATE WEDDING PLANNING ============
 window.generateWeddingPlanning = async function(templateId = 'basic') {
   const template = weddingTemplates[templateId];
   if (!template) {
@@ -406,6 +407,7 @@ window.generateWeddingPlanning = async function(templateId = 'basic') {
   }
 };
 
+// ============ AI RECOMMENDATIONS ============
 async function generateAIRecommendations() {
   if (isGeneratingAI) return;
   isGeneratingAI = true;
@@ -472,54 +474,115 @@ async function generateAIRecommendations() {
   isGeneratingAI = false;
 }
 
+// ============ TOGGLE ITEM ============
 window.toggleItem = async function(kategoriId, itemId, selesai) {
   await update(ref(db, `data/catatan/bersama/items/${kategoriId}/${itemId}`), { selesai });
   clearCache(`catatan_items_bersama`);
   updateProgress();
 };
 
+// ============ PERBAIKAN: DELETE ITEM (LENGKAP) ============
 window.deleteItem = async function(kategoriId, itemId) {
-  const confirmed = await showCustomConfirm("Hapus Item", "Yakin ingin menghapus item ini?");
-  if (confirmed) {
-    showLoading("Menghapus item...");
-    try {
-      await remove(ref(db, `data/catatan/bersama/items/${kategoriId}/${itemId}`));
-      clearCache(`catatan_items_bersama`);
-      await loadChecklistItemsOptimized(true);
-      renderKategori();
-      updateProgress();
-      showNotif("Item dihapus", false, 'warning');
-    } catch (err) {
-      showNotif("Gagal menghapus", true, 'error');
-    } finally {
-      hideLoading();
-    }
+  console.log("deleteItem called with kategoriId:", kategoriId, "itemId:", itemId);
+  
+  if (!kategoriId || !itemId) {
+    showNotif("ID tidak valid", true, 'error');
+    return;
+  }
+  
+  // Cari nama item untuk ditampilkan di konfirmasi
+  let itemName = "Item ini";
+  if (checklistItems[kategoriId] && checklistItems[kategoriId][itemId]) {
+    itemName = checklistItems[kategoriId][itemId].nama || "Item ini";
+  }
+  
+  const confirmed = await showCustomConfirm("Hapus Item", `Yakin ingin menghapus item "${itemName}"?`);
+  
+  if (!confirmed) return;
+  
+  showLoading("Menghapus item...");
+  
+  try {
+    await remove(ref(db, `data/catatan/bersama/items/${kategoriId}/${itemId}`));
+    console.log("Item removed from Firebase");
+    
+    clearCache(`catatan_items_bersama`);
+    await loadChecklistItemsOptimized(true);
+    
+    renderKategori();
+    updateProgress();
+    generateAIRecommendations();
+    
+    showNotif(`✅ Item "${itemName}" berhasil dihapus`, false, 'warning');
+    
+  } catch (err) {
+    console.error("Error deleting item:", err);
+    showNotif("❌ Gagal menghapus item", true, 'error');
+  } finally {
+    hideLoading();
   }
 };
 
+// ============ PERBAIKAN: DELETE KATEGORI (LENGKAP) ============
 window.deleteKategori = async function(id) {
-  const confirmed = await showCustomConfirm("Hapus Kategori", "Yakin ingin menghapus kategori ini? Semua item di dalamnya juga akan terhapus.");
-  if (confirmed) {
-    showLoading("Menghapus kategori...");
-    try {
-      await remove(ref(db, `data/catatan/bersama/kategori/${id}`));
-      await remove(ref(db, `data/catatan/bersama/items/${id}`));
-      clearCache(`catatan_kategori_bersama`);
-      clearCache(`catatan_items_bersama`);
-      await loadKategoriOptimized(true);
-      await loadChecklistItemsOptimized(true);
-      renderKategori();
-      updateProgress();
-      generateAIRecommendations();
-      showNotif("Kategori dihapus", false, 'warning');
-    } catch (err) {
-      showNotif("Gagal menghapus", true, 'error');
-    } finally {
-      hideLoading();
-    }
+  console.log("deleteKategori called with id:", id);
+  
+  if (!id) {
+    showNotif("ID Kategori tidak valid", true, 'error');
+    return;
+  }
+  
+  // Cari nama kategori untuk ditampilkan di konfirmasi
+  const kategori = kategoriList.find(k => k.id === id);
+  const kategoriName = kategori ? kategori.nama : 'Kategori ini';
+  
+  const confirmed = await showCustomConfirm(
+    "Hapus Kategori", 
+    `Yakin ingin menghapus kategori "${kategoriName}"? Semua item di dalamnya juga akan terhapus secara permanen.`
+  );
+  
+  if (!confirmed) return;
+  
+  showLoading("Menghapus kategori...");
+  
+  try {
+    // Hapus data kategori dari Firebase
+    await remove(ref(db, `data/catatan/bersama/kategori/${id}`));
+    console.log("Kategori removed from Firebase");
+    
+    // Hapus semua items dalam kategori tersebut
+    await remove(ref(db, `data/catatan/bersama/items/${id}`));
+    console.log("Items removed from Firebase");
+    
+    // Clear semua cache terkait catatan
+    clearCache(`catatan_kategori_bersama`);
+    clearCache(`catatan_items_bersama`);
+    
+    // Refresh data dari Firebase
+    await loadKategoriOptimized(true);
+    await loadChecklistItemsOptimized(true);
+    
+    // Render ulang UI
+    renderKategori();
+    updateProgress();
+    generateAIRecommendations();
+    
+    showNotif(`✅ Kategori "${kategoriName}" berhasil dihapus`, false, 'success');
+    
+  } catch (err) {
+    console.error("Error deleting kategori:", err);
+    showNotif("❌ Gagal menghapus kategori: " + (err.message || "Unknown error"), true, 'error');
+  } finally {
+    hideLoading();
   }
 };
 
+// ============ EDIT KATEGORI ============
+window.editKategori = function(id) {
+  openKategoriModal(id);
+};
+
+// ============ MODAL KATEGORI ============
 window.openKategoriModal = function(editId = null) {
   editKategoriId = editId;
   
@@ -552,6 +615,9 @@ window.openKategoriModal = function(editId = null) {
                 <option value="bi-person-standing">👗 Busana</option>
                 <option value="bi-camera">📸 Dokumentasi</option>
                 <option value="bi-cup-straw">🍽️ Konsumsi</option>
+                <option value="bi-envelope">✉️ Undangan</option>
+                <option value="bi-music-note">🎵 Hiburan</option>
+                <option value="bi-truck">🚗 Transportasi</option>
               </select>
             </div>
             <div class="mb-3">
@@ -616,16 +682,14 @@ window.saveKategori = async function() {
     const modal = bootstrap.Modal.getInstance(document.getElementById('kategoriModal'));
     if (modal) modal.hide();
   } catch (err) {
+    console.error(err);
     showNotif("Gagal menyimpan", true, 'error');
   } finally {
     hideLoading();
   }
 };
 
-window.editKategori = function(id) {
-  openKategoriModal(id);
-};
-
+// ============ TAMBAH ITEM KE KATEGORI ============
 window.addItemToKategori = function(kategoriId) {
   editItemParentId = kategoriId;
   editItemId = null;
@@ -663,6 +727,7 @@ window.addItemToKategori = function(kategoriId) {
   bsModal.show();
 };
 
+// ============ EDIT ITEM ============
 window.editItem = function(kategoriId, itemId) {
   editItemParentId = kategoriId;
   editItemId = itemId;
@@ -705,6 +770,7 @@ window.editItem = function(kategoriId, itemId) {
   bsModal.show();
 };
 
+// ============ SAVE ITEM ============
 window.saveItem = async function() {
   const nama = document.getElementById('itemNama').value;
   
@@ -733,11 +799,13 @@ window.saveItem = async function() {
     const modal = bootstrap.Modal.getInstance(document.getElementById('itemModal'));
     if (modal) modal.hide();
   } catch (err) {
+    console.error(err);
     showNotif("Gagal menyimpan", true, 'error');
   } finally {
     hideLoading();
   }
 };
 
+// ============ EXPORTS ============
 window.initCatatan = initCatatan;
 window.generateAIRecommendations = generateAIRecommendations;
