@@ -1,4 +1,4 @@
-// js/keuangan.js - Versi lengkap dengan Chart, Search, Filter, Export (FULL - DIPERBAIKI)
+// js/keuangan.js - Versi lengkap dengan Chart, Search, Filter, Export (FULL DIPERBAIKI)
 import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
 import { 
   showNotif, formatNumberRp, escapeHtml, showCustomPrompt, showCustomConfirm, 
@@ -12,7 +12,7 @@ let targetKategori = {};
 let editTransaksiId = null;
 let dynamicCategories = [];
 let isInitialized = false;
-let keuanganChart = null;
+let keuanganChart = null; // PERBAIKAN #2: Simpan instance chart
 let currentChartPeriod = 'month';
 let currentFilter = {
   search: '',
@@ -20,13 +20,16 @@ let currentFilter = {
   endDate: ''
 };
 
-// ============ CHART FUNCTIONS ============
+// ============ PERBAIKAN #2: CHART DESTROY SEBELUM INIT ULANG ============
 function initKeuanganChart() {
   const ctx = document.getElementById('keuanganChart');
   if (!ctx) return;
   
+  // DESTROY existing chart sebelum buat baru
   if (keuanganChart) {
     keuanganChart.destroy();
+    keuanganChart = null;
+    console.log("Previous chart destroyed");
   }
   
   keuanganChart = new Chart(ctx, {
@@ -707,7 +710,7 @@ export function initKeuangan() {
     loadAllTransaksiOptimized()
   ]).finally(() => {
     hideLoading();
-    initKeuanganChart();
+    initKeuanganChart(); // PERBAIKAN #2: Sekarang aman dipanggil berulang
   });
   
   // Setup listener untuk perubahan data
