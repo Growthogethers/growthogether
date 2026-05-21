@@ -1,4 +1,4 @@
-// js/auth.js - Versi update dengan Password Hash, Session Validation, dan Birthday
+// js/auth.js - Versi dengan password hash yang konsisten
 import { db, ref, get, update } from './firebase-config.js';
 import { showNotif, setCurrentUser, compressImage, escapeHtml } from './utils.js';
 import { renderBirthdayInProfile } from './pengingat.js';
@@ -19,7 +19,18 @@ function resetProfileState() {
   currentUsername = null;
 }
 
-// ============ CRITICAL #3: PASSWORD HASH FUNCTION ============
+// ============ PASSWORD HASH FUNCTION YANG KONSISTEN ============
+async function hashPassword(password) {
+  // Menggunakan SHA-256 untuk hash yang lebih aman dan konsisten
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + "growthogether_salt_2024");
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashHex;
+}
+
+// Fungsi sederhana untuk fallback jika crypto.subtle tidak tersedia (http)
 function simpleHash(str) {
   if (!str) return "";
   let hash = 0;
@@ -28,10 +39,10 @@ function simpleHash(str) {
     hash = ((hash << 5) - hash) + char;
     hash = hash & hash;
   }
-  return btoa(Math.abs(hash).toString(16) + str.length.toString(16) + "gh");
+  return Math.abs(hash).toString(16);
 }
 
-// ============ CRITICAL #2: SESSION TOKEN FUNCTIONS ============
+// ============ SESSION TOKEN FUNCTIONS ============
 function generateSessionToken(username, timestamp) {
   const salt = "growthogether_secret_2024";
   return btoa(`${username}|${timestamp}|${salt}`).substring(0, 32);
@@ -204,7 +215,7 @@ export function updateProfileUI() {
   if (userGreet) userGreet.innerText = escapeHtml(displayName);
 }
 
-// ============ LOGIN HANDLER ============
+// ============ LOGIN HANDLER DENGAN FIX ============
 export async function handleLogin() {
   const u = document.getElementById("loginUser")?.value;
   const p = document.getElementById("loginPass")?.value;
@@ -230,18 +241,36 @@ export async function handleLogin() {
   
   try {
     const snap = await get(ref(db, `data/auth/${u}`));
-    const storedValue = snap.val();
+    let storedValue = snap.val();
+    
+    console.log("Stored password value type:", typeof storedValue);
+    console.log("Stored value first chars:", storedValue ? storedValue.substring(0, 20) : "null");
     
     let isValid = false;
     
-    if (storedValue && storedValue.length > 20 && storedValue.includes('==')) {
-      isValid = (simpleHash(p) === storedValue);
-    } else {
+    // Cek apakah storedValue adalah hash SHA-256 (64 karakter hex)
+    if (storedValue && /^[a-f0-9]{64}$/.test(storedValue)) {
+      // Ini adalah hash SHA-256
+      const hashedInput = await hashPassword(p);
+      isValid = (hashedInput === storedValue);
+      console.log("SHA-256 comparison result:", isValid);
+    }
+    // Cek apakah storedValue adalah hash simple (angka hex)
+    else if (storedValue && /^[a-f0-9]+$/.test(storedValue) && storedValue.length < 64) {
+      const hashedInput = simpleHash(p);
+      isValid = (hashedInput === storedValue);
+      console.log("Simple hash comparison result:", isValid);
+    }
+    // Plain text (untuk backward compatibility)
+    else {
       isValid = (storedValue === p);
+      console.log("Plain text comparison result:", isValid);
       
-      if (isValid && storedValue !== simpleHash(p)) {
-        await update(ref(db), { [`data/auth/${u}`]: simpleHash(p) });
-        console.log("Password migrated to hash for:", u);
+      // Migrasi ke hash SHA-256
+      if (isValid) {
+        const newHash = await hashPassword(p);
+        await update(ref(db), { [`data/auth/${u}`]: newHash });
+        console.log("Password migrated to SHA-256 for:", u);
       }
     }
     
@@ -283,6 +312,7 @@ export async function handleLogin() {
       showNotif("Password salah! Coba lagi", true);
     }
   } catch (e) {
+    console.error("Login error:", e);
     if (loginBtn) {
       loginBtn.innerHTML = originalBtnText;
       loginBtn.disabled = false;
@@ -291,7 +321,6 @@ export async function handleLogin() {
     if (errorSpan) errorSpan.innerText = "⚠️ Gagal koneksi.";
     if (errorDiv) errorDiv.style.display = "block";
     showNotif("Koneksi gagal", true);
-    console.error("Login error:", e);
   }
 }
 
@@ -378,7 +407,7 @@ export async function updateCloudPassword() {
   }
   
   try {
-    const hashedPassword = simpleHash(p1);
+    const hashedPassword = await hashPassword(p1);
     await update(ref(db), { [`data/auth/${currentUser}`]: hashedPassword });
     
     if (updateBtn) {
@@ -493,6 +522,20 @@ export async function handleProfilePhotoUpload(input) {
     console.error("Upload error:", err);
     showNotif("❌ Gagal upload foto", true);
     input.value = '';
+  }
+}
+
+// ============ RESET PASSWORD TO PLAIN TEXT (UNTUK DEBUG) ============
+export async function resetPasswordToPlain(username, password) {
+  try {
+    await update(ref(db), { [`data/auth/${username}`]: password });
+    console.log(`Password for ${username} reset to plain text: ${password}`);
+    showNotif(`Password ${username} telah direset ke: ${password}`, false, 'warning');
+    return true;
+  } catch (err) {
+    console.error(err);
+    showNotif("Gagal reset password", true);
+    return false;
   }
 }
 
@@ -618,3 +661,4 @@ window.updateProfileUI = updateProfileUI;
 window.forceRefreshProfile = forceRefreshProfile;
 window.validateSession = validateSession;
 window.cleanupAuthListeners = cleanupAuthListeners;
+window.resetPasswordToPlain = resetPasswordToPlain;
