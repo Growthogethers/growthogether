@@ -409,6 +409,75 @@ export async function batchGet(refs, timeout = 10000) {
   }
 }
 
+// ============ ANIMASI PIXEL & CONFETTI ============
+
+// Confetti celebration
+export function triggerConfetti() {
+  const colors = ['#6366f1', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
+  const count = 50;
+  
+  for (let i = 0; i < count; i++) {
+    const confetti = document.createElement('div');
+    confetti.className = 'confetti';
+    confetti.style.left = Math.random() * 100 + '%';
+    confetti.style.width = Math.random() * 8 + 4 + 'px';
+    confetti.style.height = confetti.style.width;
+    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    confetti.style.animationDuration = Math.random() * 2 + 2 + 's';
+    confetti.style.animationDelay = Math.random() * 0.5 + 's';
+    document.body.appendChild(confetti);
+    
+    setTimeout(() => confetti.remove(), 3000);
+  }
+}
+
+// Floating hearts animation
+export function triggerFloatingHearts(x, y) {
+  const heart = document.createElement('div');
+  heart.className = 'floating-heart';
+  heart.innerHTML = ['❤️', '💖', '💕', '💗', '💓', '💝'][Math.floor(Math.random() * 6)];
+  heart.style.left = (x || window.innerWidth / 2) + 'px';
+  heart.style.top = (y || window.innerHeight / 2) + 'px';
+  heart.style.position = 'fixed';
+  heart.style.pointerEvents = 'none';
+  heart.style.zIndex = '9999';
+  heart.style.fontSize = '24px';
+  document.body.appendChild(heart);
+  
+  setTimeout(() => heart.remove(), 2000);
+}
+
+// Pixel particles on click
+export function triggerPixelParticles(x, y) {
+  for (let i = 0; i < 15; i++) {
+    const particle = document.createElement('div');
+    particle.className = 'pixel-particle';
+    particle.style.left = (x || window.innerWidth / 2) + 'px';
+    particle.style.top = (y || window.innerHeight / 2) + 'px';
+    particle.style.setProperty('--tx', (Math.random() - 0.5) * 100 + 'px');
+    particle.style.setProperty('--ty', (Math.random() - 0.5) * 100 - 50 + 'px');
+    particle.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 60%)`;
+    document.body.appendChild(particle);
+    
+    setTimeout(() => particle.remove(), 2000);
+  }
+}
+
+// Add click animation to interactive elements
+export function initClickAnimation() {
+  document.body.addEventListener('click', (e) => {
+    const target = e.target.closest('button, .nav-link, .bottom-nav-item, .calendar-day, .moment-card');
+    if (target && window.innerWidth <= 768) {
+      triggerPixelParticles(e.clientX, e.clientY);
+    }
+  });
+}
+
+// Expose functions ke window
+window.triggerConfetti = triggerConfetti;
+window.triggerFloatingHearts = triggerFloatingHearts;
+window.triggerPixelParticles = triggerPixelParticles;
+
 // Expose ke window
 window.showNotif = showNotif;
 window.formatNumberRp = formatNumberRp;
