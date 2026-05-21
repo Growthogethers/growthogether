@@ -1,4 +1,4 @@
-// js/app.js - Main Application dengan Optimasi (tanpa pengingat page & tanpa closeSidebarBtn)
+// js/app.js - Main Application (Tanpa Toggle Sidebar)
 import { db, ref, onValue, set } from './firebase-config.js';
 import { 
   masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser, 
@@ -38,7 +38,6 @@ import { initImpian } from './impian.js';
 
 let firebaseListener = null;
 let currentPage = 'dashboard';
-let isSidebarOpen = false;
 let appInitialized = false;
 
 // Show initial loading screen
@@ -85,7 +84,6 @@ async function loadComponents() {
   try {
     console.log("Loading components...");
     
-    // Parallel loading semua komponen
     const [sidebarHtml, bottomNavHtml, modalsHtml, contentHtml, loginHtml] = await Promise.all([
       fetch('components/sidebar.html').then(r => r.text()),
       fetch('components/navbar.html').then(r => r.text()),
@@ -103,8 +101,6 @@ async function loadComponents() {
     console.log("Components loaded successfully");
     attachEventListeners();
     initDarkMode();
-    initMenuToggle();
-    fixMobileLayout();
     handleResize();
     
   } catch (error) {
@@ -118,141 +114,41 @@ function initDarkMode() {
   if (darkFab) {
     const saved = localStorage.getItem("darkMode");
     if (saved === "enabled") document.body.classList.add("dark");
+    
+    // Update icon sesuai mode
+    if (document.body.classList.contains("dark")) {
+      darkFab.innerHTML = '<i class="bi bi-brightness-high-fill fs-5"></i>';
+    } else {
+      darkFab.innerHTML = '<i class="bi bi-moon-stars fs-5"></i>';
+    }
+    
     darkFab.onclick = () => {
       document.body.classList.toggle("dark");
-      localStorage.setItem("darkMode", document.body.classList.contains("dark") ? "enabled" : "disabled");
-      darkFab.innerHTML = document.body.classList.contains("dark") ? '<i class="bi bi-brightness-high-fill fs-5"></i>' : '<i class="bi bi-moon-stars fs-5"></i>';
+      const isDark = document.body.classList.contains("dark");
+      localStorage.setItem("darkMode", isDark ? "enabled" : "disabled");
+      darkFab.innerHTML = isDark ? '<i class="bi bi-brightness-high-fill fs-5"></i>' : '<i class="bi bi-moon-stars fs-5"></i>';
+      showNotif(isDark ? "🌙 Mode Gelap Aktif" : "☀️ Mode Terang Aktif", false, 'info');
     };
-  }
-}
-
-function initMenuToggle() {
-  const menuToggle = document.getElementById("menuToggleHp");
-  const sidebar = document.getElementById("app-sidebar");
-  
-  if (!menuToggle || !sidebar) {
-    setTimeout(() => {
-      const retryMenuToggle = document.getElementById("menuToggleHp");
-      const retrySidebar = document.getElementById("app-sidebar");
-      if (retryMenuToggle && retrySidebar) {
-        setupMenuToggleListeners(retryMenuToggle, retrySidebar);
-      }
-    }, 500);
-    return;
-  }
-  
-  setupMenuToggleListeners(menuToggle, sidebar);
-}
-
-function setupMenuToggleListeners(menuToggle, sidebar) {
-  // Clone untuk menghindari duplicate listeners
-  const newMenuToggle = menuToggle.cloneNode(true);
-  menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
-  
-  // Toggle sidebar saat menu diklik
-  newMenuToggle.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (sidebar.classList.contains("open")) {
-      sidebar.classList.remove("open");
-      isSidebarOpen = false;
-      document.body.style.overflow = "";
-      document.body.classList.remove("sidebar-open");
-    } else {
-      sidebar.classList.add("open");
-      isSidebarOpen = true;
-      document.body.style.overflow = "hidden";
-      document.body.classList.add("sidebar-open");
-    }
-  });
-  
-  // Tutup sidebar saat klik di luar area sidebar (di mobile)
-  document.addEventListener("click", (e) => {
-    if (window.innerWidth <= 768 && 
-        sidebar.classList.contains("open") && 
-        !sidebar.contains(e.target) && 
-        !newMenuToggle.contains(e.target)) {
-      sidebar.classList.remove("open");
-      isSidebarOpen = false;
-      document.body.style.overflow = "";
-      document.body.classList.remove("sidebar-open");
-    }
-  });
-  
-  // Tutup sidebar saat resize ke desktop
-  window.addEventListener("resize", () => {
-    if (window.innerWidth > 768) {
-      sidebar.classList.remove("open");
-      isSidebarOpen = false;
-      document.body.style.overflow = "";
-      document.body.classList.remove("sidebar-open");
-    }
-  });
-}
-
-function fixMobileLayout() {
-  if (!document.getElementById('menuToggleHp')) {
-    const menuBtn = document.createElement('button');
-    menuBtn.id = 'menuToggleHp';
-    menuBtn.className = 'menu-toggle-hp';
-    menuBtn.setAttribute('aria-label', 'Buka menu');
-    menuBtn.innerHTML = '<i class="bi bi-list fs-4"></i>';
-    document.body.appendChild(menuBtn);
-    
-    menuBtn.addEventListener('click', () => {
-      const sidebar = document.getElementById('app-sidebar');
-      if (sidebar) {
-        if (sidebar.classList.contains('open')) {
-          sidebar.classList.remove('open');
-          document.body.style.overflow = '';
-        } else {
-          sidebar.classList.add('open');
-          document.body.style.overflow = 'hidden';
-        }
-      }
-    });
-  }
-  
-  if (!document.getElementById('darkModeFab')) {
-    const darkFab = document.createElement('button');
-    darkFab.id = 'darkModeFab';
-    darkFab.className = 'dark-mode-fab';
-    darkFab.innerHTML = '<i class="bi bi-moon-stars fs-5"></i>';
-    document.body.appendChild(darkFab);
-    
-    darkFab.onclick = () => {
-      document.body.classList.toggle('dark');
-      localStorage.setItem("darkMode", document.body.classList.contains("dark") ? "enabled" : "disabled");
-      darkFab.innerHTML = document.body.classList.contains("dark") ? '<i class="bi bi-brightness-high-fill fs-5"></i>' : '<i class="bi bi-moon-stars fs-5"></i>';
-    };
-    
-    const saved = localStorage.getItem("darkMode");
-    if (saved === "enabled") document.body.classList.add("dark");
   }
 }
 
 function handleResize() {
-  const sidebar = document.getElementById("app-sidebar");
   const appContent = document.getElementById("app-content");
-  const menuToggle = document.getElementById("menuToggleHp");
+  const sidebar = document.getElementById("app-sidebar");
   
   if (window.innerWidth > 768) {
-    if (menuToggle) menuToggle.style.display = "flex";
     if (appContent) appContent.style.marginLeft = "280px";
-    if (sidebar) {
-      sidebar.classList.remove("open");
-      document.body.style.overflow = "";
-    }
+    if (sidebar) sidebar.style.display = "flex";
   } else {
-    if (menuToggle) menuToggle.style.display = "flex";
     if (appContent) appContent.style.marginLeft = "0";
+    if (sidebar) sidebar.style.display = "none";
   }
 }
 
 function attachEventListeners() {
   console.log("Attaching event listeners...");
   
-  // Profile trigger dengan event delegation
+  // Profile trigger dari sidebar (desktop)
   document.body.addEventListener('click', (e) => {
     const profileTrigger = e.target.closest('#profileTrigger');
     if (profileTrigger) {
@@ -264,6 +160,35 @@ function attachEventListeners() {
     }
   });
   
+  // Profile menu dari bottom nav (mobile)
+  const profileMenuBtn = document.getElementById('profileMenuBtn');
+  if (profileMenuBtn) {
+    profileMenuBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (typeof openProfileModal === 'function') {
+        openProfileModal();
+      }
+    });
+  }
+  
+  // Logout dari bottom nav (mobile)
+  const logoutMenuBtn = document.getElementById('logoutMenuBtn');
+  if (logoutMenuBtn) {
+    logoutMenuBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      confirmLogout();
+    });
+  }
+  
+  // Logout dari sidebar (desktop)
+  const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
+  if (sidebarLogoutBtn) {
+    sidebarLogoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      confirmLogout();
+    });
+  }
+  
   // Privacy toggle
   document.querySelectorAll("#privacyToggleDash").forEach(btn => {
     if (btn) {
@@ -271,46 +196,29 @@ function attachEventListeners() {
       btn._privacyListener = () => {
         togglePrivacy();
         if (window.renderDashboard) window.renderDashboard();
-        btn.style.transform = 'scale(0.95)';
-        setTimeout(() => { if (btn) btn.style.transform = ''; }, 150);
       };
       btn.addEventListener('click', btn._privacyListener);
     }
   });
   
-  // Navigation dengan throttle
+  // Navigation
   const throttledShowPage = throttle((page) => {
     showPage(page);
-    if (window.innerWidth <= 768) {
-      const sidebar = document.getElementById("app-sidebar");
-      if (sidebar) {
-        sidebar.classList.remove("open");
-        isSidebarOpen = false;
-        document.body.style.overflow = "";
-      }
-    }
   }, 300);
   
   document.querySelectorAll(".nav-link, .bottom-nav-item").forEach(el => {
+    // Skip khusus untuk profile dan logout
+    if (el.id === 'profileMenuBtn' || el.id === 'logoutMenuBtn') return;
+    
     el.removeEventListener('click', el._navListener);
     el._navListener = (e) => {
       const page = el.getAttribute("data-page");
       if (page) {
         throttledShowPage(page);
       }
-      e.currentTarget.style.transform = 'scale(0.98)';
-      setTimeout(() => { if (e.currentTarget) e.currentTarget.style.transform = ''; }, 150);
     };
     el.addEventListener('click', el._navListener);
   });
-  
-  // Logout
-  const confirmLogoutBtn = document.getElementById("confirmLogoutBtn");
-  if (confirmLogoutBtn) {
-    confirmLogoutBtn.removeEventListener('click', confirmLogoutBtn._logoutListener);
-    confirmLogoutBtn._logoutListener = () => handleLogout();
-    confirmLogoutBtn.addEventListener('click', confirmLogoutBtn._logoutListener);
-  }
   
   // Online/Offline detection
   window.addEventListener('online', () => { 
@@ -319,33 +227,21 @@ function attachEventListeners() {
   });
   window.addEventListener('offline', () => { showNotif("⚠️ Koneksi terputus", true, 'error'); });
   window.addEventListener('resize', () => { handleResize(); });
-  
-  // Trigger confetti saat klik di area tertentu (celebrasi)
-  document.body.addEventListener('click', (e) => {
-    // Confetti hanya saat klik tombol success atau pada elemen tertentu
-    const successBtn = e.target.closest('.btn-success, .login-btn-modern');
-    if (successBtn && typeof triggerConfetti === 'function') {
-      triggerConfetti();
-    }
-  });
 }
 
 function showPage(pageId) {
   console.log("Showing page:", pageId);
   currentPage = pageId;
   
-  // Hide all sections
   document.querySelectorAll("section").forEach(s => {
     s.style.display = "none";
   });
   
-  // Show selected page
   const pageElement = document.getElementById(`${pageId}-page`);
   if (pageElement) {
     pageElement.style.display = "block";
   }
   
-  // Update active states
   document.querySelectorAll(".nav-link, .bottom-nav-item").forEach(el => {
     el.classList.remove("active");
   });
@@ -353,7 +249,6 @@ function showPage(pageId) {
     el.classList.add("active");
   });
   
-  // Initialize page-specific content with lazy loading
   setTimeout(() => {
     if (pageId === "moment") {
       if (typeof renderCalendar === 'function') renderCalendar();
@@ -385,9 +280,11 @@ function setupAppSession(u) {
   }
   
   if (sidebar) {
-    sidebar.style.display = "flex";
-    sidebar.style.opacity = '0';
-    setTimeout(() => { if (sidebar) sidebar.style.opacity = '1'; }, 50);
+    if (window.innerWidth > 768) {
+      sidebar.style.display = "flex";
+    } else {
+      sidebar.style.display = "none";
+    }
   }
   
   if (appContent) {
@@ -410,7 +307,6 @@ function setupAppSession(u) {
   renderDashboard();
   showPage('dashboard');
   
-  // Trigger confetti selamat datang
   setTimeout(() => {
     if (typeof triggerConfetti === 'function') {
       triggerConfetti();
@@ -445,7 +341,6 @@ function initFirebaseListener() {
       
       const loggedUser = sessionStorage.getItem("progrowth_user");
       if (loggedUser && appInitialized) {
-        // Refresh current page data
         if (currentPage === "dashboard" && typeof renderDashboard === 'function') renderDashboard();
         else if (currentPage === "moment" && typeof renderCalendar === 'function') { 
           renderCalendar(); 
@@ -479,29 +374,6 @@ function injectToastContainer() {
   }
 }
 
-function toggleSidebarCollapse() {
-  const sidebar = document.getElementById("app-sidebar");
-  if (!sidebar) return;
-  
-  if (window.innerWidth > 768) {
-    sidebar.classList.toggle("collapsed");
-    const isCollapsed = sidebar.classList.contains("collapsed");
-    localStorage.setItem("sidebarCollapsed", isCollapsed);
-    const appContent = document.getElementById("app-content");
-    if (appContent) appContent.style.marginLeft = isCollapsed ? "80px" : "280px";
-  }
-}
-
-function loadSidebarState() {
-  const savedState = localStorage.getItem("sidebarCollapsed");
-  const sidebar = document.getElementById("app-sidebar");
-  if (savedState === "true" && sidebar && window.innerWidth > 768) {
-    sidebar.classList.add("collapsed");
-    const appContent = document.getElementById("app-content");
-    if (appContent) appContent.style.marginLeft = "80px";
-  }
-}
-
 async function init() {
   console.log("🚀 Initializing Growthogether App...");
   showInitialLoading();
@@ -510,9 +382,7 @@ async function init() {
   await loadComponents();
   checkAuth();
   initFirebaseListener();
-  loadSidebarState();
   
-  // Inisialisasi animasi klik
   if (typeof initClickAnimation === 'function') {
     initClickAnimation();
   }
@@ -526,7 +396,7 @@ async function init() {
   console.log("✅ App initialized successfully");
 }
 
-// Expose functions ke window
+// Exports
 window.setupAppSession = setupAppSession;
 window.showPage = showPage;
 window.renderDashboard = renderDashboard;
@@ -537,7 +407,6 @@ window.openChangePasswordFromProfile = openChangePasswordFromProfile;
 window.handleProfilePhotoUpload = handleProfilePhotoUpload;
 window.updateStatus = updateStatus;
 window.forceRefreshProfile = forceRefreshProfile;
-window.toggleSidebarCollapse = toggleSidebarCollapse;
 window.renderCalendar = renderCalendar;
 window.renderMomentsList = renderMomentsList;
 window.selectMomentDate = selectMomentDate;
@@ -549,9 +418,6 @@ window.viewMomentDetail = viewMomentDetail;
 window.editMomentFromDetail = editMomentFromDetail;
 window.deleteMomentFromDetail = deleteMomentFromDetail;
 window.changeMonth = changeMonth;
-
-// Expose animasi ke window
 window.triggerConfetti = triggerConfetti;
 
-// Event listener untuk DOMContentLoaded
 document.addEventListener("DOMContentLoaded", init);
