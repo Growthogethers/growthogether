@@ -1,4 +1,4 @@
-// js/keuangan.js - Versi lengkap dengan Chart, Search, Filter, Export
+// js/keuangan.js - Versi lengkap dengan Chart, Search, Filter, Export (FULL - DIPERBAIKI)
 import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
 import { 
   showNotif, formatNumberRp, escapeHtml, showCustomPrompt, showCustomConfirm, 
@@ -248,7 +248,7 @@ function renderKategoriProgress() {
   
   for (const kat of kategoriList) {
     const target = kat.estimasiBiaya || 0;
-    const terkumpul = (pemusukanPerKategori[kat.nama] || 0) - (pengeluaranPerKategori[kat.nama] || 0);
+    const terkumpul = (pemasukanPerKategori[kat.nama] || 0) - (pengeluaranPerKategori[kat.nama] || 0);
     const percent = target > 0 ? Math.min(100, Math.max(0, (terkumpul / target) * 100)) : 0;
     let statusClass = 'bg-secondary';
     if (percent >= 100) statusClass = 'bg-success';
@@ -315,7 +315,9 @@ window.addPemasukanKeKategori = async function(kategoriNama) {
         
         await loadAllTransaksiOptimized(true);
         renderKategoriProgress();
+        updateChartData();
       } catch (err) {
+        console.error(err);
         showNotif("Gagal menambahkan", true, 'error');
       } finally {
         hideLoading();
@@ -347,7 +349,9 @@ window.addPengeluaranKeKategori = async function(kategoriNama) {
         showNotif(`✅ Pengeluaran "${kategoriNama}" berhasil dicatat!`, false, 'success');
         await loadAllTransaksiOptimized(true);
         renderKategoriProgress();
+        updateChartData();
       } catch (err) {
+        console.error(err);
         showNotif("Gagal menambahkan", true, 'error');
       } finally {
         hideLoading();
@@ -491,13 +495,13 @@ window.exportKeuanganToCSV = function() {
   const rows = transaksiList.map(t => [
     new Date(t.tanggal).toLocaleDateString('id-ID'),
     t.tipe === 'pemasukan' ? 'Pemasukan' : 'Pengeluaran',
-    t.kategori,
+    `"${(t.kategori || '').replace(/"/g, '""')}"`,
     t.nominal,
-    t.catatan || ''
+    `"${(t.catatan || '').replace(/"/g, '""')}"`
   ]);
   
   const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
   link.href = url;
@@ -507,7 +511,7 @@ window.exportKeuanganToCSV = function() {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
   
-  showNotif("✅ Laporan keuangan berhasil diexport! (" + transaksiList.length + " transaksi)", false, 'success');
+  showNotif(`✅ Laporan keuangan berhasil diexport! (${transaksiList.length} transaksi)`, false, 'success');
 };
 
 // ============ CRUD FUNCTIONS ============
@@ -533,56 +537,59 @@ window.openTransaksiModal = function(editId = null) {
   editTransaksiId = editId;
   
   let modal = document.getElementById('transaksiModal');
-  if (!modal) {
-    const modalHtml = `
-      <div class="modal fade" id="transaksiModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-md">
-          <div class="modal-content rounded-4">
-            <div class="modal-header border-0 bg-success text-white py-3">
-              <h5 class="fw-bold mb-0">${editId ? '✏️ Edit Transaksi' : '💰 Tambah Transaksi'}</h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+  if (modal) {
+    if (editId) loadTransaksiData(editId);
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+    return;
+  }
+  
+  const modalHtml = `
+    <div class="modal fade" id="transaksiModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content rounded-4">
+          <div class="modal-header border-0 bg-success text-white py-3">
+            <h5 class="fw-bold mb-0">${editId ? '✏️ Edit Transaksi' : '💰 Tambah Transaksi'}</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body modal-form p-4">
+            <div class="mb-3">
+              <label class="fw-semibold mb-2">Tipe Transaksi</label>
+              <select id="transaksiTipe" class="form-select form-select-lg rounded-3">
+                <option value="pemasukan">📥 + Pemasukan</option>
+                <option value="pengeluaran">📤 - Pengeluaran</option>
+              </select>
             </div>
-            <div class="modal-body modal-form p-4">
-              <div class="mb-3">
-                <label class="fw-semibold mb-2">Tipe Transaksi</label>
-                <select id="transaksiTipe" class="form-select form-select-lg rounded-3">
-                  <option value="pemasukan">📥 + Pemasukan</option>
-                  <option value="pengeluaran">📤 - Pengeluaran</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label class="fw-semibold mb-2">Kategori</label>
-                <select id="transaksiKategori" class="form-select form-select-lg rounded-3"></select>
-              </div>
-              <div class="mb-3">
-                <label class="fw-semibold mb-2">Nominal</label>
-                <input type="number" id="transaksiNominal" class="form-control form-control-lg rounded-3" placeholder="Masukkan nominal">
-              </div>
-              <div class="mb-3">
-                <label class="fw-semibold mb-2">Tanggal</label>
-                <input type="date" id="transaksiTanggal" class="form-control form-control-lg rounded-3" value="${new Date().toISOString().split('T')[0]}">
-              </div>
-              <div class="mb-3">
-                <label class="fw-semibold mb-2">Catatan (Opsional)</label>
-                <textarea id="transaksiCatatan" class="form-control rounded-3" rows="3" placeholder="Tambahkan catatan..."></textarea>
-              </div>
+            <div class="mb-3">
+              <label class="fw-semibold mb-2">Kategori</label>
+              <select id="transaksiKategori" class="form-select form-select-lg rounded-3"></select>
             </div>
-            <div class="modal-footer border-0 pb-4 px-4">
-              <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-              <button class="btn btn-success rounded-pill px-4" onclick="window.saveTransaksi()">Simpan Transaksi</button>
+            <div class="mb-3">
+              <label class="fw-semibold mb-2">Nominal</label>
+              <input type="number" id="transaksiNominal" class="form-control form-control-lg rounded-3" placeholder="Masukkan nominal">
             </div>
+            <div class="mb-3">
+              <label class="fw-semibold mb-2">Tanggal</label>
+              <input type="date" id="transaksiTanggal" class="form-control form-control-lg rounded-3" value="${new Date().toISOString().split('T')[0]}">
+            </div>
+            <div class="mb-3">
+              <label class="fw-semibold mb-2">Catatan (Opsional)</label>
+              <textarea id="transaksiCatatan" class="form-control rounded-3" rows="3" placeholder="Tambahkan catatan..."></textarea>
+            </div>
+          </div>
+          <div class="modal-footer border-0 pb-4 px-4">
+            <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+            <button class="btn btn-success rounded-pill px-4" onclick="window.saveTransaksi()">Simpan Transaksi</button>
           </div>
         </div>
       </div>
-    `;
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    modal = document.getElementById('transaksiModal');
-    updateKategoriSelect();
-  }
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  modal = document.getElementById('transaksiModal');
+  updateKategoriSelect();
   
-  if (editId) {
-    loadTransaksiData(editId);
-  }
+  if (editId) loadTransaksiData(editId);
   
   const bsModal = new bootstrap.Modal(modal);
   bsModal.show();
@@ -615,7 +622,12 @@ window.saveTransaksi = async function() {
   showLoading("Menyimpan transaksi...");
   
   const transaksiData = {
-    tipe, kategori, nominal, tanggal: new Date(tanggal).getTime(), catatan, updatedAt: Date.now()
+    tipe, 
+    kategori, 
+    nominal, 
+    tanggal: new Date(tanggal).getTime(), 
+    catatan, 
+    updatedAt: Date.now()
   };
   
   try {
@@ -663,6 +675,7 @@ window.deleteTransaksi = async function(id) {
       await loadAllTransaksiOptimized(true);
       updateChartData();
     } catch (err) {
+      console.error(err);
       showNotif("Gagal menghapus", true, 'error');
     } finally {
       hideLoading();
@@ -697,7 +710,7 @@ export function initKeuangan() {
     initKeuanganChart();
   });
   
-  // Setup listener
+  // Setup listener untuk perubahan data
   onValue(ref(db, `data/catatan/bersama/kategori`), () => {
     loadKategoriFromCatatan();
     renderKategoriProgress();
@@ -709,7 +722,7 @@ export function initKeuangan() {
     renderKategoriProgress();
   });
   
-  // Setup filter event listeners
+  // Setup filter event listeners setelah DOM siap
   setTimeout(() => {
     const searchInput = document.getElementById('searchTransaksi');
     const startDateInput = document.getElementById('filterDateStart');
@@ -735,5 +748,7 @@ async function refreshData() {
   }
 }
 
+// Export untuk dipanggil dari file lain
 window.initKeuangan = initKeuangan;
 window.addTransaksiFromExternal = addTransaksiFromExternal;
+window.exportKeuanganToCSV = exportKeuanganToCSV;
