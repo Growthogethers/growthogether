@@ -2,7 +2,8 @@
 import { db, ref, onValue, set } from './firebase-config.js';
 import { 
   masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser, 
-  showLoading, hideLoading, getCache, setCache, clearCache, throttle 
+  showLoading, hideLoading, getCache, setCache, clearCache, throttle,
+  triggerConfetti, initClickAnimation
 } from './utils.js';
 import { 
   handleLogin, 
@@ -277,7 +278,7 @@ function attachEventListeners() {
     }
   });
   
-  // Navigation dengan throttle (tanpa pengingat)
+  // Navigation dengan throttle
   const throttledShowPage = throttle((page) => {
     showPage(page);
     if (window.innerWidth <= 768) {
@@ -318,6 +319,15 @@ function attachEventListeners() {
   });
   window.addEventListener('offline', () => { showNotif("⚠️ Koneksi terputus", true, 'error'); });
   window.addEventListener('resize', () => { handleResize(); });
+  
+  // Trigger confetti saat klik di area tertentu (celebrasi)
+  document.body.addEventListener('click', (e) => {
+    // Confetti hanya saat klik tombol success atau pada elemen tertentu
+    const successBtn = e.target.closest('.btn-success, .login-btn-modern');
+    if (successBtn && typeof triggerConfetti === 'function') {
+      triggerConfetti();
+    }
+  });
 }
 
 function showPage(pageId) {
@@ -399,6 +409,14 @@ function setupAppSession(u) {
   
   renderDashboard();
   showPage('dashboard');
+  
+  // Trigger confetti selamat datang
+  setTimeout(() => {
+    if (typeof triggerConfetti === 'function') {
+      triggerConfetti();
+      showNotif(`🎉 Selamat datang, ${displayName}!`, false, 'success');
+    }
+  }, 500);
 }
 
 function checkAuth() {
@@ -433,6 +451,8 @@ function initFirebaseListener() {
           renderCalendar(); 
           if (typeof renderMomentsList === 'function') renderMomentsList(); 
         }
+        else if (currentPage === "keuangan" && typeof initKeuangan === 'function') initKeuangan();
+        else if (currentPage === "catatan" && typeof initCatatan === 'function') initCatatan();
       }
       
       console.log("Firebase data synced");
@@ -492,6 +512,11 @@ async function init() {
   initFirebaseListener();
   loadSidebarState();
   
+  // Inisialisasi animasi klik
+  if (typeof initClickAnimation === 'function') {
+    initClickAnimation();
+  }
+  
   appInitialized = true;
   
   setTimeout(() => {
@@ -501,7 +526,7 @@ async function init() {
   console.log("✅ App initialized successfully");
 }
 
-// Exports
+// Expose functions ke window
 window.setupAppSession = setupAppSession;
 window.showPage = showPage;
 window.renderDashboard = renderDashboard;
@@ -525,4 +550,8 @@ window.editMomentFromDetail = editMomentFromDetail;
 window.deleteMomentFromDetail = deleteMomentFromDetail;
 window.changeMonth = changeMonth;
 
+// Expose animasi ke window
+window.triggerConfetti = triggerConfetti;
+
+// Event listener untuk DOMContentLoaded
 document.addEventListener("DOMContentLoaded", init);
