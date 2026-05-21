@@ -1,4 +1,4 @@
-// js/app.js - Main Application (Dengan Perbaikan Critical: Memory Leak + Session Validation)
+// js/app.js - Main Application (Dengan Perbaikan Logout)
 import { db, ref, onValue, set } from './firebase-config.js';
 import { 
   masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser, 
@@ -44,19 +44,17 @@ let firebaseListener = null;
 let currentPage = 'dashboard';
 let appInitialized = false;
 let offlineIndicator = null;
-let activeListeners = []; // ARRAY UNTUK MENYIMPAN SEMUA LISTENER
+let activeListeners = [];
 
-// ============ FUNGSI CLEANUP SEMUA LISTENER (CRITICAL #1) ============
+// ============ CLEANUP SEMUA LISTENER ============
 export function cleanupAllListeners() {
   console.log("Cleaning up all Firebase listeners...");
   
-  // Cleanup main Firebase listener
   if (firebaseListener) {
     firebaseListener();
     firebaseListener = null;
   }
   
-  // Cleanup listeners from other modules
   if (activeListeners.length > 0) {
     activeListeners.forEach(listener => {
       if (typeof listener === 'function') {
@@ -66,30 +64,26 @@ export function cleanupAllListeners() {
     activeListeners = [];
   }
   
-  // Cleanup auth listeners
   if (typeof cleanupAuthListeners === 'function') {
     cleanupAuthListeners();
   }
   
-  // Clear calendar cache
   if (typeof clearCalendarCache === 'function') {
     clearCalendarCache();
   }
   
-  // Clear all caches
   clearCache();
   
   console.log("All listeners cleaned up");
 }
 
-// Tambahkan listener ke array untuk tracking
 export function registerListener(listener) {
   if (typeof listener === 'function') {
     activeListeners.push(listener);
   }
 }
 
-// Show initial loading screen
+// ============ LOADING SCREEN ============
 function showInitialLoading() {
   const loader = document.createElement('div');
   loader.id = 'initialLoader';
@@ -129,6 +123,7 @@ function hideInitialLoading() {
   }
 }
 
+// ============ LOAD COMPONENTS ============
 async function loadComponents() {
   try {
     console.log("Loading components...");
@@ -158,7 +153,7 @@ async function loadComponents() {
   }
 }
 
-// ============ DARK MODE FIXED ============
+// ============ DARK MODE ============
 function initDarkMode() {
   console.log("Initializing dark mode...");
   
@@ -236,22 +231,6 @@ function initOfflineIndicator() {
   
   offlineIndicator = document.createElement('div');
   offlineIndicator.id = 'offlineIndicator';
-  offlineIndicator.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: white;
-    text-align: center;
-    padding: 10px;
-    font-size: 12px;
-    font-weight: 500;
-    z-index: 10001;
-    transform: translateY(-100%);
-    transition: transform 0.3s ease;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  `;
   offlineIndicator.innerHTML = `
     <i class="bi bi-wifi-off me-2"></i>
     Offline - Perubahan tidak akan tersimpan sampai koneksi kembali
@@ -369,6 +348,7 @@ function attachEventListeners() {
   window.addEventListener('resize', () => { handleResize(); });
 }
 
+// ============ SHOW PAGE ============
 function showPage(pageId) {
   console.log("Showing page:", pageId);
   currentPage = pageId;
@@ -405,6 +385,7 @@ function showPage(pageId) {
   }, 50);
 }
 
+// ============ SETUP APP SESSION ============
 function setupAppSession(u) {
   console.log("Setting up session for user:", u);
   
@@ -455,25 +436,22 @@ function setupAppSession(u) {
   }, 500);
 }
 
-// ============ CHECK AUTH DENGAN VALIDASI SESSION (CRITICAL #2) ============
+// ============ CHECK AUTH ============
 function checkAuth() {
   const savedUser = sessionStorage.getItem("progrowth_user");
   
-  // Panggil fungsi validasi dari auth.js
   if (savedUser && validateSession && validateSession()) {
     setCurrentUser(savedUser);
     setupAppSession(savedUser);
   } else if (savedUser) {
-    // Session tidak valid, force logout
     console.log("Invalid session, forcing logout");
     sessionStorage.clear();
     location.reload();
   }
 }
 
-// ============ FIREBASE LISTENER DENGAN CLEANUP (CRITICAL #1) ============
+// ============ FIREBASE LISTENER ============
 function initFirebaseListener() {
-  // Cleanup existing listener sebelum buat baru
   cleanupAllListeners();
   
   if (!appInitialized) {
@@ -511,6 +489,7 @@ function initFirebaseListener() {
   }
 }
 
+// ============ TOAST CONTAINER ============
 function injectToastContainer() {
   if (!document.getElementById('customToastContainer')) {
     const toastContainer = document.createElement('div');
@@ -527,16 +506,7 @@ function injectToastContainer() {
   }
 }
 
-// Override handleLogout untuk cleanup semua listener
-const originalHandleLogout = handleLogout;
-window.handleLogout = function() {
-  console.log("Logout with cleanup...");
-  cleanupAllListeners();
-  if (typeof originalHandleLogout === 'function') {
-    originalHandleLogout();
-  }
-};
-
+// ============ INIT APP ============
 async function init() {
   console.log("🚀 Initializing Growthogether App...");
   showInitialLoading();
@@ -560,7 +530,7 @@ async function init() {
   console.log("✅ App initialized successfully");
 }
 
-// Exports
+// ============ EXPORTS ============
 window.setupAppSession = setupAppSession;
 window.showPage = showPage;
 window.renderDashboard = renderDashboard;
@@ -584,8 +554,10 @@ window.deleteMomentFromDetail = deleteMomentFromDetail;
 window.changeMonth = changeMonth;
 window.triggerConfetti = triggerConfetti;
 window.confirmLogout = confirmLogout;
-window.handleLogout = window.handleLogout;
 window.cleanupAllListeners = cleanupAllListeners;
 window.registerListener = registerListener;
+
+// Register logout handler
+window.handleLogout = handleLogout;
 
 document.addEventListener("DOMContentLoaded", init);
