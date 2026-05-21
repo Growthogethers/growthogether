@@ -1,8 +1,10 @@
-// js/catatan.js - Versi Final (Fix Duplikasi & Default Data)
+// js/catatan.js - Versi dengan shared database (bersama)
+
 import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
 import { 
   showNotif, escapeHtml, showCustomPrompt, showCustomConfirm, 
-  getCache, setCache, clearCache, throttle, showLoading, hideLoading 
+  getCache, setCache, clearCache, throttle, showLoading, hideLoading,
+  triggerConfetti, triggerFloatingHearts 
 } from './utils.js';
 
 let currentUser = null;
@@ -14,7 +16,7 @@ let editItemId = null;
 let isGeneratingAI = false;
 let isInitialized = false;
 
-// Template planning wedding default (TIDAK akan otomatis terbuat)
+// Wedding Templates (sama seperti sebelumnya)
 const weddingTemplates = {
   basic: {
     name: "Paket Basic (Minimalis)",
@@ -52,10 +54,6 @@ const weddingTemplates = {
   }
 };
 
-// DEFAULT KATEGORI TIDAK DIGUNAKAN LAGI - Biarkan kosong
-// User harus klik tombol generate template untuk membuat data
-
-// Throttled render
 const throttledRender = throttle(() => {
   renderKategori();
   updateProgress();
@@ -83,21 +81,21 @@ export async function initCatatan() {
     updateProgress();
     generateAIRecommendations();
     
-    // Setup listener dengan throttle
     const throttledUpdate = throttle(() => {
       updateProgress();
       renderKategori();
       generateAIRecommendations();
     }, 1000);
     
-    onValue(ref(db, `data/catatan/${currentUser}/items`), (snapshot) => {
+    // Shared database path (bersama)
+    onValue(ref(db, `data/catatan/bersama/items`), (snapshot) => {
       checklistItems = snapshot.val() || {};
-      setCache(`catatan_items_${currentUser}`, checklistItems, 3);
+      setCache(`catatan_items_bersama`, checklistItems, 3);
       throttledUpdate();
     });
     
-    onValue(ref(db, `data/catatan/${currentUser}/kategori`), () => {
-      clearCache(`catatan_kategori_${currentUser}`);
+    onValue(ref(db, `data/catatan/bersama/kategori`), () => {
+      clearCache(`catatan_kategori_bersama`);
       loadKategoriOptimized(true).then(() => throttledUpdate());
     });
     
@@ -127,7 +125,7 @@ async function refreshData() {
 }
 
 async function loadKategoriOptimized(forceRefresh = false) {
-  const cacheKey = `catatan_kategori_${currentUser}`;
+  const cacheKey = `catatan_kategori_bersama`;
   if (!forceRefresh) {
     const cached = getCache(cacheKey);
     if (cached) {
@@ -136,14 +134,12 @@ async function loadKategoriOptimized(forceRefresh = false) {
     }
   }
   
-  const snapshot = await get(ref(db, `data/catatan/${currentUser}/kategori`));
+  const snapshot = await get(ref(db, `data/catatan/bersama/kategori`));
   const saved = snapshot.val();
   
   if (saved && Object.keys(saved).length > 0) {
     kategoriList = Object.entries(saved).map(([id, val]) => ({ id, ...val }));
   } else {
-    // TIDAK MEMBUAT DEFAULT DATA OTOMATIS
-    // Biarkan kosong, user harus klik generate template
     kategoriList = [];
   }
   
@@ -151,7 +147,7 @@ async function loadKategoriOptimized(forceRefresh = false) {
 }
 
 async function loadChecklistItemsOptimized(forceRefresh = false) {
-  const cacheKey = `catatan_items_${currentUser}`;
+  const cacheKey = `catatan_items_bersama`;
   if (!forceRefresh) {
     const cached = getCache(cacheKey);
     if (cached) {
@@ -160,7 +156,7 @@ async function loadChecklistItemsOptimized(forceRefresh = false) {
     }
   }
   
-  const snapshot = await get(ref(db, `data/catatan/${currentUser}/items`));
+  const snapshot = await get(ref(db, `data/catatan/bersama/items`));
   checklistItems = snapshot.val() || {};
   setCache(cacheKey, checklistItems, 5);
 }
@@ -169,7 +165,6 @@ function updateProgress() {
   let total = 0;
   let selesai = 0;
   let totalEstimasiBiaya = 0;
-  let estimasiTerselesaikan = 0;
   
   kategoriList.forEach(kat => {
     const katItems = checklistItems[kat.id] ? Object.values(checklistItems[kat.id]) : [];
@@ -177,11 +172,7 @@ function updateProgress() {
     const completedItems = validItems.filter(item => item.selesai);
     total += validItems.length;
     selesai += completedItems.length;
-    
-    if (kat.estimasiBiaya && validItems.length > 0) {
-      totalEstimasiBiaya += kat.estimasiBiaya;
-      estimasiTerselesaikan += (kat.estimasiBiaya * completedItems.length) / validItems.length;
-    }
+    totalEstimasiBiaya += kat.estimasiBiaya || 0;
   });
   
   const percent = total > 0 ? (selesai / total) * 100 : 0;
@@ -192,7 +183,7 @@ function updateProgress() {
   if (progressPercentEl) progressPercentEl.innerHTML = `${Math.round(percent)}%`;
   if (catatanProgressEl) catatanProgressEl.style.width = `${percent}%`;
   if (estimasiBiayaEl && totalEstimasiBiaya > 0) {
-    estimasiBiayaEl.innerHTML = `💰 Estimasi Total: Rp ${totalEstimasiBiaya.toLocaleString('id-ID')} | Terpakai: Rp ${Math.round(estimasiTerselesaikan).toLocaleString('id-ID')}`;
+    estimasiBiayaEl.innerHTML = `💰 Estimasi Total: Rp ${totalEstimasiBiaya.toLocaleString('id-ID')}`;
   }
 }
 
@@ -206,7 +197,7 @@ function renderKategori() {
         <i class="bi bi-folder2-open fs-1"></i>
         <p class="mt-2">Belum ada kategori persiapan pernikahan.</p>
         <p class="small">Klik salah satu template di bawah untuk memulai:</p>
-        <div class="d-flex gap-2 justify-content-center mt-3">
+        <div class="d-flex gap-2 justify-content-center mt-3 flex-wrap">
           <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="generateWeddingPlanning('basic')">
             <i class="bi bi-stars me-1"></i> Basic Plan
           </button>
@@ -238,7 +229,7 @@ function renderKategori() {
             <i class="bi ${kat.icon} fs-4 text-primary"></i>
             <div>
               <h6 class="fw-bold mb-0">${escapeHtml(kat.nama)}</h6>
-              ${kat.estimasiBiaya ? `<small class="text-muted">💰 Rp ${kat.estimasiBiaya.toLocaleString('id-ID')}</small>` : ''}
+              ${kat.estimasiBiaya ? `<small class="text-muted">💰 Target: Rp ${kat.estimasiBiaya.toLocaleString('id-ID')}</small>` : ''}
             </div>
             <span class="badge bg-secondary rounded-pill">${completedCount}/${validItems.length}</span>
           </div>
@@ -248,7 +239,6 @@ function renderKategori() {
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
               <li><a class="dropdown-item" onclick="editKategori('${kat.id}')"><i class="bi bi-pencil me-2"></i>Edit Kategori</a></li>
-              <li><a class="dropdown-item" onclick="addBudgetToKeuangan('${kat.id}')"><i class="bi bi-wallet2 me-2"></i>Tambah ke Keuangan</a></li>
               <li><hr class="dropdown-divider"></li>
               <li><a class="dropdown-item text-danger" onclick="deleteKategori('${kat.id}')"><i class="bi bi-trash3 me-2"></i>Hapus Kategori</a></li>
             </ul>
@@ -262,13 +252,10 @@ function renderKategori() {
             ${validItems.map(([itemId, item]) => `
               <div class="checklist-item d-flex align-items-center justify-content-between p-3 border-bottom">
                 <div class="d-flex align-items-center gap-3 flex-grow-1">
-                  <input type="checkbox" class="form-check-input fs-5" id="item_${itemId}" ${item.selesai ? 'checked' : ''} onchange="toggleItem('${kat.id}', '${itemId}', this.checked)" ${item.updatedFromKeuangan ? 'disabled' : ''}>
+                  <input type="checkbox" class="form-check-input fs-5" id="item_${itemId}" ${item.selesai ? 'checked' : ''} onchange="toggleItem('${kat.id}', '${itemId}', this.checked)">
                   <label class="checklist-label mb-0 ${item.selesai ? 'text-decoration-line-through text-muted' : ''}" for="item_${itemId}">${escapeHtml(item.nama)}</label>
                 </div>
                 <div>
-                  ${!item.selesai ? `<button class="btn-icon btn-sm" onclick="addItemToKeuangan('${kat.id}', '${itemId}', '${escapeHtml(item.nama)}')" title="Tambah ke Keuangan">
-                    <i class="bi bi-wallet2 text-success"></i>
-                  </button>` : ''}
                   <button class="btn-icon btn-sm" onclick="editItem('${kat.id}', '${itemId}')">
                     <i class="bi bi-pencil"></i>
                   </button>
@@ -296,7 +283,6 @@ function renderKategori() {
   container.appendChild(fragment);
 }
 
-// Fungsi generate planning wedding (VERSI FINAL - TIDAK DUPLIKASI)
 window.generateWeddingPlanning = async function(templateId = 'basic') {
   const template = weddingTemplates[templateId];
   if (!template) {
@@ -314,17 +300,13 @@ window.generateWeddingPlanning = async function(templateId = 'basic') {
   showLoading("Membuat planning wedding...");
   
   try {
-    // HAPUS SEMUA DATA LAMA
-    await remove(ref(db, `data/catatan/${currentUser}`));
-    
-    // Tunggu sebentar agar Firebase selesai menghapus
+    await remove(ref(db, `data/catatan/bersama`));
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    // TULIS DATA BARU
     let totalEstimasi = 0;
     
     for (const kat of template.categories) {
-      const kategoriRef = push(ref(db, `data/catatan/${currentUser}/kategori`));
+      const kategoriRef = push(ref(db, `data/catatan/bersama/kategori`));
       await set(kategoriRef, {
         nama: kat.nama,
         icon: kat.icon,
@@ -335,21 +317,17 @@ window.generateWeddingPlanning = async function(templateId = 'basic') {
       totalEstimasi += kat.estimasiBiaya;
       
       for (const item of kat.items) {
-        const itemRef = push(ref(db, `data/catatan/${currentUser}/items/${kategoriId}`));
+        const itemRef = push(ref(db, `data/catatan/bersama/items/${kategoriId}`));
         await set(itemRef, {
           nama: item,
           selesai: false
         });
       }
-      
-      console.log(`✅ Kategori "${kat.nama}" ditambahkan dengan ${kat.items.length} item`);
     }
     
-    // Bersihkan cache
-    clearCache(`catatan_kategori_${currentUser}`);
-    clearCache(`catatan_items_${currentUser}`);
+    clearCache(`catatan_kategori_bersama`);
+    clearCache(`catatan_items_bersama`);
     
-    // Reload data
     await loadKategoriOptimized(true);
     await loadChecklistItemsOptimized(true);
     
@@ -359,15 +337,17 @@ window.generateWeddingPlanning = async function(templateId = 'basic') {
     
     showNotif(`✅ Template "${template.name}" berhasil! Total estimasi: Rp ${totalEstimasi.toLocaleString('id-ID')}`, false, 'success');
     
+    // Trigger confetti
+    if (typeof triggerConfetti === 'function') triggerConfetti();
+    
   } catch (err) {
-    console.error("Error generating wedding planning:", err);
-    showNotif("❌ Gagal membuat planning wedding. Silakan coba lagi.", true, 'error');
+    console.error(err);
+    showNotif("❌ Gagal membuat planning", true, 'error');
   } finally {
     hideLoading();
   }
 };
 
-// AI Recommendations dengan tombol generate template
 async function generateAIRecommendations() {
   if (isGeneratingAI) return;
   isGeneratingAI = true;
@@ -378,7 +358,6 @@ async function generateAIRecommendations() {
     return;
   }
   
-  // Hitung progress
   let total = 0;
   let selesai = 0;
   let totalEstimasi = 0;
@@ -394,7 +373,6 @@ async function generateAIRecommendations() {
   
   const percent = total > 0 ? (selesai / total) * 100 : 0;
   
-  // Tampilkan rekomendasi dengan tombol generate template
   container.innerHTML = `
     <div class="card p-3 mb-4" style="background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 16px;">
       <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
@@ -429,124 +407,16 @@ async function generateAIRecommendations() {
           <i class="bi bi-info-circle me-1"></i>
           Belum ada checklist. Klik salah satu template di atas untuk memulai planning pernikahan Anda!
         </div>
-      ` : `
-        <div class="d-flex flex-wrap gap-2 mt-2">
-          ${percent < 30 ? `
-            <div class="p-2 bg-white rounded-3 flex-grow-1" style="background: var(--card-bg) !important;">
-              <div class="fw-semibold small">📋 Mulai dari Dokumen</div>
-              <small class="text-muted d-block">Prioritaskan kelengkapan administrasi</small>
-              <button class="btn btn-sm btn-outline-primary rounded-pill mt-1" style="font-size: 11px;" onclick="document.querySelector('[data-bs-target*=\"collapse\"]')?.click()">
-                Lihat Checklist <i class="bi bi-arrow-right ms-1"></i>
-              </button>
-            </div>
-          ` : percent < 70 ? `
-            <div class="p-2 bg-white rounded-3 flex-grow-1" style="background: var(--card-bg) !important;">
-              <div class="fw-semibold small">🎯 Fokus pada Vendor</div>
-              <small class="text-muted d-block">Segera booking venue & dokumentasi</small>
-              <button class="btn btn-sm btn-outline-primary rounded-pill mt-1" style="font-size: 11px;" onclick="window.location.href='#keuangan-page'; showPage('keuangan')">
-                Atur Keuangan <i class="bi bi-arrow-right ms-1"></i>
-              </button>
-            </div>
-          ` : `
-            <div class="p-2 bg-white rounded-3 flex-grow-1" style="background: var(--card-bg) !important;">
-              <div class="fw-semibold small">🎉 Finalisasi Persiapan</div>
-              <small class="text-muted d-block">Tinggal sedikit lagi! Cek ulang semua item</small>
-              <button class="btn btn-sm btn-outline-primary rounded-pill mt-1" style="font-size: 11px;" onclick="window.location.href='#moment-page'; showPage('moment')">
-                Lihat Momen <i class="bi bi-arrow-right ms-1"></i>
-              </button>
-            </div>
-          `}
-        </div>
-      `}
+      ` : ''}
     </div>
   `;
   
   isGeneratingAI = false;
 }
 
-window.addItemToKeuangan = async function(kategoriId, itemId, itemNama) {
-  const kat = kategoriList.find(k => k.id === kategoriId);
-  const estimasiBiaya = kat?.estimasiBiaya || 0;
-  const biayaPerItem = Math.round(estimasiBiaya / 10) || 100000;
-  
-  const nominal = await showCustomPrompt(`Masukkan nominal untuk "${itemNama}"`, `Estimasi: Rp ${biayaPerItem.toLocaleString('id-ID')}`, biayaPerItem);
-  
-  if (nominal && !isNaN(nominal) && parseInt(nominal) > 0) {
-    const confirmed = await showCustomConfirm("Konfirmasi", `Tambahkan keuangan untuk "${itemNama}" sebesar Rp ${parseInt(nominal).toLocaleString('id-ID')}?`);
-    if (confirmed) {
-      showLoading("Menambahkan ke keuangan...");
-      try {
-        const transaksi = await window.addTransaksiFromExternal(currentUser, {
-          tipe: 'pengeluaran',
-          kategori: 'Pernikahan',
-          nominal: parseInt(nominal),
-          catatan: `Biaya untuk: ${itemNama} (dari Catatan)`,
-          fromCatatan: true,
-          sourceType: 'catatan_item',
-          sourceId: `${kategoriId}_${itemId}`
-        });
-        
-        await update(ref(db, `data/catatan/${currentUser}/items/${kategoriId}/${itemId}`), { 
-          selesai: true,
-          linkedTransactionId: transaksi.id,
-          updatedFromKeuangan: true
-        });
-        
-        clearCache(`catatan_items_${currentUser}`);
-        await loadChecklistItemsOptimized(true);
-        renderKategori();
-        updateProgress();
-        
-        showNotif(`✅ "${itemNama}" ditambahkan!`, false, 'success');
-      } catch (err) {
-        showNotif("Gagal menambahkan", true, 'error');
-      } finally {
-        hideLoading();
-      }
-    }
-  }
-};
-
-window.addBudgetToKeuangan = async function(kategoriId) {
-  const kat = kategoriList.find(k => k.id === kategoriId);
-  if (!kat || !kat.estimasiBiaya) {
-    showNotif("Kategori ini tidak memiliki estimasi biaya", true, 'error');
-    return;
-  }
-  
-  const confirmed = await showCustomConfirm("Konfirmasi", `Tambahkan budget untuk "${kat.nama}" sebesar Rp ${kat.estimasiBiaya.toLocaleString('id-ID')}?`);
-  if (confirmed) {
-    showLoading("Menambahkan ke keuangan...");
-    try {
-      await window.addTransaksiFromExternal(currentUser, {
-        tipe: 'pengeluaran',
-        kategori: 'Pernikahan',
-        nominal: kat.estimasiBiaya,
-        catatan: `Budget untuk: ${kat.nama}`,
-        fromCatatan: true,
-        sourceType: 'catatan_kategori',
-        sourceId: kategoriId
-      });
-      showNotif(`✅ Budget "${kat.nama}" ditambahkan!`, false, 'success');
-    } catch (err) {
-      showNotif("Gagal menambahkan", true, 'error');
-    } finally {
-      hideLoading();
-    }
-  }
-};
-
 window.toggleItem = async function(kategoriId, itemId, selesai) {
-  if (selesai) {
-    const item = checklistItems[kategoriId]?.[itemId];
-    if (item && !item.linkedTransactionId) {
-      showNotif("Silakan tambahkan item ini ke Keuangan terlebih dahulu", false, 'warning');
-      addItemToKeuangan(kategoriId, itemId, item.nama);
-      return;
-    }
-  }
-  await update(ref(db, `data/catatan/${currentUser}/items/${kategoriId}/${itemId}`), { selesai });
-  clearCache(`catatan_items_${currentUser}`);
+  await update(ref(db, `data/catatan/bersama/items/${kategoriId}/${itemId}`), { selesai });
+  clearCache(`catatan_items_bersama`);
   updateProgress();
 };
 
@@ -555,12 +425,8 @@ window.deleteItem = async function(kategoriId, itemId) {
   if (confirmed) {
     showLoading("Menghapus item...");
     try {
-      const item = checklistItems[kategoriId]?.[itemId];
-      if (item && item.linkedTransactionId) {
-        await window.deleteTransaksiWithRelation(item.linkedTransactionId, currentUser);
-      }
-      await remove(ref(db, `data/catatan/${currentUser}/items/${kategoriId}/${itemId}`));
-      clearCache(`catatan_items_${currentUser}`);
+      await remove(ref(db, `data/catatan/bersama/items/${kategoriId}/${itemId}`));
+      clearCache(`catatan_items_bersama`);
       await loadChecklistItemsOptimized(true);
       renderKategori();
       updateProgress();
@@ -578,20 +444,15 @@ window.deleteKategori = async function(id) {
   if (confirmed) {
     showLoading("Menghapus kategori...");
     try {
-      const items = checklistItems[id] || {};
-      for (const [itemId, item] of Object.entries(items)) {
-        if (item && item.linkedTransactionId) {
-          await window.deleteTransaksiWithRelation(item.linkedTransactionId, currentUser);
-        }
-      }
-      await remove(ref(db, `data/catatan/${currentUser}/kategori/${id}`));
-      await remove(ref(db, `data/catatan/${currentUser}/items/${id}`));
-      clearCache(`catatan_kategori_${currentUser}`);
-      clearCache(`catatan_items_${currentUser}`);
+      await remove(ref(db, `data/catatan/bersama/kategori/${id}`));
+      await remove(ref(db, `data/catatan/bersama/items/${id}`));
+      clearCache(`catatan_kategori_bersama`);
+      clearCache(`catatan_items_bersama`);
       await loadKategoriOptimized(true);
       await loadChecklistItemsOptimized(true);
       renderKategori();
       updateProgress();
+      generateAIRecommendations();
       showNotif("Kategori dihapus", false, 'warning');
     } catch (err) {
       showNotif("Gagal menghapus", true, 'error');
@@ -630,7 +491,7 @@ window.openKategoriModal = function(editId = null) {
             <div class="mb-3">
               <label class="fw-semibold mb-2">Estimasi Biaya (Rp)</label>
               <input type="number" id="kategoriEstimasi" class="form-control form-control-lg rounded-3">
-              <small class="text-muted">Akan terhubung dengan menu Keuangan</small>
+              <small class="text-muted">Target tabungan untuk kategori ini</small>
             </div>
           </div>
           <div class="modal-footer border-0 pb-4 px-4">
@@ -657,7 +518,7 @@ window.openKategoriModal = function(editId = null) {
 };
 
 async function loadKategoriData(id) {
-  const snapshot = await get(ref(db, `data/catatan/${currentUser}/kategori/${id}`));
+  const snapshot = await get(ref(db, `data/catatan/bersama/kategori/${id}`));
   const data = snapshot.val();
   if (data) {
     document.getElementById('kategoriNama').value = data.nama || '';
@@ -679,15 +540,15 @@ window.saveKategori = async function() {
   showLoading("Menyimpan kategori...");
   try {
     if (editKategoriId) {
-      await update(ref(db, `data/catatan/${currentUser}/kategori/${editKategoriId}`), { nama, icon, estimasiBiaya });
+      await update(ref(db, `data/catatan/bersama/kategori/${editKategoriId}`), { nama, icon, estimasiBiaya });
       showNotif("Kategori berhasil diupdate", false, 'success');
       editKategoriId = null;
     } else {
-      await push(ref(db, `data/catatan/${currentUser}/kategori`), { nama, icon, estimasiBiaya });
+      await push(ref(db, `data/catatan/bersama/kategori`), { nama, icon, estimasiBiaya });
       showNotif("Kategori berhasil ditambahkan", false, 'success');
     }
     
-    clearCache(`catatan_kategori_${currentUser}`);
+    clearCache(`catatan_kategori_bersama`);
     await loadKategoriOptimized(true);
     renderKategori();
     generateAIRecommendations();
@@ -770,7 +631,7 @@ window.editItem = function(kategoriId, itemId) {
   }
   
   const loadItemData = async () => {
-    const snapshot = await get(ref(db, `data/catatan/${currentUser}/items/${kategoriId}/${itemId}`));
+    const snapshot = await get(ref(db, `data/catatan/bersama/items/${kategoriId}/${itemId}`));
     const data = snapshot.val();
     if (data) {
       document.getElementById('itemNama').value = data.nama || '';
@@ -793,15 +654,15 @@ window.saveItem = async function() {
   showLoading("Menyimpan item...");
   try {
     if (editItemId) {
-      await update(ref(db, `data/catatan/${currentUser}/items/${editItemParentId}/${editItemId}`), { nama });
+      await update(ref(db, `data/catatan/bersama/items/${editItemParentId}/${editItemId}`), { nama });
       showNotif("Item berhasil diupdate", false, 'success');
       editItemId = null;
     } else {
-      await push(ref(db, `data/catatan/${currentUser}/items/${editItemParentId}`), { nama, selesai: false });
+      await push(ref(db, `data/catatan/bersama/items/${editItemParentId}`), { nama, selesai: false });
       showNotif("Item berhasil ditambahkan", false, 'success');
     }
     
-    clearCache(`catatan_items_${currentUser}`);
+    clearCache(`catatan_items_bersama`);
     await loadChecklistItemsOptimized(true);
     renderKategori();
     updateProgress();
