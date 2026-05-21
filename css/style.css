@@ -1,4 +1,4 @@
-/* style.css - UI/UX Enhanced Version - FULL CSS (Final) */
+/* style.css - UI/UX Enhanced Version - FULL CSS (Dark Mode Fixed) */
 
 * {
   margin: 0;
@@ -15,7 +15,7 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg-body);
   overflow-x: visible !important;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.2s ease, color 0.2s ease;
   line-height: 1.5;
   -webkit-tap-highlight-color: transparent;
 }
@@ -45,34 +45,23 @@ body {
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 }
 
-/* ============ DARK MODE VARIABLES ============ */
+/* ============ DARK MODE VARIABLES (AKTIF SAAT BODY MEMILIKI CLASS .dark) ============ */
 body.dark {
-  --bg-body: #0f172a;
-  --card-bg: #1e293b;
-  --text-primary: #f1f5f9;
-  --text-muted: #94a3b8;
-  --border-light: #334155;
-  --sidebar-bg: #111827;
-  --input-bg: #1e293b;
-  --bg-light: #1e293b;
+  --bg-body: #0f172a !important;
+  --card-bg: #1e293b !important;
+  --text-primary: #f1f5f9 !important;
+  --text-muted: #94a3b8 !important;
+  --border-light: #334155 !important;
+  --sidebar-bg: #111827 !important;
+  --input-bg: #1e293b !important;
+  --bg-light: #1e293b !important;
 }
 
-body {
-  background-color: var(--bg-body);
-  color: var(--text-primary);
+body.dark {
+  background-color: #0f172a !important;
 }
 
-/* ============ ANIMASI PIXEL BERGERAK ============ */
-.particle-canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 9998;
-}
-
+/* ============ ANIMASI ============ */
 .confetti {
   position: fixed;
   width: 10px;
@@ -116,39 +105,7 @@ body {
   }
 }
 
-.floating-heart {
-  position: fixed;
-  font-size: 20px;
-  pointer-events: none;
-  z-index: 9999;
-  animation: float-up 2s ease-out forwards;
-}
-
-@keyframes float-up {
-  0% {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(-100px) scale(1.5);
-    opacity: 0;
-  }
-}
-
-/* ============ TYPOGRAPHY ============ */
-h1, h2, h3, h4, h5, h6 {
-  font-weight: 600;
-  line-height: 1.3;
-}
-
-.text-gradient {
-  background: linear-gradient(135deg, var(--primary), #8b5cf6);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-/* ============ LOGIN SCREEN ENHANCED ============ */
+/* ============ LOGIN SCREEN ============ */
 #login-screen {
   position: fixed;
   top: 0;
@@ -161,43 +118,6 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-}
-
-#login-screen::before {
-  content: '';
-  position: absolute;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 1%, transparent 1%);
-  background-size: 50px 50px;
-  animation: bubbleMove 20s linear infinite;
-  opacity: 0.5;
-}
-
-@keyframes bubbleMove {
-  0% {
-    transform: translate(0, 0) rotate(0deg);
-  }
-  100% {
-    transform: translate(-50%, -50%) rotate(360deg);
-  }
-}
-
-.floating-heart-bg {
-  position: absolute;
-  font-size: 24px;
-  opacity: 0.3;
-  animation: floatHeart 8s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes floatHeart {
-  0%, 100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-20px) rotate(10deg);
-  }
 }
 
 .login-container {
@@ -225,7 +145,7 @@ h1, h2, h3, h4, h5, h6 {
 .brand-circle-modern {
   width: 80px;
   height: 80px;
-  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
   border-radius: 40px;
   display: inline-flex;
   align-items: center;
@@ -263,13 +183,13 @@ h1, h2, h3, h4, h5, h6 {
 
 .sub-greeting-modern {
   font-size: 0.9rem;
-  color: var(--text-muted);
+  color: #64748b;
   margin-bottom: 2rem;
 }
 
 .input-modern {
   width: 100%;
-  border: 2px solid var(--border-light);
+  border: 2px solid #e2e8f0;
   border-radius: 60px;
   padding: 1rem 1.5rem;
   font-size: 1rem;
@@ -278,7 +198,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .input-modern:focus {
-  border-color: var(--primary);
+  border-color: #6366f1;
   outline: none;
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
   transform: translateY(-2px);
@@ -294,7 +214,7 @@ h1, h2, h3, h4, h5, h6 {
   left: 18px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-muted);
+  color: #64748b;
   font-size: 1.1rem;
   z-index: 1;
 }
@@ -304,7 +224,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .login-btn-modern {
-  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
   border: none;
   border-radius: 60px;
   padding: 1rem;
@@ -351,6 +271,7 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  transition: background 0.2s ease;
 }
 
 .sidebar .nav-link, #app-sidebar .nav-link {
@@ -358,7 +279,7 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  border-radius: var(--radius-md);
+  border-radius: 12px;
   color: var(--text-muted);
   font-weight: 500;
   transition: all 0.2s;
@@ -376,7 +297,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .sidebar .nav-link.active, #app-sidebar .nav-link.active {
-  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
 }
 
@@ -390,7 +311,7 @@ h1, h2, h3, h4, h5, h6 {
   height: 80px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid var(--primary);
+  border: 3px solid #6366f1;
 }
 
 .profile-status {
@@ -412,7 +333,7 @@ h1, h2, h3, h4, h5, h6 {
   right: -5px;
   width: 28px;
   height: 28px;
-  background: var(--primary);
+  background: #6366f1;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -433,7 +354,7 @@ h1, h2, h3, h4, h5, h6 {
   padding: 1rem;
   min-height: 100vh;
   display: none;
-  transition: margin-left 0.3s ease;
+  transition: margin-left 0.3s ease, background 0.2s ease;
 }
 
 /* ============ SECTION ANIMATION ============ */
@@ -455,29 +376,15 @@ section {
 /* ============ CARDS ============ */
 .card {
   border: none;
-  border-radius: var(--radius-lg);
+  border-radius: 16px;
   background: var(--card-bg);
   transition: all 0.2s ease;
   overflow: visible !important;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }
 
 .card:active {
   transform: scale(0.99);
-}
-
-.card-header-custom {
-  background: transparent;
-  border-bottom: 1px solid var(--border-light);
-  padding: 1rem;
-  font-weight: 600;
-  overflow: visible !important;
-}
-
-.card-header {
-  overflow: visible !important;
-  position: relative;
-  z-index: 10;
 }
 
 /* ============ BUTTONS ============ */
@@ -496,7 +403,7 @@ section {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
 }
 
@@ -506,17 +413,17 @@ section {
 }
 
 .btn-danger {
-  background: var(--danger);
+  background: #ef4444;
   color: white;
 }
 
 .btn-success {
-  background: var(--success);
+  background: #10b981;
   color: white;
 }
 
 .btn-warning {
-  background: var(--warning);
+  background: #f59e0b;
   color: white;
 }
 
@@ -525,34 +432,12 @@ section {
   font-size: 0.8rem;
 }
 
-.btn-outline-success {
-  background: transparent;
-  border: 1.5px solid var(--success);
-  color: var(--success);
-}
-
-.btn-outline-success:hover {
-  background: var(--success);
-  color: white;
-}
-
-.btn-outline-primary {
-  background: transparent;
-  border: 1.5px solid var(--primary);
-  color: var(--primary);
-}
-
-.btn-outline-primary:hover {
-  background: var(--primary);
-  color: white;
-}
-
 /* ============ FORM ELEMENTS ============ */
 .form-control,
 .form-select {
   background-color: var(--input-bg);
   border: 1.5px solid var(--border-light);
-  border-radius: var(--radius-md);
+  border-radius: 12px;
   padding: 12px 14px;
   font-size: 1rem;
   color: var(--text-primary);
@@ -562,7 +447,7 @@ section {
 
 .form-control:focus,
 .form-select:focus {
-  border-color: var(--primary);
+  border-color: #6366f1;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
   outline: none;
 }
@@ -616,7 +501,7 @@ section {
 }
 
 .bottom-nav-item.active {
-  color: var(--primary);
+  color: #6366f1;
   background: rgba(99, 102, 241, 0.1);
 }
 
@@ -629,13 +514,13 @@ section {
   width: 48px;
   height: 48px;
   border-radius: 24px;
-  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
   cursor: pointer;
   transition: transform 0.2s;
 }
@@ -666,7 +551,7 @@ section {
   transform: translateY(20px);
   transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   margin-bottom: 8px;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
 }
 
 .custom-toast.show {
@@ -675,15 +560,15 @@ section {
 }
 
 .custom-toast.success {
-  border-left: 4px solid var(--success);
+  border-left: 4px solid #10b981;
 }
 
 .custom-toast.error {
-  border-left: 4px solid var(--danger);
+  border-left: 4px solid #ef4444;
 }
 
 .custom-toast.warning {
-  border-left: 4px solid var(--warning);
+  border-left: 4px solid #f59e0b;
 }
 
 .custom-toast .toast-message {
@@ -786,7 +671,7 @@ section {
 }
 
 .calendar-day.today {
-  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
   border-color: transparent;
 }
 
@@ -797,12 +682,12 @@ section {
 
 .calendar-day.has-moment {
   background: #d1fae5;
-  border-color: var(--success);
+  border-color: #10b981;
 }
 
 .calendar-day.special-moment {
   background: linear-gradient(135deg, #fef3c7, #fde68a);
-  border: 2px solid var(--warning);
+  border: 2px solid #f59e0b;
 }
 
 .moment-love {
@@ -835,7 +720,7 @@ section {
 }
 
 .moment-card.special-card {
-  border: 2px solid var(--warning);
+  border: 2px solid #f59e0b;
   position: relative;
 }
 
@@ -844,7 +729,7 @@ section {
   position: absolute;
   top: -10px;
   right: -10px;
-  background: var(--warning);
+  background: #f59e0b;
   color: white;
   border-radius: 50%;
   width: 28px;
@@ -870,7 +755,7 @@ section {
 .moment-image-placeholder {
   width: 100%;
   height: 160px;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -910,8 +795,8 @@ section {
 }
 
 .photo-upload-item:hover {
-  border-color: var(--primary);
-  color: var(--primary);
+  border-color: #6366f1;
+  color: #6366f1;
 }
 
 .photo-preview-item {
@@ -947,7 +832,7 @@ section {
 }
 
 .remove-photo-btn:hover {
-  background: var(--danger);
+  background: #ef4444;
   transform: scale(1.1);
 }
 
@@ -974,7 +859,7 @@ section {
 }
 
 .status-badge.active {
-  background: linear-gradient(135deg, var(--primary), #8b5cf6) !important;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
   color: white !important;
   border: none !important;
 }
@@ -1010,16 +895,16 @@ section {
 /* ============ KEUANGAN KATEGORI CARD ============ */
 .category-progress-card {
   background: var(--card-bg);
-  border-radius: var(--radius-md);
+  border-radius: 12px;
   padding: 12px;
   margin-bottom: 8px;
-  border-left: 4px solid var(--primary);
+  border-left: 4px solid #6366f1;
   transition: all 0.2s ease;
 }
 
 .category-progress-card:hover {
   transform: translateX(4px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }
 
 .category-progress-card .progress {
@@ -1037,8 +922,8 @@ section {
   position: absolute !important;
   background: var(--card-bg) !important;
   border: 1px solid var(--border-light) !important;
-  border-radius: var(--radius-md) !important;
-  box-shadow: var(--shadow-lg) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1) !important;
   min-width: 160px !important;
 }
 
@@ -1312,7 +1197,7 @@ button:active,
   }
 }
 
-/* ============ DARK MODE SPECIFIC OVERRIDES ============ */
+/* ============ DARK MODE DARK MODE SPECIFIC OVERRIDES ============ */
 body.dark .calendar-day {
   background: #1f2937;
   border-color: #374151;
@@ -1331,12 +1216,12 @@ body.dark .calendar-day.special-moment {
 }
 
 body.dark .moment-card {
-  background: #1f2937;
+  background: #1e293b;
   border-color: #374151;
 }
 
 body.dark .moment-card.special-card {
-  background: linear-gradient(135deg, #1f2937, #2d1f00);
+  background: linear-gradient(135deg, #1e293b, #2d1f00);
 }
 
 body.dark .photo-upload-item {
@@ -1345,11 +1230,11 @@ body.dark .photo-upload-item {
 }
 
 body.dark .photo-upload-item:hover {
-  border-color: var(--primary);
+  border-color: #6366f1;
 }
 
 body.dark .modal-content {
-  background: var(--card-bg);
+  background: #1e293b;
 }
 
 body.dark .bottom-nav {
@@ -1416,7 +1301,20 @@ body.dark .profile-status {
   background: #1e293b;
 }
 
-/* Safe Area untuk Android dengan notches */
+body.dark .card {
+  background: #1e293b;
+}
+
+body.dark .text-muted {
+  color: #94a3b8 !important;
+}
+
+body.dark .btn-secondary {
+  background: #334155;
+  color: #f1f5f9;
+}
+
+/* Safe Area untuk Android */
 @supports (padding: max(0px)) {
   .bottom-nav { 
     padding-bottom: max(12px, env(safe-area-inset-bottom)); 
@@ -1471,10 +1369,10 @@ body.dark .profile-status {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--primary);
+  background: #6366f1;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-dark);
+  background: #4f46e5;
 }
