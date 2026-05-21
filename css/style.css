@@ -1,4 +1,4 @@
-/* style.css - UI/UX Enhanced Version - FULL CSS (Dark Mode Fixed) */
+/* style.css - UI/UX Enhanced Version - FULL CSS (Dark Mode Fixed + Perbaikan) */
 
 * {
   margin: 0;
@@ -505,12 +505,12 @@ section {
   background: rgba(99, 102, 241, 0.1);
 }
 
-/* ============ DARK MODE FAB ============ */
+/* ============ PERBAIKAN #7: DARK MODE FAB IMPROVED ============ */
 .dark-mode-fab {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  z-index: 1050;
+  z-index: 1051;
   width: 48px;
   height: 48px;
   border-radius: 24px;
@@ -522,11 +522,19 @@ section {
   border: none;
   box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: transform 0.2s, opacity 0.2s;
 }
 
 .dark-mode-fab:active {
   transform: scale(0.95);
+}
+
+/* Mobile specific for FAB */
+@media (max-width: 768px) {
+  .dark-mode-fab {
+    bottom: 90px;
+    right: 16px;
+  }
 }
 
 /* ============ TOAST NOTIFICATION ============ */
@@ -978,6 +986,43 @@ button:active,
   box-shadow: none !important;
 }
 
+/* ============ PERBAIKAN #6: OFFLINE INDICATOR STYLE ============ */
+#offlineIndicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  text-align: center;
+  padding: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  z-index: 10001;
+  transform: translateY(-100%);
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+#offlineIndicator.show {
+  transform: translateY(0);
+}
+
+body.dark #offlineIndicator {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+}
+
+/* ============ PERBAIKAN #5: KEYBOARD VISIBLE FIX ============ */
+@media (max-width: 768px) {
+  body.keyboard-open .dark-mode-fab {
+    bottom: 20px;
+  }
+  
+  body.keyboard-open #customToastContainer {
+    bottom: 20px !important;
+  }
+}
+
 /* ============ RESPONSIVE STYLES ============ */
 @media (min-width: 769px) {
   #app-content {
@@ -1012,7 +1057,7 @@ button:active,
   }
   
   .dark-mode-fab {
-    bottom: 80px;
+    bottom: 90px;
     right: 16px;
   }
   
@@ -1197,7 +1242,7 @@ button:active,
   }
 }
 
-/* ============ DARK MODE DARK MODE SPECIFIC OVERRIDES ============ */
+/* ============ DARK MODE SPECIFIC OVERRIDES ============ */
 body.dark .calendar-day {
   background: #1f2937;
   border-color: #374151;
@@ -1314,26 +1359,7 @@ body.dark .btn-secondary {
   color: #f1f5f9;
 }
 
-/* Safe Area untuk Android */
-@supports (padding: max(0px)) {
-  .bottom-nav { 
-    padding-bottom: max(12px, env(safe-area-inset-bottom)); 
-    padding-left: max(8px, env(safe-area-inset-left));
-    padding-right: max(8px, env(safe-area-inset-right));
-  }
-  
-  .dark-mode-fab {
-    bottom: max(80px, calc(env(safe-area-inset-bottom) + 80px));
-    right: max(16px, env(safe-area-inset-right));
-  }
-  
-  #app-content {
-    padding-left: max(12px, env(safe-area-inset-left));
-    padding-right: max(12px, env(safe-area-inset-right));
-  }
-}
-
-/* Touch feedback untuk Android */
+/* ============ TOUCH FEEDBACK UNTUK MOBILE ============ */
 @media (max-width: 768px) {
   button:active, 
   .bottom-nav-item:active, 
@@ -1343,9 +1369,36 @@ body.dark .btn-secondary {
     transform: scale(0.97);
     transition: transform 0.05s;
   }
+  
+  .btn, 
+  .bottom-nav-item,
+  .calendar-day,
+  .moment-card {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
-/* Reduced motion support */
+/* ============ SAFE AREA UNTUK ANDROID ============ */
+@supports (padding: max(0px)) {
+  .bottom-nav { 
+    padding-bottom: max(12px, env(safe-area-inset-bottom)); 
+    padding-left: max(8px, env(safe-area-inset-left));
+    padding-right: max(8px, env(safe-area-inset-right));
+  }
+  
+  .dark-mode-fab {
+    bottom: max(90px, calc(env(safe-area-inset-bottom) + 90px));
+    right: max(16px, env(safe-area-inset-right));
+  }
+  
+  #app-content {
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+}
+
+/* ============ REDUCED MOTION SUPPORT ============ */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -1357,7 +1410,7 @@ body.dark .btn-secondary {
   }
 }
 
-/* Scrollbar */
+/* ============ SCROLLBAR ============ */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
