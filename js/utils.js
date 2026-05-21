@@ -1,4 +1,4 @@
-// js/utils.js - Lengkap dengan semua export
+// js/utils.js - Lengkap dengan semua export (VERSI DIPERBAIKI)
 export let currentUser = null;
 export let masterData = null;
 export let privacyHidden = false;
@@ -93,10 +93,11 @@ export function showLoading(message = 'Memuat data...') {
   `;
   document.body.appendChild(loadingOverlay);
   
+  // PERBAIKAN #3: Loading timeout dari 10 detik jadi 5 detik
   loadingTimeout = setTimeout(() => {
     hideLoading();
-    showNotif("⏰ Loading terlalu lama, coba refresh", true, 'error');
-  }, 10000);
+    showNotif("⏰ Koneksi lambat, coba refresh", true, 'error');
+  }, 5000); // <-- DIUBAH DARI 10000 MENJADI 5000
 }
 
 export function hideLoading() {
@@ -113,9 +114,25 @@ export function hideLoading() {
   }
 }
 
-// ============ TOAST NOTIFICATION ============
+// ============ TOAST NOTIFICATION + PERBAIKAN #5 (Keyboard fix) ============
 let toastQueue = [];
 let isToastShowing = false;
+let originalToastBottom = '80px';
+
+// Fungsi untuk menyesuaikan posisi toast saat keyboard muncul
+function initToastKeyboardFix() {
+  document.addEventListener('focusin', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
+      const toast = document.getElementById('customToastContainer');
+      if (toast) toast.style.bottom = '20px';
+    }
+  });
+  
+  document.addEventListener('focusout', () => {
+    const toast = document.getElementById('customToastContainer');
+    if (toast) toast.style.bottom = originalToastBottom;
+  });
+}
 
 export function showNotif(msg, isErr = false, type = 'success') {
   let toastContainer = document.getElementById('customToastContainer');
@@ -132,6 +149,7 @@ export function showNotif(msg, isErr = false, type = 'success') {
       pointer-events: none;
     `;
     document.body.appendChild(toastContainer);
+    initToastKeyboardFix();
   }
   
   if (isToastShowing) {
