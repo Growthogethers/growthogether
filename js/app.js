@@ -1,4 +1,4 @@
-// js/app.js - Main Application (Dark Mode Fixed + Mobile Navbar Fixed)
+// js/app.js - Main Application (DENGAN PERBAIKAN LENGKAP)
 import { db, ref, onValue, set } from './firebase-config.js';
 import { 
   masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser, 
@@ -39,6 +39,60 @@ import { initImpian } from './impian.js';
 let firebaseListener = null;
 let currentPage = 'dashboard';
 let appInitialized = false;
+let offlineIndicator = null;
+
+// ============ PERBAIKAN #6: OFFLINE INDICATOR ============
+function initOfflineIndicator() {
+  if (offlineIndicator) return;
+  
+  offlineIndicator = document.createElement('div');
+  offlineIndicator.id = 'offlineIndicator';
+  offlineIndicator.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    text-align: center;
+    padding: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    z-index: 10001;
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  `;
+  offlineIndicator.innerHTML = `
+    <i class="bi bi-wifi-off me-2"></i>
+    Offline - Perubahan tidak akan tersimpan sampai koneksi kembali
+  `;
+  document.body.appendChild(offlineIndicator);
+  
+  window.addEventListener('online', () => {
+    if (offlineIndicator) {
+      offlineIndicator.style.transform = 'translateY(-100%)';
+    }
+    showNotif('📡 Koneksi kembali online!', false, 'success');
+    clearCache();
+  });
+  
+  window.addEventListener('offline', () => {
+    if (offlineIndicator) {
+      offlineIndicator.style.transform = 'translateY(0)';
+    }
+    showNotif('⚠️ Koneksi terputus. Perubahan tidak akan tersimpan.', true, 'error');
+  });
+}
+
+// ============ PERBAIKAN #1: CLEANUP FIREBASE LISTENER ============
+function cleanupFirebaseListener() {
+  if (firebaseListener) {
+    console.log("Cleaning up Firebase listener...");
+    firebaseListener(); // unsubscribe dari onValue
+    firebaseListener = null;
+  }
+}
 
 // Show initial loading screen
 function showInitialLoading() {
@@ -109,11 +163,10 @@ async function loadComponents() {
   }
 }
 
-// ============ DARK MODE FIXED ============
+// ============ DARK MODE FIXED + PERBAIKAN #7 ============
 function initDarkMode() {
   console.log("Initializing dark mode...");
   
-  // Cari atau buat dark mode FAB
   let darkFab = document.getElementById("darkModeFab");
   if (!darkFab) {
     darkFab = document.createElement('button');
@@ -123,11 +176,9 @@ function initDarkMode() {
     document.body.appendChild(darkFab);
   }
   
-  // Cek localStorage untuk preferensi dark mode
   const savedMode = localStorage.getItem("darkMode");
   const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   
-  // Tentukan mode awal
   let isDark = false;
   if (savedMode === "enabled") {
     isDark = true;
@@ -137,10 +188,8 @@ function initDarkMode() {
     isDark = systemDark;
   }
   
-  // Terapkan mode
   applyDarkMode(isDark, darkFab);
   
-  // Event listener untuk toggle
   darkFab.onclick = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -152,7 +201,6 @@ function initDarkMode() {
     localStorage.setItem("darkMode", newDarkState ? "enabled" : "disabled");
     
     showNotif(newDarkState ? "🌙 Mode Gelap Aktif" : "☀️ Mode Terang Aktif", false, 'info');
-    console.log("Dark mode toggled, isDark:", newDarkState);
   };
   
   console.log("Dark mode initialized, isDark:", isDark);
@@ -167,7 +215,6 @@ function applyDarkMode(isDark, darkFab) {
     if (darkFab) darkFab.innerHTML = '<i class="bi bi-moon-stars fs-5"></i>';
   }
   
-  // Update CSS variables untuk semua elemen
   document.documentElement.style.setProperty('--bg-body', isDark ? '#0f172a' : '#f8fafc');
   document.documentElement.style.setProperty('--card-bg', isDark ? '#1e293b' : '#ffffff');
   document.documentElement.style.setProperty('--text-primary', isDark ? '#f1f5f9' : '#1e293b');
@@ -188,11 +235,9 @@ function handleResize() {
   }
 }
 
-// ============ ATTACH EVENT LISTENERS ============
 function attachEventListeners() {
   console.log("Attaching event listeners...");
   
-  // ============ PROFILE TRIGGER UNTUK DESKTOP (dari sidebar) ============
   const profileTrigger = document.getElementById('profileTrigger');
   if (profileTrigger) {
     profileTrigger.removeEventListener('click', profileTrigger._profileListener);
@@ -206,7 +251,6 @@ function attachEventListeners() {
     profileTrigger.addEventListener('click', profileTrigger._profileListener);
   }
   
-  // ============ PROFILE MENU DARI BOTTOM NAV (MOBILE) ============
   const profileMenuBtn = document.getElementById('profileMenuBtn');
   if (profileMenuBtn) {
     profileMenuBtn.removeEventListener('click', profileMenuBtn._mobileProfileListener);
@@ -221,20 +265,17 @@ function attachEventListeners() {
     profileMenuBtn.addEventListener('click', profileMenuBtn._mobileProfileListener);
   }
   
-  // ============ LOGOUT DARI BOTTOM NAV (MOBILE) ============
   const logoutMenuBtn = document.getElementById('logoutMenuBtn');
   if (logoutMenuBtn) {
     logoutMenuBtn.removeEventListener('click', logoutMenuBtn._logoutListener);
     logoutMenuBtn._logoutListener = (e) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log("Logout button clicked from bottom nav");
       confirmLogout();
     };
     logoutMenuBtn.addEventListener('click', logoutMenuBtn._logoutListener);
   }
   
-  // ============ LOGOUT DARI SIDEBAR (DESKTOP) ============
   const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
   if (sidebarLogoutBtn) {
     sidebarLogoutBtn.removeEventListener('click', sidebarLogoutBtn._sidebarLogoutListener);
@@ -246,7 +287,6 @@ function attachEventListeners() {
     sidebarLogoutBtn.addEventListener('click', sidebarLogoutBtn._sidebarLogoutListener);
   }
   
-  // ============ PRIVACY TOGGLE ============
   document.querySelectorAll("#privacyToggleDash").forEach(btn => {
     if (btn) {
       btn.removeEventListener('click', btn._privacyListener);
@@ -258,13 +298,11 @@ function attachEventListeners() {
     }
   });
   
-  // ============ NAVIGATION ============
   const throttledShowPage = throttle((page) => {
     showPage(page);
   }, 300);
   
   document.querySelectorAll(".nav-link, .bottom-nav-item").forEach(el => {
-    // Skip khusus untuk profile dan logout (mereka bukan navigasi page)
     if (el.id === 'profileMenuBtn' || el.id === 'logoutMenuBtn') return;
     
     el.removeEventListener('click', el._navListener);
@@ -277,7 +315,6 @@ function attachEventListeners() {
     el.addEventListener('click', el._navListener);
   });
   
-  // ============ ONLINE/OFFLINE DETECTION ============
   window.addEventListener('online', () => { 
     showNotif("📡 Koneksi kembali online", false, 'success');
     clearCache();
@@ -380,8 +417,12 @@ function checkAuth() {
   }
 }
 
+// ============ PERBAIKAN #1: FIXED FIREBASE LISTENER ============
 function initFirebaseListener() {
-  if (!firebaseListener && !appInitialized) {
+  // Cleanup existing listener sebelum buat baru
+  cleanupFirebaseListener();
+  
+  if (!appInitialized) {
     console.log("Initializing Firebase listener...");
     firebaseListener = onValue(ref(db, "data/"), (snapshot) => {
       const data = snapshot.val() || { 
@@ -436,6 +477,7 @@ async function init() {
   showInitialLoading();
   
   injectToastContainer();
+  initOfflineIndicator(); // PERBAIKAN #6
   await loadComponents();
   checkAuth();
   initFirebaseListener();
@@ -452,6 +494,13 @@ async function init() {
   
   console.log("✅ App initialized successfully");
 }
+
+// Override handleLogout untuk cleanup listener
+const originalHandleLogout = handleLogout;
+window.handleLogout = function() {
+  cleanupFirebaseListener();
+  originalHandleLogout();
+};
 
 // Exports
 window.setupAppSession = setupAppSession;
@@ -477,6 +526,6 @@ window.deleteMomentFromDetail = deleteMomentFromDetail;
 window.changeMonth = changeMonth;
 window.triggerConfetti = triggerConfetti;
 window.confirmLogout = confirmLogout;
-window.handleLogout = handleLogout;
+window.handleLogout = window.handleLogout;
 
 document.addEventListener("DOMContentLoaded", init);
