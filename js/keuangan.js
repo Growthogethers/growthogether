@@ -1,4 +1,4 @@
-// js/keuangan.js - Versi terhubung dengan Catatan per kategori
+// js/keuangan.js - Versi lengkap dengan Chart, Search, Filter, Export
 import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
 import { 
   showNotif, formatNumberRp, escapeHtml, showCustomPrompt, showCustomConfirm, 
@@ -12,18 +12,184 @@ let targetKategori = {};
 let editTransaksiId = null;
 let dynamicCategories = [];
 let isInitialized = false;
+let keuanganChart = null;
+let currentChartPeriod = 'month';
+let currentFilter = {
+  search: '',
+  startDate: '',
+  endDate: ''
+};
 
-// Ambil kategori dari catatan bersama
+// ============ CHART FUNCTIONS ============
+function initKeuanganChart() {
+  const ctx = document.getElementById('keuanganChart');
+  if (!ctx) return;
+  
+  if (keuanganChart) {
+    keuanganChart.destroy();
+  }
+  
+  keuanganChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: 'Pemasukan',
+          data: [],
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#10b981',
+          pointBorderColor: '#ffffff',
+          pointRadius: 4,
+          pointHoverRadius: 6
+        },
+        {
+          label: 'Pengeluaran',
+          data: [],
+          borderColor: '#ef4444',
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#ef4444',
+          pointBorderColor: '#ffffff',
+          pointRadius: 4,
+          pointHoverRadius: 6
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: {
+            font: { size: 12 },
+            usePointStyle: true,
+            boxWidth: 8
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return `${context.dataset.label}: Rp ${context.raw.toLocaleString('id-ID')}`;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return 'Rp ' + value.toLocaleString('id-ID');
+            }
+          }
+        }
+      }
+    }
+  });
+  
+  updateChartData();
+}
+
+async function updateChartData() {
+  const currentUser = sessionStorage.getItem("progrowth_user");
+  if (!currentUser) return;
+  
+  const snapshot = await get(ref(db, `data/keuangan/${currentUser}/transaksi`));
+  const data = snapshot.val() || {};
+  const transaksiArray = Object.values(data);
+  
+  const now = new Date();
+  let labels = [];
+  let pemasukanData = [];
+  let pengeluaranData = [];
+  
+  if (currentChartPeriod === 'week') {
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(now.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      labels.push(dateStr.slice(5));
+      
+      const pemasukan = transaksiArray.filter(t => 
+        t.tipe === 'pemasukan' && new Date(t.tanggal).toISOString().split('T')[0] === dateStr
+      ).reduce((sum, t) => sum + (t.nominal || 0), 0);
+      
+      const pengeluaran = transaksiArray.filter(t => 
+        t.tipe === 'pengeluaran' && new Date(t.tanggal).toISOString().split('T')[0] === dateStr
+      ).reduce((sum, t) => sum + (t.nominal || 0), 0);
+      
+      pemasukanData.push(pemasukan);
+      pengeluaranData.push(pengeluaran);
+    }
+  } else if (currentChartPeriod === 'month') {
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(now.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      labels.push(dateStr.slice(5));
+      
+      const pemasukan = transaksiArray.filter(t => 
+        t.tipe === 'pemasukan' && new Date(t.tanggal).toISOString().split('T')[0] === dateStr
+      ).reduce((sum, t) => sum + (t.nominal || 0), 0);
+      
+      const pengeluaran = transaksiArray.filter(t => 
+        t.tipe === 'pengeluaran' && new Date(t.tanggal).toISOString().split('T')[0] === dateStr
+      ).reduce((sum, t) => sum + (t.nominal || 0), 0);
+      
+      pemasukanData.push(pemasukan);
+      pengeluaranData.push(pengeluaran);
+    }
+  } else if (currentChartPeriod === 'year') {
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date(now);
+      date.setMonth(now.getMonth() - i);
+      const monthStr = date.toLocaleString('id-ID', { month: 'short' });
+      labels.push(monthStr);
+      
+      const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+      const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+      
+      const pemasukan = transaksiArray.filter(t => 
+        t.tipe === 'pemasukan' && t.tanggal >= monthStart.getTime() && t.tanggal <= monthEnd.getTime()
+      ).reduce((sum, t) => sum + (t.nominal || 0), 0);
+      
+      const pengeluaran = transaksiArray.filter(t => 
+        t.tipe === 'pengeluaran' && t.tanggal >= monthStart.getTime() && t.tanggal <= monthEnd.getTime()
+      ).reduce((sum, t) => sum + (t.nominal || 0), 0);
+      
+      pemasukanData.push(pemasukan);
+      pengeluaranData.push(pengeluaran);
+    }
+  }
+  
+  if (keuanganChart) {
+    keuanganChart.data.labels = labels;
+    keuanganChart.data.datasets[0].data = pemasukanData;
+    keuanganChart.data.datasets[1].data = pengeluaranData;
+    keuanganChart.update();
+  }
+}
+
+window.changeChartPeriod = function(period) {
+  currentChartPeriod = period;
+  updateChartData();
+  showNotif(`Menampilkan grafik ${period === 'week' ? 'Mingguan' : period === 'month' ? 'Bulanan' : 'Tahunan'}`, false, 'info');
+};
+
+// ============ AMBIL KATEGORI DARI CATATAN ============
 async function loadKategoriFromCatatan() {
   try {
     const snapshot = await get(ref(db, `data/catatan/bersama/kategori`));
     const data = snapshot.val() || {};
     kategoriList = Object.entries(data).map(([id, val]) => ({ id, ...val }));
-    
-    // Buat dynamic categories dari nama kategori catatan
     dynamicCategories = kategoriList.map(k => k.nama);
     
-    // Load target per kategori dari catatan
     for (const kat of kategoriList) {
       targetKategori[kat.nama] = kat.estimasiBiaya || 0;
     }
@@ -52,58 +218,7 @@ function updateKategoriSelect() {
   select.innerHTML = options;
 }
 
-export function initKeuangan() {
-  currentUser = sessionStorage.getItem("progrowth_user");
-  if (!currentUser) return;
-  
-  if (isInitialized) {
-    refreshData();
-    return;
-  }
-  
-  showLoading("Memuat data keuangan...");
-  isInitialized = true;
-  
-  const keuanganUserName = document.getElementById('keuanganUserName');
-  if (keuanganUserName) {
-    const displayName = currentUser === "FACHMI" ? "Fachmi" : "Azizah";
-    keuanganUserName.innerHTML = `Keuangan ${displayName}`;
-  }
-  
-  Promise.all([
-    loadKategoriFromCatatan(),
-    loadAllTransaksiOptimized()
-  ]).finally(() => {
-    hideLoading();
-    renderKategoriProgress();
-  });
-  
-  // Setup listener untuk perubahan kategori
-  onValue(ref(db, `data/catatan/bersama/kategori`), () => {
-    loadKategoriFromCatatan();
-    renderKategoriProgress();
-  });
-  
-  onValue(ref(db, `data/keuangan/${currentUser}/transaksi`), () => {
-    loadAllTransaksiOptimized(true);
-    renderKategoriProgress();
-  });
-}
-
-async function refreshData() {
-  showLoading("Memperbarui data...");
-  try {
-    await loadKategoriFromCatatan();
-    await loadAllTransaksiOptimized(true);
-    renderKategoriProgress();
-  } catch (err) {
-    console.error("Error refreshing:", err);
-  } finally {
-    hideLoading();
-  }
-}
-
-// Render progress per kategori dari catatan
+// ============ RENDER PROGRESS PER KATEGORI ============
 function renderKategoriProgress() {
   const container = document.getElementById('kategoriProgressContainer');
   if (!container) return;
@@ -118,47 +233,49 @@ function renderKategoriProgress() {
     return;
   }
   
-  // Hitung total pemasukan & pengeluaran per kategori
   const pemasukanPerKategori = {};
   const pengeluaranPerKategori = {};
   
   transaksiList.forEach(t => {
     if (t.tipe === 'pemasukan') {
-      pemasukanPerKategori[t.kategori] = (pemasukanPerKategori[t.kategori] || 0) + t.nominal;
+      pemasukanPerKategori[t.kategori] = (pemasukanPerKategori[t.kategori] || 0) + (t.nominal || 0);
     } else {
-      pengeluaranPerKategori[t.kategori] = (pengeluaranPerKategori[t.kategori] || 0) + t.nominal;
+      pengeluaranPerKategori[t.kategori] = (pengeluaranPerKategori[t.kategori] || 0) + (t.nominal || 0);
     }
   });
   
-  let html = '<div class="mb-3"><h6 class="fw-bold mb-2"><i class="bi bi-pie-chart me-2"></i>Progress Tabungan per Kategori</h6></div>';
+  let html = '<div class="mb-2"><h6 class="fw-bold"><i class="bi bi-pie-chart me-2"></i>Progress Tabungan per Kategori</h6></div>';
   
   for (const kat of kategoriList) {
     const target = kat.estimasiBiaya || 0;
-    const terkumpul = (pemasukanPerKategori[kat.nama] || 0) - (pengeluaranPerKategori[kat.nama] || 0);
-    const percent = target > 0 ? Math.min(100, (terkumpul / target) * 100) : 0;
-    const status = terkumpul >= target ? 'success' : terkumpul > 0 ? 'warning' : 'secondary';
+    const terkumpul = (pemusukanPerKategori[kat.nama] || 0) - (pengeluaranPerKategori[kat.nama] || 0);
+    const percent = target > 0 ? Math.min(100, Math.max(0, (terkumpul / target) * 100)) : 0;
+    let statusClass = 'bg-secondary';
+    if (percent >= 100) statusClass = 'bg-success';
+    else if (percent >= 50) statusClass = 'bg-warning';
+    else if (percent > 0) statusClass = 'bg-info';
     
     html += `
-      <div class="category-progress-card" data-kategori="${escapeHtml(kat.nama)}">
-        <div class="d-flex justify-content-between align-items-center mb-1">
+      <div class="category-progress-card mb-2" data-kategori="${escapeHtml(kat.nama)}">
+        <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap">
           <div>
             <i class="bi ${kat.icon || 'bi-folder'} me-2"></i>
             <strong>${escapeHtml(kat.nama)}</strong>
           </div>
           <small class="text-muted">Target: ${formatNumberRp(target)}</small>
         </div>
-        <div class="progress mb-1">
-          <div class="progress-bar bg-${status}" style="width: ${percent}%"></div>
+        <div class="progress mb-1" style="height: 8px;">
+          <div class="progress-bar ${statusClass}" style="width: ${percent}%"></div>
         </div>
-        <div class="d-flex justify-content-between small">
+        <div class="d-flex justify-content-between small mb-2">
           <span>Terkumpul: ${formatNumberRp(terkumpul)}</span>
           <span>${Math.round(percent)}%</span>
         </div>
-        <div class="mt-2 d-flex gap-2">
-          <button class="btn btn-sm btn-outline-success rounded-pill" onclick="addPemasukanKeKategori('${escapeHtml(kat.nama)}')">
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-outline-success rounded-pill" onclick="window.addPemasukanKeKategori('${escapeHtml(kat.nama)}')">
             <i class="bi bi-plus-circle me-1"></i> Tambah Tabungan
           </button>
-          <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="addPengeluaranKeKategori('${escapeHtml(kat.nama)}')">
+          <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="window.addPengeluaranKeKategori('${escapeHtml(kat.nama)}')">
             <i class="bi bi-dash-circle me-1"></i> Pengeluaran
           </button>
         </div>
@@ -169,7 +286,7 @@ function renderKategoriProgress() {
   container.innerHTML = html;
 }
 
-// Tambah pemasukan ke kategori tertentu
+// ============ TAMBAH PEMASUKAN PER KATEGORI ============
 window.addPemasukanKeKategori = async function(kategoriNama) {
   const nominal = await showCustomPrompt(
     `Tambah Tabungan untuk "${kategoriNama}"`, 
@@ -192,7 +309,6 @@ window.addPemasukanKeKategori = async function(kategoriNama) {
         
         showNotif(`✅ Tabungan "${kategoriNama}" berhasil ditambahkan!`, false, 'success');
         
-        // Trigger confetti animation
         if (typeof window.triggerConfetti === 'function') {
           window.triggerConfetti();
         }
@@ -208,7 +324,6 @@ window.addPemasukanKeKategori = async function(kategoriNama) {
   }
 };
 
-// Tambah pengeluaran ke kategori tertentu
 window.addPengeluaranKeKategori = async function(kategoriNama) {
   const nominal = await showCustomPrompt(
     `Pengeluaran untuk "${kategoriNama}"`, 
@@ -241,14 +356,16 @@ window.addPengeluaranKeKategori = async function(kategoriNama) {
   }
 };
 
+// ============ LOAD & RENDER TRANSACTION ============
 async function loadAllTransaksiOptimized(forceRefresh = false) {
   const cacheKey = `keuangan_transaksi_${currentUser}`;
   if (!forceRefresh) {
     const cached = getCache(cacheKey);
     if (cached) {
       transaksiList = cached;
-      renderTransaksi();
+      renderTransaksiWithFilters();
       updateRingkasan();
+      renderKategoriProgress();
       return;
     }
   }
@@ -259,8 +376,9 @@ async function loadAllTransaksiOptimized(forceRefresh = false) {
     transaksiList = Object.entries(data).map(([id, val]) => ({ id, ...val }));
     
     setCache(cacheKey, transaksiList, 3);
-    renderTransaksi();
+    renderTransaksiWithFilters();
     updateRingkasan();
+    renderKategoriProgress();
   } catch (err) {
     console.error("Error loading transaksi:", err);
     showNotif("Gagal memuat data keuangan", true, 'error');
@@ -280,22 +398,54 @@ function updateRingkasan() {
   if (totalSaldoEl) totalSaldoEl.innerHTML = formatNumberRp(saldo);
   if (totalPemasukanEl) totalPemasukanEl.innerHTML = formatNumberRp(pemasukan);
   if (totalPengeluaranEl) totalPengeluaranEl.innerHTML = formatNumberRp(pengeluaran);
-  if (saldoDetailEl) saldoDetailEl.innerHTML = `Total Pemasukan - Pengeluaran`;
+  if (saldoDetailEl) saldoDetailEl.innerHTML = `Pemasukan - Pengeluaran`;
 }
 
-function renderTransaksi() {
+// ============ FILTER FUNCTIONS ============
+function applyFilters() {
+  const searchInput = document.getElementById('searchTransaksi');
+  const startDateInput = document.getElementById('filterDateStart');
+  const endDateInput = document.getElementById('filterDateEnd');
+  
+  currentFilter.search = searchInput ? searchInput.value.toLowerCase() : '';
+  currentFilter.startDate = startDateInput ? startDateInput.value : '';
+  currentFilter.endDate = endDateInput ? endDateInput.value : '';
+  
+  renderTransaksiWithFilters();
+}
+
+function renderTransaksiWithFilters() {
   const container = document.getElementById('transaksiList');
   if (!container) return;
   
-  if (!transaksiList || transaksiList.length === 0) {
-    container.innerHTML = '<div class="text-center text-muted py-4">Belum ada transaksi</div>';
+  let filteredList = [...transaksiList];
+  
+  if (currentFilter.search) {
+    filteredList = filteredList.filter(t => 
+      (t.kategori && t.kategori.toLowerCase().includes(currentFilter.search)) ||
+      (t.catatan && t.catatan.toLowerCase().includes(currentFilter.search))
+    );
+  }
+  
+  if (currentFilter.startDate) {
+    const startTime = new Date(currentFilter.startDate).setHours(0, 0, 0, 0);
+    filteredList = filteredList.filter(t => t.tanggal >= startTime);
+  }
+  
+  if (currentFilter.endDate) {
+    const endTime = new Date(currentFilter.endDate).setHours(23, 59, 59, 999);
+    filteredList = filteredList.filter(t => t.tanggal <= endTime);
+  }
+  
+  const sortedList = filteredList.sort((a, b) => (b.tanggal || 0) - (a.tanggal || 0));
+  
+  if (sortedList.length === 0) {
+    container.innerHTML = '<div class="text-center text-muted py-4">Tidak ada transaksi yang ditemukan</div>';
     return;
   }
   
-  const sortedList = [...transaksiList].sort((a, b) => (b.tanggal || 0) - (a.tanggal || 0));
-  
   container.innerHTML = sortedList.slice(0, 50).map(t => `
-    <div class="list-group-item d-flex justify-content-between align-items-start" style="border-left: 3px solid ${t.tipe === 'pemasukan' ? '#10b981' : '#ef4444'}; margin-bottom: 8px; border-radius: 12px;">
+    <div class="list-group-item d-flex justify-content-between align-items-start" style="border-left: 3px solid ${t.tipe === 'pemasukan' ? '#10b981' : '#ef4444'}; margin-bottom: 8px; border-radius: 12px; background: var(--card-bg);">
       <div class="flex-grow-1">
         <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
           <span class="badge ${t.tipe === 'pemasukan' ? 'bg-success' : 'bg-danger'}">${t.tipe === 'pemasukan' ? '📥 Pemasukan' : '📤 Pengeluaran'}</span>
@@ -309,10 +459,10 @@ function renderTransaksi() {
           ${t.tipe === 'pemasukan' ? '+' : '-'} ${formatNumberRp(t.nominal)}
         </span>
         <div class="mt-1">
-          <button class="btn-icon btn-sm" onclick="editTransaksi('${t.id}')">
+          <button class="btn-icon btn-sm" onclick="window.editTransaksi('${t.id}')">
             <i class="bi bi-pencil"></i>
           </button>
-          <button class="btn-icon btn-sm" onclick="deleteTransaksi('${t.id}')">
+          <button class="btn-icon btn-sm" onclick="window.deleteTransaksi('${t.id}')">
             <i class="bi bi-trash3"></i>
           </button>
         </div>
@@ -321,6 +471,46 @@ function renderTransaksi() {
   `).join('');
 }
 
+window.resetFilters = function() {
+  const searchInput = document.getElementById('searchTransaksi');
+  const startDateInput = document.getElementById('filterDateStart');
+  const endDateInput = document.getElementById('filterDateEnd');
+  
+  if (searchInput) searchInput.value = '';
+  if (startDateInput) startDateInput.value = '';
+  if (endDateInput) endDateInput.value = '';
+  
+  currentFilter = { search: '', startDate: '', endDate: '' };
+  renderTransaksiWithFilters();
+  showNotif("Filter direset", false, 'info');
+};
+
+// ============ EXPORT FUNCTIONS ============
+window.exportKeuanganToCSV = function() {
+  const headers = ['Tanggal', 'Tipe', 'Kategori', 'Nominal', 'Catatan'];
+  const rows = transaksiList.map(t => [
+    new Date(t.tanggal).toLocaleDateString('id-ID'),
+    t.tipe === 'pemasukan' ? 'Pemasukan' : 'Pengeluaran',
+    t.kategori,
+    t.nominal,
+    t.catatan || ''
+  ]);
+  
+  const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.href = url;
+  link.setAttribute('download', `keuangan_${new Date().toISOString().split('T')[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  
+  showNotif("✅ Laporan keuangan berhasil diexport! (" + transaksiList.length + " transaksi)", false, 'success');
+};
+
+// ============ CRUD FUNCTIONS ============
 export async function addTransaksiFromExternal(userId, data) {
   const transaksiData = {
     tipe: data.tipe || 'pengeluaran',
@@ -342,50 +532,49 @@ export async function addTransaksiFromExternal(userId, data) {
 window.openTransaksiModal = function(editId = null) {
   editTransaksiId = editId;
   
-  const modalHtml = `
-    <div class="modal fade" id="transaksiModal" tabindex="-1">
-      <div class="modal-dialog modal-dialog-centered modal-md">
-        <div class="modal-content rounded-4">
-          <div class="modal-header border-0 bg-success text-white py-3">
-            <h5 class="fw-bold mb-0">${editId ? '✏️ Edit Transaksi' : '💰 Tambah Transaksi'}</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body modal-form p-4">
-            <div class="mb-3">
-              <label class="fw-semibold mb-2">Tipe Transaksi</label>
-              <select id="transaksiTipe" class="form-select form-select-lg rounded-3">
-                <option value="pemasukan">📥 + Pemasukan</option>
-                <option value="pengeluaran">📤 - Pengeluaran</option>
-              </select>
+  let modal = document.getElementById('transaksiModal');
+  if (!modal) {
+    const modalHtml = `
+      <div class="modal fade" id="transaksiModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-md">
+          <div class="modal-content rounded-4">
+            <div class="modal-header border-0 bg-success text-white py-3">
+              <h5 class="fw-bold mb-0">${editId ? '✏️ Edit Transaksi' : '💰 Tambah Transaksi'}</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="mb-3">
-              <label class="fw-semibold mb-2">Kategori</label>
-              <select id="transaksiKategori" class="form-select form-select-lg rounded-3"></select>
+            <div class="modal-body modal-form p-4">
+              <div class="mb-3">
+                <label class="fw-semibold mb-2">Tipe Transaksi</label>
+                <select id="transaksiTipe" class="form-select form-select-lg rounded-3">
+                  <option value="pemasukan">📥 + Pemasukan</option>
+                  <option value="pengeluaran">📤 - Pengeluaran</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="fw-semibold mb-2">Kategori</label>
+                <select id="transaksiKategori" class="form-select form-select-lg rounded-3"></select>
+              </div>
+              <div class="mb-3">
+                <label class="fw-semibold mb-2">Nominal</label>
+                <input type="number" id="transaksiNominal" class="form-control form-control-lg rounded-3" placeholder="Masukkan nominal">
+              </div>
+              <div class="mb-3">
+                <label class="fw-semibold mb-2">Tanggal</label>
+                <input type="date" id="transaksiTanggal" class="form-control form-control-lg rounded-3" value="${new Date().toISOString().split('T')[0]}">
+              </div>
+              <div class="mb-3">
+                <label class="fw-semibold mb-2">Catatan (Opsional)</label>
+                <textarea id="transaksiCatatan" class="form-control rounded-3" rows="3" placeholder="Tambahkan catatan..."></textarea>
+              </div>
             </div>
-            <div class="mb-3">
-              <label class="fw-semibold mb-2">Nominal</label>
-              <input type="number" id="transaksiNominal" class="form-control form-control-lg rounded-3" placeholder="Masukkan nominal">
+            <div class="modal-footer border-0 pb-4 px-4">
+              <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+              <button class="btn btn-success rounded-pill px-4" onclick="window.saveTransaksi()">Simpan Transaksi</button>
             </div>
-            <div class="mb-3">
-              <label class="fw-semibold mb-2">Tanggal</label>
-              <input type="date" id="transaksiTanggal" class="form-control form-control-lg rounded-3" value="${new Date().toISOString().split('T')[0]}">
-            </div>
-            <div class="mb-3">
-              <label class="fw-semibold mb-2">Catatan (Opsional)</label>
-              <textarea id="transaksiCatatan" class="form-control rounded-3" rows="3" placeholder="Tambahkan catatan..."></textarea>
-            </div>
-          </div>
-          <div class="modal-footer border-0 pb-4 px-4">
-            <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-            <button class="btn btn-success rounded-pill px-4" onclick="saveTransaksi()">Simpan Transaksi</button>
           </div>
         </div>
       </div>
-    </div>
-  `;
-  
-  let modal = document.getElementById('transaksiModal');
-  if (!modal) {
+    `;
     document.body.insertAdjacentHTML('beforeend', modalHtml);
     modal = document.getElementById('transaksiModal');
     updateKategoriSelect();
@@ -440,7 +629,6 @@ window.saveTransaksi = async function() {
       await push(ref(db, `data/keuangan/${currentUser}/transaksi`), transaksiData);
       showNotif("Transaksi berhasil ditambahkan", false, 'success');
       
-      // Trigger confetti untuk pemasukan
       if (tipe === 'pemasukan' && typeof window.triggerConfetti === 'function') {
         window.triggerConfetti();
       }
@@ -448,7 +636,7 @@ window.saveTransaksi = async function() {
     
     clearCache(`keuangan_transaksi_${currentUser}`);
     await loadAllTransaksiOptimized(true);
-    renderKategoriProgress();
+    updateChartData();
     
     const modal = bootstrap.Modal.getInstance(document.getElementById('transaksiModal'));
     if (modal) modal.hide();
@@ -473,7 +661,7 @@ window.deleteTransaksi = async function(id) {
       showNotif("Transaksi dihapus", false, 'warning');
       clearCache(`keuangan_transaksi_${currentUser}`);
       await loadAllTransaksiOptimized(true);
-      renderKategoriProgress();
+      updateChartData();
     } catch (err) {
       showNotif("Gagal menghapus", true, 'error');
     } finally {
@@ -481,6 +669,71 @@ window.deleteTransaksi = async function(id) {
     }
   }
 };
+
+// ============ INIT FUNCTION ============
+export function initKeuangan() {
+  currentUser = sessionStorage.getItem("progrowth_user");
+  if (!currentUser) return;
+  
+  if (isInitialized) {
+    refreshData();
+    return;
+  }
+  
+  showLoading("Memuat data keuangan...");
+  isInitialized = true;
+  
+  const keuanganUserName = document.getElementById('keuanganUserName');
+  if (keuanganUserName) {
+    const displayName = currentUser === "FACHMI" ? "Fachmi" : "Azizah";
+    keuanganUserName.innerHTML = `Keuangan ${displayName}`;
+  }
+  
+  Promise.all([
+    loadKategoriFromCatatan(),
+    loadAllTransaksiOptimized()
+  ]).finally(() => {
+    hideLoading();
+    initKeuanganChart();
+  });
+  
+  // Setup listener
+  onValue(ref(db, `data/catatan/bersama/kategori`), () => {
+    loadKategoriFromCatatan();
+    renderKategoriProgress();
+  });
+  
+  onValue(ref(db, `data/keuangan/${currentUser}/transaksi`), () => {
+    loadAllTransaksiOptimized(true);
+    updateChartData();
+    renderKategoriProgress();
+  });
+  
+  // Setup filter event listeners
+  setTimeout(() => {
+    const searchInput = document.getElementById('searchTransaksi');
+    const startDateInput = document.getElementById('filterDateStart');
+    const endDateInput = document.getElementById('filterDateEnd');
+    
+    if (searchInput) searchInput.addEventListener('input', applyFilters);
+    if (startDateInput) startDateInput.addEventListener('change', applyFilters);
+    if (endDateInput) endDateInput.addEventListener('change', applyFilters);
+  }, 500);
+}
+
+async function refreshData() {
+  showLoading("Memperbarui data...");
+  try {
+    await loadKategoriFromCatatan();
+    await loadAllTransaksiOptimized(true);
+    updateChartData();
+    renderKategoriProgress();
+  } catch (err) {
+    console.error("Error refreshing:", err);
+  } finally {
+    hideLoading();
+  }
+}
 
 window.initKeuangan = initKeuangan;
 window.addTransaksiFromExternal = addTransaksiFromExternal;
