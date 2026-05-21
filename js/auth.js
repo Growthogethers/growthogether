@@ -1,6 +1,6 @@
-// js/auth.js - Versi update dengan panggil birthday
+// js/auth.js - Versi update dengan Password Hash, Session Validation, dan Birthday
 import { db, ref, get, update } from './firebase-config.js';
-import { showNotif, setCurrentUser, compressImage } from './utils.js';
+import { showNotif, setCurrentUser, compressImage, escapeHtml } from './utils.js';
 import { renderBirthdayInProfile } from './pengingat.js';
 
 // ============ GLOBAL STATE PROFILE ============
@@ -8,6 +8,7 @@ let currentProfilePhoto = null;
 let currentStatus = 'merencanakan';
 let currentUserData = null;
 let currentUsername = null;
+let authListeners = [];
 
 // ============ RESET PROFILE STATE ============
 function resetProfileState() {
@@ -18,11 +19,65 @@ function resetProfileState() {
   currentUsername = null;
 }
 
+// ============ CRITICAL #3: PASSWORD HASH FUNCTION ============
+function simpleHash(str) {
+  if (!str) return "";
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  // Konversi ke base64 sederhana
+  return btoa(Math.abs(hash).toString(16) + str.length.toString(16) + "gh");
+}
+
+// ============ CRITICAL #2: SESSION TOKEN FUNCTIONS ============
+function generateSessionToken(username, timestamp) {
+  const salt = "growthogether_secret_2024";
+  return btoa(`${username}|${timestamp}|${salt}`).substring(0, 32);
+}
+
+export function validateSession() {
+  const savedUser = sessionStorage.getItem("progrowth_user");
+  const savedToken = sessionStorage.getItem("progrowth_token");
+  const savedTimestamp = sessionStorage.getItem("progrowth_timestamp");
+  
+  if (!savedUser || !savedToken || !savedTimestamp) {
+    return false;
+  }
+  
+  // Cek apakah session sudah lebih dari 24 jam
+  const now = Date.now();
+  const sessionAge = now - parseInt(savedTimestamp);
+  if (sessionAge > 24 * 60 * 60 * 1000) {
+    console.log("Session expired");
+    return false;
+  }
+  
+  // Validasi token
+  const expectedToken = generateSessionToken(savedUser, savedTimestamp);
+  if (savedToken !== expectedToken) {
+    console.log("Invalid session token");
+    return false;
+  }
+  
+  return true;
+}
+
+export function cleanupAuthListeners() {
+  console.log("Cleaning up auth listeners...");
+  authListeners.forEach(listener => {
+    if (typeof listener === 'function') listener();
+  });
+  authListeners = [];
+}
+
 // ============ HELPER FUNCTIONS ============
 function getCurrentSessionUser() {
   const user = sessionStorage.getItem("progrowth_user");
   if (user !== currentUsername) {
-    if (user) {
+    if (user && validateSession()) {
       loadProfileData(user);
     }
   }
@@ -74,7 +129,7 @@ async function loadProfileData(username) {
 // ============ FORCE REFRESH PROFILE ============
 export async function forceRefreshProfile() {
   const currentUser = getCurrentSessionUser();
-  if (currentUser) {
+  if (currentUser && validateSession()) {
     await loadProfileData(currentUser);
   }
 }
@@ -82,8 +137,8 @@ export async function forceRefreshProfile() {
 // ============ UPDATE PROFILE UI ============
 export function updateProfileUI() {
   const currentUser = getCurrentSessionUser();
-  if (!currentUser) {
-    console.log("No user logged in, skipping UI update");
+  if (!currentUser || !validateSession()) {
+    console.log("No valid user logged in, skipping UI update");
     return;
   }
   
@@ -106,10 +161,10 @@ export function updateProfileUI() {
     }
   }
   
-  if (profileName) profileName.innerText = displayName;
+  if (profileName) profileName.innerText = escapeHtml(displayName);
   
   if (profileStatusText) {
-    profileStatusText.innerText = statusText;
+    profileStatusText.innerText = escapeHtml(statusText);
     profileStatusText.className = `status-text ${currentStatus}`;
   }
   
@@ -135,7 +190,7 @@ export function updateProfileUI() {
     }
   }
   
-  if (modalName) modalName.innerText = displayName;
+  if (modalName) modalName.innerText = escapeHtml(displayName);
   if (modalEmail) {
     const email = currentUser === "FACHMI" ? "fachmi@growthogether.com" : "azizah@growthogether.com";
     modalEmail.innerText = email;
@@ -153,10 +208,10 @@ export function updateProfileUI() {
   
   // Update greeting in dashboard
   const userGreet = document.getElementById("userGreet");
-  if (userGreet) userGreet.innerText = displayName;
+  if (userGreet) userGreet.innerText = escapeHtml(displayName);
 }
 
-// ============ LOGIN HANDLER ============
+// ============ LOGIN HANDLER DENGAN PASSWORD HASH (CRITICAL #3) ============
 export async function handleLogin() {
   const u = document.getElementById("loginUser")?.value;
   const p = document.getElementById("loginPass")?.value;
@@ -182,9 +237,35 @@ export async function handleLogin() {
   
   try {
     const snap = await get(ref(db, `data/auth/${u}`));
-    if (snap.val() === p) {
+    const storedValue = snap.val();
+    
+    // Cek apakah storedValue adalah hash (bukan plain text)
+    let isValid = false;
+    
+    if (storedValue && storedValue.length > 20 && storedValue.includes('==')) {
+      // Ini adalah hash
+      isValid = (simpleHash(p) === storedValue);
+    } else {
+      // Ini plain text (data lama) - untuk backward compatibility
+      isValid = (storedValue === p);
+      
+      // Jika valid, update ke hash (migrasi otomatis)
+      if (isValid && storedValue !== simpleHash(p)) {
+        await update(ref(db), { [`data/auth/${u}`]: simpleHash(p) });
+        console.log("Password migrated to hash for:", u);
+      }
+    }
+    
+    if (isValid) {
+      // Buat session dengan token
+      const timestamp = Date.now();
+      const token = generateSessionToken(u, timestamp);
+      
       sessionStorage.clear();
       sessionStorage.setItem("progrowth_user", u);
+      sessionStorage.setItem("progrowth_token", token);
+      sessionStorage.setItem("progrowth_timestamp", timestamp.toString());
+      
       setCurrentUser(u);
       currentUsername = u;
       
@@ -229,7 +310,7 @@ export async function handleLogin() {
 // ============ UPDATE PROFILE PHOTO ============
 export async function updateProfilePhoto(photoBase64) {
   const currentUser = getCurrentSessionUser();
-  if (!currentUser) {
+  if (!currentUser || !validateSession()) {
     showNotif("❌ Silakan login terlebih dahulu", true);
     return;
   }
@@ -251,7 +332,7 @@ export async function updateProfilePhoto(photoBase64) {
 // ============ UPDATE STATUS ============
 export async function updateStatus(status) {
   const currentUser = getCurrentSessionUser();
-  if (!currentUser) {
+  if (!currentUser || !validateSession()) {
     showNotif("❌ Silakan login terlebih dahulu", true);
     return;
   }
@@ -277,13 +358,13 @@ export async function updateStatus(status) {
   }
 }
 
-// ============ UPDATE PASSWORD ============
+// ============ UPDATE PASSWORD DENGAN HASH (CRITICAL #3) ============
 export async function updateCloudPassword() {
   const p1 = document.getElementById("newPass")?.value;
   const p2 = document.getElementById("confirmPass")?.value;
   const currentUser = getCurrentSessionUser();
   
-  if (!currentUser) {
+  if (!currentUser || !validateSession()) {
     showNotif("❌ Silakan login terlebih dahulu", true);
     return;
   }
@@ -309,7 +390,9 @@ export async function updateCloudPassword() {
   }
   
   try {
-    await update(ref(db), { [`data/auth/${currentUser}`]: p1 });
+    // Simpan sebagai hash, bukan plain text
+    const hashedPassword = simpleHash(p1);
+    await update(ref(db), { [`data/auth/${currentUser}`]: hashedPassword });
     
     if (updateBtn) {
       updateBtn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Berhasil!';
@@ -448,6 +531,8 @@ export function handleLogout() {
   
   setTimeout(() => {
     sessionStorage.removeItem("progrowth_user");
+    sessionStorage.removeItem("progrowth_token");
+    sessionStorage.removeItem("progrowth_timestamp");
     setCurrentUser(null);
     resetProfileState();
     
@@ -494,7 +579,7 @@ export function handleLogout() {
 // ============ INIT PROFILE ON LOAD ============
 export async function initProfile() {
   const savedUser = sessionStorage.getItem("progrowth_user");
-  if (savedUser) {
+  if (savedUser && validateSession()) {
     console.log("Initializing profile for:", savedUser);
     await loadProfileData(savedUser);
   } else {
@@ -520,3 +605,5 @@ window.handleProfilePhotoUpload = handleProfilePhotoUpload;
 window.updateStatus = updateStatus;
 window.updateProfileUI = updateProfileUI;
 window.forceRefreshProfile = forceRefreshProfile;
+window.validateSession = validateSession;
+window.cleanupAuthListeners = cleanupAuthListeners;
