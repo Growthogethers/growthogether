@@ -1,4 +1,4 @@
-// js/moment.js - Optimasi dengan Lazy Loading
+// js/moment.js - Optimasi dengan Lazy Loading + Calendar Cache
 import { db, ref, push, update, remove } from './firebase-config.js';
 import { 
   masterData, escapeHtml, showNotif, compressImage, showCustomConfirm, 
@@ -9,6 +9,17 @@ let currentViewDate = new Date();
 let currentDetailMomentId = null;
 let currentMomentPhotos = [];
 let isRenderingCalendar = false;
+
+// PERBAIKAN #4: Calendar cache
+let cachedCalendarHtml = null;
+let cachedMonthYear = null;
+let cachedMomentsHash = null;
+
+// Fungsi untuk generate hash dari moments (deteksi perubahan)
+function getMomentsHash(moments) {
+  const momentKeys = Object.keys(moments).sort();
+  return JSON.stringify(momentKeys.map(key => moments[key].date));
+}
 
 function renderPhotoGrid() {
   const grid = document.getElementById('photoUploadGrid');
@@ -70,12 +81,34 @@ export function removePhotoAtIndex(index) {
   showNotif('🗑️ Foto dihapus');
 }
 
+// PERBAIKAN #4: Render calendar dengan cache
 export function renderCalendar() {
   if (isRenderingCalendar) return;
-  isRenderingCalendar = true;
   
   const year = currentViewDate.getFullYear();
   const month = currentViewDate.getMonth();
+  const moments = masterData?.moments || {};
+  const cacheKey = `${year}-${month}`;
+  const currentMomentsHash = getMomentsHash(moments);
+  
+  // Cek cache
+  if (cachedCalendarHtml && cachedMonthYear === cacheKey && cachedMomentsHash === currentMomentsHash) {
+    console.log("Using cached calendar for", cacheKey);
+    const grid = document.getElementById('calendarGrid');
+    if (grid) {
+      grid.innerHTML = cachedCalendarHtml;
+    }
+    isRenderingCalendar = false;
+    
+    // Update month/year display
+    const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const monthYearEl = document.getElementById('currentMonthYear');
+    if (monthYearEl) monthYearEl.innerHTML = `${monthNames[month]} ${year}`;
+    return;
+  }
+  
+  isRenderingCalendar = true;
+  
   const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
   
   const monthYearEl = document.getElementById('currentMonthYear');
@@ -84,7 +117,6 @@ export function renderCalendar() {
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const prevMonthDays = new Date(year, month, 0).getDate();
-  const moments = masterData?.moments || {};
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
@@ -144,8 +176,21 @@ export function renderCalendar() {
     `;
   }
   
+  // Simpan ke cache
+  cachedCalendarHtml = calendarHtml;
+  cachedMonthYear = cacheKey;
+  cachedMomentsHash = currentMomentsHash;
+  
   grid.innerHTML = calendarHtml;
   isRenderingCalendar = false;
+}
+
+// Fungsi untuk clear cache calendar (panggil saat moments berubah)
+export function clearCalendarCache() {
+  cachedCalendarHtml = null;
+  cachedMonthYear = null;
+  cachedMomentsHash = null;
+  console.log("Calendar cache cleared");
 }
 
 const throttledRenderMoments = throttle(() => {
@@ -184,7 +229,6 @@ export function renderMomentsList() {
     return;
   }
   
-  // Gunakan fragment untuk performance
   const fragment = document.createDocumentFragment();
   const tempDiv = document.createElement('div');
   
@@ -307,6 +351,9 @@ export async function saveMoment() {
       showNotif('✏️ Momen berhasil diperbarui! ✨');
     }
     
+    // Clear calendar cache karena moments berubah
+    clearCalendarCache();
+    
     const modal = bootstrap.Modal.getInstance(document.getElementById('momentModal'));
     if (modal) modal.hide();
     
@@ -353,6 +400,9 @@ export async function viewMomentDetail(momentId) {
     
     const carouselElement = document.getElementById('detailCarousel');
     if (carouselElement && typeof bootstrap !== 'undefined') {
+      // Destroy existing carousel before creating new one
+      const existingCarousel = bootstrap.Carousel.getInstance(carouselElement);
+      if (existingCarousel) existingCarousel.dispose();
       new bootstrap.Carousel(carouselElement, { interval: false });
     }
   }
@@ -379,6 +429,9 @@ export async function deleteMomentFromDetail() {
     try {
       await remove(ref(db, `data/moments/${currentDetailMomentId}`));
       showNotif('🗑️ Momen berhasil dihapus');
+      
+      // Clear calendar cache karena moments berubah
+      clearCalendarCache();
       
       const modal = bootstrap.Modal.getInstance(document.getElementById('momentDetailModal'));
       if (modal) modal.hide();
@@ -411,3 +464,4 @@ window.viewMomentDetail = viewMomentDetail;
 window.editMomentFromDetail = editMomentFromDetail;
 window.deleteMomentFromDetail = deleteMomentFromDetail;
 window.changeMonth = changeMonth;
+window.clearCalendarCache = clearCalendarCache;
