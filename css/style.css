@@ -45,7 +45,7 @@ body {
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 }
 
-/* ============ DARK MODE VARIABLES (AKTIF SAAT BODY MEMILIKI CLASS .dark) ============ */
+/* ============ DARK MODE VARIABLES ============ */
 body.dark {
   --bg-body: #0f172a !important;
   --card-bg: #1e293b !important;
@@ -62,14 +62,36 @@ body.dark {
 }
 
 /* ============ ANIMASI ============ */
-.confetti {
-  position: fixed;
-  width: 10px;
-  height: 10px;
-  position: absolute;
-  animation: confetti-fall 3s linear forwards;
-  z-index: 10000;
-  pointer-events: none;
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 12px 30px rgba(99, 102, 241, 0.5);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 @keyframes confetti-fall {
@@ -81,6 +103,16 @@ body.dark {
     transform: translateY(100vh) rotate(360deg);
     opacity: 0;
   }
+}
+
+.confetti {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  position: absolute;
+  animation: confetti-fall 3s linear forwards;
+  z-index: 10000;
+  pointer-events: none;
 }
 
 .pixel-particle {
@@ -105,6 +137,24 @@ body.dark {
   }
 }
 
+.floating-heart {
+  animation: floating-heart-anim 2s ease-out forwards;
+  pointer-events: none;
+  position: fixed;
+  z-index: 9999;
+}
+
+@keyframes floating-heart-anim {
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) scale(1.5);
+    opacity: 0;
+  }
+}
+
 /* ============ LOGIN SCREEN ============ */
 #login-screen {
   position: fixed;
@@ -118,6 +168,7 @@ body.dark {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .login-container {
@@ -126,6 +177,7 @@ body.dark {
   padding: 1rem;
   position: relative;
   z-index: 10;
+  animation: fadeInUp 0.5s ease-out;
 }
 
 .login-card-modern {
@@ -153,17 +205,6 @@ body.dark {
   margin-bottom: 1.5rem;
   box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
   animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 12px 30px rgba(99, 102, 241, 0.5);
-  }
 }
 
 .brand-circle-modern i {
@@ -255,6 +296,26 @@ body.dark {
 
 .login-btn-modern:active {
   transform: scale(0.98);
+}
+
+/* Floating hearts background */
+.floating-heart-bg {
+  position: absolute;
+  font-size: 24px;
+  opacity: 0.6;
+  animation: floatHeartBg 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes floatHeartBg {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-20px) rotate(10deg);
+    opacity: 0.3;
+  }
 }
 
 /* ============ SIDEBAR (DESKTOP) ============ */
@@ -362,17 +423,6 @@ section {
   animation: fadeInUp 0.3s ease-out;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* ============ CARDS ============ */
 .card {
   border: none;
@@ -459,7 +509,7 @@ section {
   color: var(--text-muted);
 }
 
-/* ============ BOTTOM NAVIGATION (MOBILE) ============ */
+/* ============ BOTTOM NAVIGATION (MOBILE) - PERBAIKAN ============ */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -469,15 +519,35 @@ section {
   border-top: 1px solid var(--border-light);
   display: none;
   justify-content: space-around;
-  padding: 8px 12px 20px;
+  align-items: center;
+  padding: 8px 8px 20px;
   z-index: 1050;
   backdrop-filter: blur(10px);
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.bottom-nav::-webkit-scrollbar {
+  height: 2px;
+}
+
+.bottom-nav::-webkit-scrollbar-track {
+  background: var(--border-light);
+}
+
+.bottom-nav::-webkit-scrollbar-thumb {
+  background: #6366f1;
+  border-radius: 2px;
 }
 
 .bottom-nav-item {
-  display: flex;
+  display: inline-flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   background: transparent;
   border: none;
   color: var(--text-muted);
@@ -489,6 +559,7 @@ section {
   cursor: pointer;
   min-height: 44px;
   min-width: 55px;
+  flex-shrink: 0;
 }
 
 .bottom-nav-item i {
@@ -505,7 +576,7 @@ section {
   background: rgba(99, 102, 241, 0.1);
 }
 
-/* ============ PERBAIKAN #7: DARK MODE FAB IMPROVED ============ */
+/* ============ DARK MODE FAB ============ */
 .dark-mode-fab {
   position: fixed;
   bottom: 20px;
@@ -612,10 +683,6 @@ section {
   width: 44px;
   height: 44px;
   animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
 }
 
 /* ============ PROGRESS BAR ============ */
@@ -986,7 +1053,7 @@ button:active,
   box-shadow: none !important;
 }
 
-/* ============ PERBAIKAN #6: OFFLINE INDICATOR STYLE ============ */
+/* ============ OFFLINE INDICATOR ============ */
 #offlineIndicator {
   position: fixed;
   top: 0;
@@ -1010,17 +1077,6 @@ button:active,
 
 body.dark #offlineIndicator {
   background: linear-gradient(135deg, #dc2626, #b91c1c);
-}
-
-/* ============ PERBAIKAN #5: KEYBOARD VISIBLE FIX ============ */
-@media (max-width: 768px) {
-  body.keyboard-open .dark-mode-fab {
-    bottom: 20px;
-  }
-  
-  body.keyboard-open #customToastContainer {
-    bottom: 20px !important;
-  }
 }
 
 /* ============ RESPONSIVE STYLES ============ */
@@ -1048,7 +1104,10 @@ body.dark #offlineIndicator {
   }
   
   .bottom-nav {
-    display: flex;
+    display: flex !important;
+    justify-content: flex-start !important;
+    gap: 4px;
+    padding: 8px 12px 20px;
   }
   
   #app-content {
@@ -1209,7 +1268,7 @@ body.dark #offlineIndicator {
   }
   
   .bottom-nav-item {
-    padding: 4px 6px;
+    padding: 6px 10px;
     min-width: 50px;
   }
   
@@ -1218,7 +1277,7 @@ body.dark #offlineIndicator {
   }
   
   .bottom-nav-item span {
-    font-size: 0.5rem;
+    font-size: 0.6rem;
   }
 }
 
