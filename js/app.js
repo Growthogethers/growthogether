@@ -1,4 +1,4 @@
-// js/app.js - Main Application (Dengan Perbaikan Logout)
+// js/app.js - Main Application (Dengan Perbaikan)
 import { db, ref, onValue, set } from './firebase-config.js';
 import { 
   masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser, 
@@ -38,7 +38,7 @@ import {
 import { initKeuangan } from './keuangan.js';
 import { initCatatan } from './catatan.js';
 import { initImpian } from './impian.js';
-import { addBackupButtonToProfile } from './backup.js';
+// Hapus import backup.js
 
 let firebaseListener = null;
 let currentPage = 'dashboard';
@@ -103,7 +103,7 @@ function showInitialLoading() {
   `;
   loader.innerHTML = `
     <div class="text-center text-white">
-      <i class="bi bi-arrow-through-heart-fill fs-1 mb-3 floating-icon"></i>
+      <i class="bi bi-arrow-through-heart-fill fs-1 mb-3 floating-icon" style="animation: pulse 2s ease-in-out infinite; display: inline-block;"></i>
       <h3 class="fw-bold">growthogether</h3>
       <p class="mb-3">jalan bareng, mimpi nyata</p>
       <div class="spinner-border text-white" role="status" style="width: 44px; height: 44px;">
@@ -266,9 +266,7 @@ function attachEventListeners() {
       if (typeof openProfileModal === 'function') {
         openProfileModal();
       }
-      if (typeof addBackupButtonToProfile === 'function') {
-        setTimeout(addBackupButtonToProfile, 100);
-      }
+      // Hapus panggilan addBackupButtonToProfile
     };
     profileTrigger.addEventListener('click', profileTrigger._profileListener);
   }
@@ -283,9 +281,7 @@ function attachEventListeners() {
       if (typeof openProfileModal === 'function') {
         openProfileModal();
       }
-      if (typeof addBackupButtonToProfile === 'function') {
-        setTimeout(addBackupButtonToProfile, 100);
-      }
+      // Hapus panggilan addBackupButtonToProfile
     };
     profileMenuBtn.addEventListener('click', profileMenuBtn._mobileProfileListener);
   }
