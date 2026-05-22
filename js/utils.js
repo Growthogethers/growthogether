@@ -319,7 +319,7 @@ export function showCustomConfirm(title, message) {
   });
 }
 
-// ============ CRITICAL #5: ENHANCED XSS PROTECTION ============
+// ============ ENHANCED XSS PROTECTION ============
 export function escapeHtml(str) { 
   if (!str) return ""; 
   return str
@@ -332,14 +332,11 @@ export function escapeHtml(str) {
     .replace(/\//g, "&#x2F;");
 }
 
-// Sanitasi input untuk mencegah XSS
 export function sanitizeInput(str) {
   if (!str) return "";
-  // Trim whitespace dan batasi panjang
   return escapeHtml(str.trim().substring(0, 500));
 }
 
-// Validasi angka aman
 export function sanitizeNumber(val) {
   const num = parseInt(val);
   return isNaN(num) ? 0 : Math.max(0, Math.min(num, 999999999));
@@ -453,7 +450,7 @@ export async function batchGet(refs, timeout = 10000) {
   }
 }
 
-// ============ ANIMASI PIXEL & CONFETTI ============
+// ============ ANIMASI ============
 
 // Confetti celebration
 export function triggerConfetti() {
@@ -521,8 +518,6 @@ export function initClickAnimation() {
 window.triggerConfetti = triggerConfetti;
 window.triggerFloatingHearts = triggerFloatingHearts;
 window.triggerPixelParticles = triggerPixelParticles;
-
-// Expose ke window
 window.showNotif = showNotif;
 window.formatNumberRp = formatNumberRp;
 window.togglePrivacy = togglePrivacy;
