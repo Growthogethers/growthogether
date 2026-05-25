@@ -1,4 +1,4 @@
-// js/auth.js - Versi dengan password hash yang konsisten
+// js/auth.js - Versi dengan tema pink peach dan perbaikan login position
 import { db, ref, get, update } from './firebase-config.js';
 import { showNotif, setCurrentUser, compressImage, escapeHtml } from './utils.js';
 import { renderBirthdayInProfile } from './pengingat.js';
@@ -19,9 +19,8 @@ function resetProfileState() {
   currentUsername = null;
 }
 
-// ============ PASSWORD HASH FUNCTION YANG KONSISTEN ============
+// ============ PASSWORD HASH FUNCTION ============
 async function hashPassword(password) {
-  // Menggunakan SHA-256 untuk hash yang lebih aman dan konsisten
   const encoder = new TextEncoder();
   const data = encoder.encode(password + "growthogether_salt_2024");
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
@@ -30,7 +29,6 @@ async function hashPassword(password) {
   return hashHex;
 }
 
-// Fungsi sederhana untuk fallback jika crypto.subtle tidak tersedia (http)
 function simpleHash(str) {
   if (!str) return "";
   let hash = 0;
@@ -164,7 +162,7 @@ export function updateProfileUI() {
     if (currentProfilePhoto) {
       profileAvatar.src = currentProfilePhoto;
     } else {
-      profileAvatar.src = `https://ui-avatars.com/api/?background=6366f1&color=fff&bold=true&size=80&name=${encodeURIComponent(displayName)}`;
+      profileAvatar.src = `https://ui-avatars.com/api/?background=ec4899&color=fff&bold=true&size=80&name=${encodeURIComponent(displayName)}`;
     }
   }
   
@@ -192,7 +190,7 @@ export function updateProfileUI() {
     if (currentProfilePhoto) {
       modalAvatar.src = currentProfilePhoto;
     } else {
-      modalAvatar.src = `https://ui-avatars.com/api/?background=fff&color=6366f1&bold=true&size=100&name=${encodeURIComponent(displayName)}`;
+      modalAvatar.src = `https://ui-avatars.com/api/?background=fff&color=ec4899&bold=true&size=100&name=${encodeURIComponent(displayName)}`;
     }
   }
   
@@ -215,7 +213,7 @@ export function updateProfileUI() {
   if (userGreet) userGreet.innerText = escapeHtml(displayName);
 }
 
-// ============ LOGIN HANDLER DENGAN FIX ============
+// ============ LOGIN HANDLER DENGAN PERBAIKAN ============
 export async function handleLogin() {
   const u = document.getElementById("loginUser")?.value;
   const p = document.getElementById("loginPass")?.value;
@@ -244,29 +242,23 @@ export async function handleLogin() {
     let storedValue = snap.val();
     
     console.log("Stored password value type:", typeof storedValue);
-    console.log("Stored value first chars:", storedValue ? storedValue.substring(0, 20) : "null");
     
     let isValid = false;
     
-    // Cek apakah storedValue adalah hash SHA-256 (64 karakter hex)
     if (storedValue && /^[a-f0-9]{64}$/.test(storedValue)) {
-      // Ini adalah hash SHA-256
       const hashedInput = await hashPassword(p);
       isValid = (hashedInput === storedValue);
       console.log("SHA-256 comparison result:", isValid);
     }
-    // Cek apakah storedValue adalah hash simple (angka hex)
     else if (storedValue && /^[a-f0-9]+$/.test(storedValue) && storedValue.length < 64) {
       const hashedInput = simpleHash(p);
       isValid = (hashedInput === storedValue);
       console.log("Simple hash comparison result:", isValid);
     }
-    // Plain text (untuk backward compatibility)
     else {
       isValid = (storedValue === p);
       console.log("Plain text comparison result:", isValid);
       
-      // Migrasi ke hash SHA-256
       if (isValid) {
         const newHash = await hashPassword(p);
         await update(ref(db), { [`data/auth/${u}`]: newHash });
@@ -292,6 +284,9 @@ export async function handleLogin() {
         loginBtn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Berhasil!';
         loginBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
       }
+      
+      // Tambahkan class logged-in ke body
+      document.body.classList.add('logged-in');
       
       setTimeout(() => {
         if (window.setupAppSession) {
@@ -525,21 +520,7 @@ export async function handleProfilePhotoUpload(input) {
   }
 }
 
-// ============ RESET PASSWORD TO PLAIN TEXT (UNTUK DEBUG) ============
-export async function resetPasswordToPlain(username, password) {
-  try {
-    await update(ref(db), { [`data/auth/${username}`]: password });
-    console.log(`Password for ${username} reset to plain text: ${password}`);
-    showNotif(`Password ${username} telah direset ke: ${password}`, false, 'warning');
-    return true;
-  } catch (err) {
-    console.error(err);
-    showNotif("Gagal reset password", true);
-    return false;
-  }
-}
-
-// ============ LOGOUT FUNCTIONS ============
+// ============ LOGOUT FUNCTIONS DENGAN PERBAIKAN ============
 export function confirmLogout() {
   console.log("confirmLogout called");
   const modalEl = document.getElementById("confirmLogoutModal");
@@ -572,6 +553,7 @@ export function confirmLogout() {
 export function handleLogout() {
   console.log("Executing logout...");
   
+  // Sembunyikan semua modal
   const modals = ['profileModal', 'passModal', 'confirmLogoutModal', 'momentModal', 'momentDetailModal', 'transaksiModal', 'impianModal', 'kategoriModal', 'itemModal'];
   modals.forEach(modalId => {
     const modalEl = document.getElementById(modalId);
@@ -581,20 +563,27 @@ export function handleLogout() {
     }
   });
   
+  // Animasi fade out
   const appContent = document.getElementById("app-content");
+  const sidebar = document.getElementById("app-sidebar");
+  const bottomNav = document.querySelector(".bottom-nav");
+  
   if (appContent) {
-    appContent.style.transition = 'all 0.3s';
+    appContent.style.transition = 'opacity 0.3s ease';
     appContent.style.opacity = '0';
-    appContent.style.transform = 'translateY(20px)';
   }
+  if (sidebar) sidebar.style.transition = 'opacity 0.3s ease';
+  if (bottomNav) bottomNav.style.transition = 'opacity 0.3s ease';
   
   setTimeout(() => {
+    // Clear session
     sessionStorage.removeItem("progrowth_user");
     sessionStorage.removeItem("progrowth_token");
     sessionStorage.removeItem("progrowth_timestamp");
     setCurrentUser(null);
     resetProfileState();
     
+    // Reset form login
     const loginPass = document.getElementById("loginPass");
     const loginErrorMsg = document.getElementById("loginErrorMsg");
     if (loginPass) loginPass.value = "";
@@ -603,12 +592,26 @@ export function handleLogout() {
     const loginUserSelect = document.getElementById("loginUser");
     if (loginUserSelect) loginUserSelect.value = "FACHMI";
     
+    // Sembunyikan elemen app
     const loginScreen = document.getElementById("login-screen");
-    const sidebar = document.getElementById("app-sidebar");
     const appContentEl = document.getElementById("app-content");
+    const sidebarEl = document.getElementById("app-sidebar");
+    const bottomNavEl = document.querySelector(".bottom-nav");
     
+    if (appContentEl) appContentEl.style.display = "none";
+    if (sidebarEl) sidebarEl.style.display = "none";
+    if (bottomNavEl) bottomNavEl.style.display = "none";
+    
+    // Hapus class logged-in dari body
+    document.body.classList.remove('logged-in');
+    
+    // Reset opacity
+    if (appContentEl) appContentEl.style.opacity = '';
+    
+    // Tampilkan login screen dengan animasi
     if (loginScreen) {
       loginScreen.style.display = "flex";
+      loginScreen.classList.remove('hide');
       loginScreen.style.opacity = '0';
       loginScreen.style.transform = 'scale(0.95)';
       setTimeout(() => {
@@ -617,13 +620,6 @@ export function handleLogout() {
           loginScreen.style.transform = 'scale(1)';
         }
       }, 50);
-    }
-    
-    if (sidebar) sidebar.style.display = "none";
-    if (appContentEl) {
-      appContentEl.style.display = "none";
-      appContentEl.style.opacity = '';
-      appContentEl.style.transform = '';
     }
     
     showNotif("👋 Anda telah keluar");
@@ -636,16 +632,74 @@ export async function initProfile() {
   const savedUser = sessionStorage.getItem("progrowth_user");
   if (savedUser && validateSession()) {
     console.log("Initializing profile for:", savedUser);
+    document.body.classList.add('logged-in');
     await loadProfileData(savedUser);
   } else {
     resetProfileState();
+    document.body.classList.remove('logged-in');
   }
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initProfile);
-} else {
-  initProfile();
+// ============ SETUP APP SESSION ============
+export function setupAppSession(u) {
+  console.log("Setting up session for user:", u);
+  
+  const loginScreen = document.getElementById("login-screen");
+  const sidebar = document.getElementById("app-sidebar");
+  const appContent = document.getElementById("app-content");
+  const bottomNav = document.querySelector(".bottom-nav");
+  
+  // Animasi hide login screen
+  if (loginScreen) {
+    loginScreen.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    loginScreen.style.opacity = '0';
+    loginScreen.style.transform = 'scale(0.95)';
+    setTimeout(() => { 
+      loginScreen.style.display = "none"; 
+    }, 300);
+  }
+  
+  // Tampilkan sidebar dan app content
+  if (sidebar) {
+    if (window.innerWidth > 768) {
+      sidebar.style.display = "flex";
+    } else {
+      sidebar.style.display = "none";
+    }
+  }
+  
+  if (bottomNav) {
+    bottomNav.style.display = "flex";
+  }
+  
+  if (appContent) {
+    appContent.style.display = "block";
+    appContent.style.opacity = '0';
+    setTimeout(() => { 
+      if (appContent) appContent.style.opacity = '1'; 
+    }, 100);
+  }
+  
+  // Update greeting
+  const displayName = u === "FACHMI" ? "Fachmi" : "Azizah";
+  const userGreet = document.getElementById("userGreet");
+  if (userGreet) userGreet.innerText = displayName;
+  
+  // Refresh profile dan render dashboard
+  setTimeout(() => {
+    if (typeof forceRefreshProfile === 'function') forceRefreshProfile();
+    if (typeof updateProfileUI === 'function') updateProfileUI();
+    if (typeof window.renderDashboard === 'function') window.renderDashboard();
+    if (typeof window.showPage === 'function') window.showPage('dashboard');
+  }, 200);
+  
+  // Trigger confetti
+  setTimeout(() => {
+    if (typeof window.triggerConfetti === 'function') {
+      window.triggerConfetti();
+      showNotif(`🎉 Selamat datang, ${displayName}!`, false, 'success');
+    }
+  }, 500);
 }
 
 // ============ EXPORTS ============
@@ -661,4 +715,10 @@ window.updateProfileUI = updateProfileUI;
 window.forceRefreshProfile = forceRefreshProfile;
 window.validateSession = validateSession;
 window.cleanupAuthListeners = cleanupAuthListeners;
-window.resetPasswordToPlain = resetPasswordToPlain;
+window.setupAppSession = setupAppSession;
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initProfile);
+} else {
+  initProfile();
+}
