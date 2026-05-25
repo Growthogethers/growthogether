@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <div class="login-container">
   <div class="login-card-modern text-center">
     <div class="brand-circle-modern mx-auto">
@@ -8,10 +9,7 @@
     
     <div class="input-icon">
       <i class="bi bi-person-circle"></i>
-      <select id="loginUser" class="input-modern">
-        <option value="FACHMI">✨ Fachmi</option>
-        <option value="AZIZAH">🌸 Azizah</option>
-      </select>
+      <input type="text" id="loginUser" class="input-modern" placeholder="Username (FACHMI / AZIZAH)" autocomplete="off" spellcheck="false">
     </div>
     
     <div class="input-icon">
@@ -23,8 +21,16 @@
       <i class="bi bi-box-arrow-in-right me-2"></i> Masuk
     </button>
     
+    <button onclick="resetToDefaultPassword()" class="reset-btn-modern w-100 mt-2" id="resetPasswordBtn">
+      <i class="bi bi-arrow-repeat me-2"></i> Reset Password
+    </button>
+    
     <div id="loginErrorMsg" class="mt-3 text-danger" style="display:none">
       <i class="bi bi-exclamation-triangle-fill"></i> <span id="errorText"></span>
+    </div>
+    
+    <div id="resetSuccessMsg" class="mt-3 text-success" style="display:none">
+      <i class="bi bi-check-circle-fill"></i> <span id="resetText"></span>
     </div>
     
     <div class="mt-4">
@@ -42,3 +48,50 @@
 <div class="floating-heart-bg" style="bottom: 15%; left: 10%;">💕</div>
 <div class="floating-heart-bg" style="bottom: 25%; right: 15%;">💗</div>
 <div class="floating-heart-bg" style="top: 50%; left: 20%;">💓</div>
+
+<style>
+/* Additional styles for reset button */
+.reset-btn-modern {
+  background: transparent;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 60px;
+  padding: 0.9rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #64748b;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.reset-btn-modern:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.reset-btn-modern:active {
+  transform: scale(0.98);
+}
+
+.reset-btn-modern:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Fix for input autofill */
+.input-modern:-webkit-autofill,
+.input-modern:-webkit-autofill:hover,
+.input-modern:-webkit-autofill:focus,
+.input-modern:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  box-shadow: 0 0 0 30px white inset !important;
+}
+
+body.dark .input-modern:-webkit-autofill,
+body.dark .input-modern:-webkit-autofill:hover,
+body.dark .input-modern:-webkit-autofill:focus,
+body.dark .input-modern:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #1e293b inset !important;
+  box-shadow: 0 0 0 30px #1e293b inset !important;
+}
+</style>
