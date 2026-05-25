@@ -1,4 +1,4 @@
-<!-- components/login.html - Dengan Tab Login & Register -->
+<!-- components/login.html - Tanpa Dropdown, dengan Tab Login & Register -->
 <div class="login-container">
   <div class="login-card-modern text-center">
     <div class="brand-circle-modern mx-auto">
@@ -23,7 +23,7 @@
     <div id="loginForm" style="display: block;">
       <div class="input-icon">
         <i class="bi bi-person-circle"></i>
-        <input type="text" id="loginUsername" class="input-modern" placeholder="Username / No HP / Email">
+        <input type="text" id="loginIdentifier" class="input-modern" placeholder="Username / Email / No HP">
       </div>
       
       <div class="input-icon">
@@ -48,7 +48,7 @@
       </div>
       <div class="input-icon">
         <i class="bi bi-phone"></i>
-        <input type="tel" id="regPhone" class="input-modern" placeholder="No HP">
+        <input type="tel" id="regPhone" class="input-modern" placeholder="No HP (opsional)">
       </div>
       <div class="input-icon">
         <i class="bi bi-lock-fill"></i>
@@ -59,7 +59,7 @@
         <input type="password" id="regConfirmPass" class="input-modern" placeholder="Konfirmasi kata sandi *">
       </div>
       <div class="text-start small text-muted mb-3">
-        <i class="bi bi-info-circle"></i> Username dan Email harus unik
+        <i class="bi bi-info-circle"></i> Username dan Email harus unik, No HP opsional
       </div>
       <button onclick="handleRegister()" class="login-btn-modern w-100 mt-2" style="background: linear-gradient(135deg, #10b981, #059669);">
         <i class="bi bi-person-plus me-2"></i> Daftar
@@ -95,9 +95,19 @@
   .auth-tab-btn {
     color: #64748b;
     cursor: pointer;
+    transition: all 0.3s ease;
   }
   .auth-tab-btn:hover {
     background: rgba(255,255,255,0.5);
+  }
+  
+  /* Dark mode */
+  body.dark .auth-tab-btn {
+    color: #94a3b8;
+  }
+  body.dark .auth-tab-btn.active {
+    background: #1e293b !important;
+    color: #818cf8 !important;
   }
 </style>
 
@@ -121,6 +131,7 @@
     }
     
     // Clear error messages
-    document.getElementById('loginErrorMsg').style.display = 'none';
+    const errorDiv = document.getElementById('loginErrorMsg');
+    if (errorDiv) errorDiv.style.display = 'none';
   };
 </script>
