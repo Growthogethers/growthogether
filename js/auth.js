@@ -1,6 +1,6 @@
-// js/auth.js - Versi dengan Register & Multi-login (Username/HP/Email)
+// js/auth.js - Versi Lengkap dengan Semua Export
 import { db, ref, get, update, set, push } from './firebase-config.js';
-import { showNotif, setCurrentUser, compressImage, escapeHtml } from './utils.js';
+import { showNotif, setCurrentUser as setCurrentUserUtil, compressImage, escapeHtml } from './utils.js';
 import { renderBirthdayInProfile } from './pengingat.js';
 
 // ============ GLOBAL STATE ============
@@ -82,11 +82,9 @@ export async function handleRegister() {
     const successSpan = document.getElementById('successText');
     const registerBtn = document.getElementById('registerBtn');
     
-    // Reset messages
-    errorDiv.style.display = 'none';
-    successDiv.style.display = 'none';
+    if (errorDiv) errorDiv.style.display = 'none';
+    if (successDiv) successDiv.style.display = 'none';
     
-    // Validasi input
     if (!fullname) {
         errorSpan.innerText = '❌ Nama lengkap harus diisi!';
         errorDiv.style.display = 'block';
@@ -141,7 +139,6 @@ export async function handleRegister() {
         return;
     }
     
-    // Check duplicate
     const [usernameExists, phoneExists, emailExists] = await Promise.all([
         isUsernameExists(username),
         isPhoneExists(phone),
@@ -151,25 +148,24 @@ export async function handleRegister() {
     if (usernameExists) {
         errorSpan.innerText = '❌ Username sudah terdaftar! Gunakan username lain.';
         errorDiv.style.display = 'block';
-        document.getElementById('regUsername').focus();
+        document.getElementById('regUsername')?.focus();
         return;
     }
     
     if (phoneExists) {
         errorSpan.innerText = '❌ Nomor HP sudah terdaftar! Gunakan nomor lain.';
         errorDiv.style.display = 'block';
-        document.getElementById('regPhone').focus();
+        document.getElementById('regPhone')?.focus();
         return;
     }
     
     if (emailExists) {
         errorSpan.innerText = '❌ Email sudah terdaftar! Gunakan email lain.';
         errorDiv.style.display = 'block';
-        document.getElementById('regEmail').focus();
+        document.getElementById('regEmail')?.focus();
         return;
     }
     
-    // Proses register
     if (registerBtn) {
         registerBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Mendaftarkan...';
         registerBtn.disabled = true;
@@ -191,11 +187,7 @@ export async function handleRegister() {
         };
         
         await set(ref(db, `data/users/${userId}`), userData);
-        
-        // Buat auth entry untuk kompatibilitas dengan sistem lama
         await set(ref(db, `data/auth/${username}`), passwordHash);
-        
-        // Buat profile
         await set(ref(db, `data/profiles/${username}`), {
             fullname: escapeHtml(fullname),
             status: 'merencanakan',
@@ -205,7 +197,6 @@ export async function handleRegister() {
         successSpan.innerText = `✅ Pendaftaran berhasil! Silakan login dengan username/HP/email dan password Anda.`;
         successDiv.style.display = 'block';
         
-        // Reset form
         document.getElementById('regFullname').value = '';
         document.getElementById('regUsername').value = '';
         document.getElementById('regPhone').value = '';
@@ -213,12 +204,14 @@ export async function handleRegister() {
         document.getElementById('regPassword').value = '';
         document.getElementById('regConfirmPassword').value = '';
         
-        // Switch ke tab login setelah 2 detik
         setTimeout(() => {
-            switchTab('login');
-            document.getElementById('loginIdentifier').value = username;
-            document.getElementById('loginPassword').focus();
-            successDiv.style.display = 'none';
+            if (typeof window.switchTab === 'function') {
+                window.switchTab('login');
+            }
+            const loginIdentifier = document.getElementById('loginIdentifier');
+            if (loginIdentifier) loginIdentifier.value = username;
+            document.getElementById('loginPassword')?.focus();
+            if (successDiv) successDiv.style.display = 'none';
         }, 2000);
         
         showNotif(`✅ Selamat datang ${fullname}! Silakan login.`, false, 'success');
@@ -291,7 +284,7 @@ export async function validateRegisterField(field, value) {
     }
 }
 
-// ============ LOGIN HANDLER (Support Username/HP/Email) ============
+// ============ LOGIN HANDLER ============
 export async function handleLogin() {
     const identifier = document.getElementById('loginIdentifier')?.value.trim();
     const password = document.getElementById('loginPassword')?.value;
@@ -324,7 +317,6 @@ export async function handleLogin() {
     }
     
     try {
-        // Cari user berdasarkan identifier
         const user = await findUserByIdentifier(identifier);
         
         if (!user) {
@@ -365,7 +357,7 @@ export async function handleLogin() {
             sessionStorage.setItem("progrowth_token", token);
             sessionStorage.setItem("progrowth_timestamp", timestamp.toString());
             
-            setCurrentUser(username);
+            setCurrentUserUtil(username);
             currentUsername = username;
             currentUserId = user.userId;
             
@@ -486,6 +478,24 @@ export function validateSession() {
     return savedToken === expectedToken;
 }
 
+// ============ CLEANUP AUTH LISTENERS ============
+export function cleanupAuthListeners() {
+    console.log("Cleaning up auth listeners...");
+    authListeners.forEach(listener => {
+        if (typeof listener === 'function') listener();
+    });
+    authListeners = [];
+}
+
+// ============ FORCE REFRESH PROFILE ============
+export async function forceRefreshProfile() {
+    const currentUser = sessionStorage.getItem("progrowth_user");
+    if (currentUser && validateSession()) {
+        const user = await findUserByIdentifier(currentUser);
+        if (user) await loadProfileData(currentUser, user);
+    }
+}
+
 // ============ GET DISPLAY NAME ============
 function getDisplayName(username) {
     const upperUsername = username?.toUpperCase();
@@ -591,8 +601,6 @@ function getStatusText(status) {
     return map[status] || status;
 }
 
-function shakeElement(el) { if (el) { el.style.animation = 'shake 0.3s'; setTimeout(() => { if (el) el.style.animation = ''; }, 300); } }
-
 // ============ UPDATE STATUS ============
 export async function updateStatus(status) {
     const currentUser = sessionStorage.getItem("progrowth_user");
@@ -648,18 +656,32 @@ export async function updateProfilePhoto(photoBase64) {
     } catch (err) { showNotif("❌ Gagal update foto", true); }
 }
 
+// ============ HANDLE PROFILE PHOTO UPLOAD ============
+export async function handleProfilePhotoUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { showNotif("❌ Foto maksimal 2MB", true); return; }
+    const { compressImage: compress } = await import('./utils.js');
+    const compressed = await compress(file, 1);
+    await updateProfilePhoto(compressed);
+    input.value = '';
+}
+
 // ============ LOGOUT ============
 export function confirmLogout() {
     const modalEl = document.getElementById("confirmLogoutModal");
     if (!modalEl) { handleLogout(); return; }
     const modal = new bootstrap.Modal(modalEl);
     modal.show();
-    document.getElementById("confirmLogoutBtn").onclick = () => { modal.hide(); handleLogout(); };
+    const confirmBtn = document.getElementById("confirmLogoutBtn");
+    if (confirmBtn) {
+        confirmBtn.onclick = () => { modal.hide(); handleLogout(); };
+    }
 }
 
 export function handleLogout() {
     sessionStorage.clear();
-    setCurrentUser(null);
+    setCurrentUserUtil(null);
     currentUsername = null;
     currentUserId = null;
     currentUserData = null;
@@ -682,38 +704,26 @@ export function handleLogout() {
 export function openProfileModal() {
     updateProfileUI();
     if (typeof renderBirthdayInProfile === 'function') renderBirthdayInProfile();
-    const modal = new bootstrap.Modal(document.getElementById("profileModal"));
-    modal.show();
+    const modalEl = document.getElementById("profileModal");
+    if (modalEl) {
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
 }
 
 export function openChangePasswordFromProfile() {
     const profileModal = bootstrap.Modal.getInstance(document.getElementById("profileModal"));
     if (profileModal) profileModal.hide();
     setTimeout(() => {
-        const passModal = new bootstrap.Modal(document.getElementById("passModal"));
-        passModal.show();
+        const passModalEl = document.getElementById("passModal");
+        if (passModalEl) {
+            const passModal = new bootstrap.Modal(passModalEl);
+            passModal.show();
+        }
     }, 300);
 }
 
-export async function handleProfilePhotoUpload(input) {
-    const file = input.files[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) { showNotif("❌ Foto maksimal 2MB", true); return; }
-    const { compressImage } = await import('./utils.js');
-    const compressed = await compressImage(file, 1);
-    await updateProfilePhoto(compressed);
-    input.value = '';
-}
-
-export async function initProfile() {
-    const savedUser = sessionStorage.getItem("progrowth_user");
-    if (savedUser && validateSession()) {
-        const user = await findUserByIdentifier(savedUser);
-        if (user) await loadProfileData(savedUser, user);
-    }
-}
-
-// ============ INITIALIZE DEFAULT USERS (FACHMI & AZIZAH) ============
+// ============ INITIALIZE DEFAULT USERS ============
 export async function initializeDefaultUsers() {
     const defaultUsers = [
         { username: "FACHMI", fullname: "Fachmi", phone: "081234567890", email: "fachmi@growthogether.com", password: "12345" },
@@ -737,12 +747,89 @@ export async function initializeDefaultUsers() {
     }
 }
 
+// ============ INITIALIZE DEFAULT AUTH ============
+export async function initializeDefaultAuth() {
+    await initializeDefaultUsers();
+}
+
+// ============ INIT PROFILE ON LOAD ============
+export async function initProfile() {
+    await initializeDefaultUsers();
+    const savedUser = sessionStorage.getItem("progrowth_user");
+    if (savedUser && validateSession()) {
+        const user = await findUserByIdentifier(savedUser);
+        if (user) await loadProfileData(savedUser, user);
+    }
+}
+
+// ============ EXPORTS ============
+// Login & Register
+window.handleLogin = handleLogin;
+window.handleRegister = handleRegister;
+window.switchTab = (tab) => {
+    const loginTab = document.getElementById('loginTab');
+    const registerTab = document.getElementById('registerTab');
+    const tabs = document.querySelectorAll('.tab-btn');
+    tabs.forEach(btn => btn.classList.remove('active'));
+    if (tab === 'login') {
+        if (loginTab) loginTab.style.display = 'block';
+        if (registerTab) registerTab.style.display = 'none';
+        document.querySelector('.tab-btn[data-tab="login"]')?.classList.add('active');
+    } else {
+        if (loginTab) loginTab.style.display = 'none';
+        if (registerTab) registerTab.style.display = 'block';
+        document.querySelector('.tab-btn[data-tab="register"]')?.classList.add('active');
+    }
+    const errorDiv = document.getElementById('loginErrorMsg');
+    const successDiv = document.getElementById('loginSuccessMsg');
+    if (errorDiv) errorDiv.style.display = 'none';
+    if (successDiv) successDiv.style.display = 'none';
+};
+
+// Password
+window.resetToDefaultPassword = resetToDefaultPassword;
+window.updateCloudPassword = updateCloudPassword;
+
+// Profile
+window.openProfileModal = openProfileModal;
+window.openChangePasswordFromProfile = openChangePasswordFromProfile;
+window.handleProfilePhotoUpload = handleProfilePhotoUpload;
+window.updateStatus = updateStatus;
+window.updateProfileUI = updateProfileUI;
+window.forceRefreshProfile = forceRefreshProfile;
+
+// Session
+window.validateSession = validateSession;
+
+// Logout
+window.confirmLogout = confirmLogout;
+window.handleLogout = handleLogout;
+
+// Export untuk module
+export { 
+    cleanupAuthListeners,
+    forceRefreshProfile,
+    updateProfileUI,
+    validateSession,
+    handleLogin,
+    handleRegister,
+    resetToDefaultPassword,
+    updateCloudPassword,
+    confirmLogout,
+    handleLogout,
+    openProfileModal,
+    openChangePasswordFromProfile,
+    handleProfilePhotoUpload,
+    updateStatus,
+    initProfile,
+    initializeDefaultAuth
+};
+
 // Initialize
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => { initProfile(); initializeDefaultUsers(); });
+    document.addEventListener('DOMContentLoaded', () => { initProfile(); });
 } else {
     initProfile();
-    initializeDefaultUsers();
 }
 
 // Setup real-time validation listeners
@@ -755,18 +842,3 @@ setTimeout(() => {
     if (phoneInput) phoneInput.addEventListener('input', (e) => validateRegisterField('phone', e.target.value));
     if (emailInput) emailInput.addEventListener('input', (e) => validateRegisterField('email', e.target.value));
 }, 500);
-
-// ============ EXPORTS ============
-window.handleLogin = handleLogin;
-window.handleRegister = handleRegister;
-window.switchTab = switchTab;
-window.resetToDefaultPassword = resetToDefaultPassword;
-window.updateCloudPassword = updateCloudPassword;
-window.confirmLogout = confirmLogout;
-window.handleLogout = handleLogout;
-window.openProfileModal = openProfileModal;
-window.openChangePasswordFromProfile = openChangePasswordFromProfile;
-window.handleProfilePhotoUpload = handleProfilePhotoUpload;
-window.updateStatus = updateStatus;
-window.updateProfileUI = updateProfileUI;
-window.validateSession = validateSession;
