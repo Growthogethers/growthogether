@@ -761,27 +761,6 @@ export async function initProfile() {
         if (user) await loadProfileData(savedUser, user);
     }
 }
-
-// ============ EXPORT SEMUA FUNGSI (HANYA SEKALI) ============
-export {
-    cleanupAuthListeners,
-    forceRefreshProfile,
-    updateProfileUI,
-    validateSession,
-    handleLogin,
-    handleRegister,
-    resetToDefaultPassword,
-    updateCloudPassword,
-    confirmLogout,
-    handleLogout,
-    openProfileModal,
-    openChangePasswordFromProfile,
-    handleProfilePhotoUpload,
-    updateStatus,
-    initProfile,
-    initializeDefaultAuth
-};
-
 // ============ WINDOW EXPORTS (UNTUK AKSES GLOBAL) ============
 window.handleLogin = handleLogin;
 window.handleRegister = handleRegister;
