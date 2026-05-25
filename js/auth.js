@@ -1,4 +1,4 @@
-// js/auth.js - Versi Final dengan Password Baru (FACHMI: 170598, AZIZAH: 060897)
+// js/auth.js - Versi dengan Username Manual, Session Dinamis, Reset Password
 import { db, ref, get, update, set } from './firebase-config.js';
 import { showNotif, setCurrentUser, compressImage, escapeHtml } from './utils.js';
 import { renderBirthdayInProfile } from './pengingat.js';
@@ -10,16 +10,16 @@ let currentUserData = null;
 let currentUsername = null;
 let authListeners = [];
 
-// ============ PASSWORD BARU ============
+// ============ PASSWORD DEFAULT ============
 const DEFAULT_PASSWORDS = {
-    FACHMI: "170598",
-    AZIZAH: "060897"
+    FACHMI: "12345",
+    AZIZAH: "12345"
 };
 
-// ============ SIMPLE HASH FUNCTION (RELIABLE) ============
+// ============ SIMPLE HASH FUNCTION ============
 function simpleHash(password, username) {
     let hash = 0;
-    const str = String(password) + "growthogether_salt_2024_" + String(username);
+    const str = String(password) + "growthogether_salt_2024_" + String(username).toUpperCase();
     for (let i = 0; i < str.length; i++) {
         const char = str.charCodeAt(i);
         hash = ((hash << 5) - hash) + char;
@@ -28,48 +28,31 @@ function simpleHash(password, username) {
     return Math.abs(hash).toString(16);
 }
 
-// ============ SHA-256 HASH (UNTUK KOMPATIBILITAS) ============
-async function sha256Hash(password, username) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password + "growthogether_salt_2024_" + username);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    return hashHex;
-}
-
 // ============ INITIALIZE DEFAULT AUTH DATA ============
 export async function initializeDefaultAuth() {
     console.log("Initializing default auth data...");
     
     try {
-        // Cek apakah data auth sudah ada
         const fachmiAuth = await get(ref(db, 'data/auth/FACHMI'));
         const azizahAuth = await get(ref(db, 'data/auth/AZIZAH'));
         
-        let needUpdate = false;
         const updates = {};
         
-        // Set default untuk FACHMI jika belum ada
         if (!fachmiAuth.exists()) {
             const hash = simpleHash(DEFAULT_PASSWORDS.FACHMI, "FACHMI");
             updates['data/auth/FACHMI'] = hash;
             console.log("Setting FACHMI default password");
-            needUpdate = true;
         }
         
-        // Set default untuk AZIZAH jika belum ada
         if (!azizahAuth.exists()) {
             const hash = simpleHash(DEFAULT_PASSWORDS.AZIZAH, "AZIZAH");
             updates['data/auth/AZIZAH'] = hash;
             console.log("Setting AZIZAH default password");
-            needUpdate = true;
         }
         
-        // Update jika perlu
-        if (needUpdate) {
+        if (Object.keys(updates).length > 0) {
             await update(ref(db), updates);
-            console.log("Default auth data initialized successfully");
+            console.log("Default auth data initialized");
         }
         
         return true;
@@ -79,24 +62,64 @@ export async function initializeDefaultAuth() {
     }
 }
 
-// ============ FORCE RESET PASSWORD ============
-export async function forceResetPassword(username, newPassword) {
-    if (!username || !newPassword) {
-        console.error("Username and password required");
-        return false;
+// ============ RESET PASSWORD KE DEFAULT ============
+export async function resetToDefaultPassword() {
+    const resetBtn = document.querySelector(".btn-outline-secondary");
+    const originalText = resetBtn ? resetBtn.innerHTML : 'Reset Password';
+    
+    if (resetBtn) {
+        resetBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Meriset...';
+        resetBtn.disabled = true;
     }
     
     try {
-        const hash = simpleHash(newPassword, username);
-        await set(ref(db, `data/auth/${username}`), hash);
-        console.log(`Password reset for ${username} to: ${newPassword}`);
-        showNotif(`✅ Password ${username} telah direset`, false, 'success');
-        return true;
+        // Reset Fachmi
+        const fachmiHash = simpleHash(DEFAULT_PASSWORDS.FACHMI, "FACHMI");
+        await set(ref(db, 'data/auth/FACHMI'), fachmiHash);
+        
+        // Reset Azizah
+        const azizahHash = simpleHash(DEFAULT_PASSWORDS.AZIZAH, "AZIZAH");
+        await set(ref(db, 'data/auth/AZIZAH'), azizahHash);
+        
+        console.log("Passwords reset to default");
+        console.log("FACHMI hash:", fachmiHash);
+        console.log("AZIZAH hash:", azizahHash);
+        
+        // Bersihkan form login
+        const usernameInput = document.getElementById("loginUser");
+        const passwordInput = document.getElementById("loginPass");
+        if (usernameInput) usernameInput.value = "";
+        if (passwordInput) passwordInput.value = "";
+        
+        // Tampilkan notifikasi sukses
+        showNotif("✅ Password telah direset ke default (12345) untuk kedua akun!", false, 'success');
+        
+        // Tampilkan alert dengan informasi
+        alert("✅ Password berhasil direset ke default!\n\nFACHMI = 12345\nAZIZAH = 12345\n\nSilakan login dengan username dan password tersebut.");
+        
     } catch (err) {
-        console.error("Error resetting password:", err);
-        showNotif(`❌ Gagal reset password ${username}`, true, 'error');
-        return false;
+        console.error("Error resetting passwords:", err);
+        showNotif("❌ Gagal mereset password: " + err.message, true, 'error');
+        alert("❌ Gagal mereset password.\n\nPastikan koneksi internet stabil dan coba lagi.\n\nError: " + err.message);
+    } finally {
+        if (resetBtn) {
+            resetBtn.innerHTML = originalText;
+            resetBtn.disabled = false;
+        }
     }
+}
+
+// ============ VALIDASI USERNAME YANG DIIZINKAN ============
+function isValidUsername(username) {
+    const allowedUsernames = ["FACHMI", "AZIZAH"];
+    return allowedUsernames.includes(username?.toUpperCase());
+}
+
+function getDisplayName(username) {
+    const upperUsername = username?.toUpperCase();
+    if (upperUsername === "FACHMI") return "Fachmi";
+    if (upperUsername === "AZIZAH") return "Azizah";
+    return username || "User";
 }
 
 // ============ SESSION TOKEN FUNCTIONS ============
@@ -140,17 +163,7 @@ export function cleanupAuthListeners() {
 
 // ============ HELPER FUNCTIONS ============
 function getCurrentSessionUser() {
-    const user = sessionStorage.getItem("progrowth_user");
-    if (user !== currentUsername) {
-        if (user && validateSession()) {
-            loadProfileData(user);
-        }
-    }
-    return user;
-}
-
-function getDisplayName(username) {
-    return username === "FACHMI" ? "Fachmi" : "Azizah";
+    return sessionStorage.getItem("progrowth_user");
 }
 
 function getStatusText(status) {
@@ -173,24 +186,26 @@ function shakeElement(element) {
 
 // ============ LOAD PROFILE DATA ============
 async function loadProfileData(username) {
+    const upperUsername = username?.toUpperCase();
+    if (!upperUsername || !isValidUsername(upperUsername)) return {};
+    
     try {
-        console.log("Loading profile data for:", username);
-        const profileSnap = await get(ref(db, `data/profiles/${username}`));
+        console.log("Loading profile data for:", upperUsername);
+        const profileSnap = await get(ref(db, `data/profiles/${upperUsername}`));
         const profile = profileSnap.val() || {};
         currentProfilePhoto = profile.photo || null;
         currentStatus = profile.status || 'merencanakan';
         currentUserData = profile;
-        currentUsername = username;
+        currentUsername = upperUsername;
         
-        // Inisialisasi profile jika belum ada
         if (!profileSnap.exists()) {
-            await set(ref(db, `data/profiles/${username}`), {
+            await set(ref(db, `data/profiles/${upperUsername}`), {
                 status: 'merencanakan',
                 createdAt: Date.now()
             });
         }
         
-        console.log("Profile loaded:", { username, status: currentStatus, hasPhoto: !!currentProfilePhoto });
+        console.log("Profile loaded:", { username: upperUsername, status: currentStatus });
         updateProfileUI();
         return profile;
     } catch (err) {
@@ -217,8 +232,6 @@ export function updateProfileUI() {
     
     const displayName = getDisplayName(currentUser);
     const statusText = getStatusText(currentStatus);
-    
-    console.log("Updating profile UI for:", displayName, "Status:", currentStatus);
     
     const profileAvatar = document.getElementById("profileAvatar");
     const profileName = document.getElementById("profileName");
@@ -278,15 +291,32 @@ export function updateProfileUI() {
     
     const userGreet = document.getElementById("userGreet");
     if (userGreet) userGreet.innerText = escapeHtml(displayName);
+    
+    // Update keuangan page title
+    const keuanganUserName = document.getElementById("keuanganUserName");
+    if (keuanganUserName) {
+        keuanganUserName.innerHTML = `Keuangan ${displayName}`;
+    }
 }
 
-// ============ LOGIN HANDLER DENGAN PASSWORD BARU ============
+// ============ LOGIN HANDLER ============
 export async function handleLogin() {
-    const u = document.getElementById("loginUser")?.value;
+    let u = document.getElementById("loginUser")?.value;
     const p = document.getElementById("loginPass")?.value;
     const errorDiv = document.getElementById("loginErrorMsg");
     const errorSpan = document.getElementById("errorText");
     const loginBtn = document.querySelector(".login-btn-modern");
+    
+    // Convert username to uppercase for consistency
+    u = u?.toUpperCase().trim();
+    
+    if (!u) {
+        if (errorSpan) errorSpan.innerText = "❌ Username tidak boleh kosong!"; 
+        if (errorDiv) errorDiv.style.display = "block"; 
+        showNotif("Username harus diisi", true); 
+        shakeElement(document.getElementById("loginUser"));
+        return;
+    }
     
     if (!p || !p.trim()) { 
         if (errorSpan) errorSpan.innerText = "❌ Password tidak boleh kosong!"; 
@@ -296,7 +326,14 @@ export async function handleLogin() {
         return; 
     }
     
-    resetProfileState();
+    // Validasi username yang diizinkan
+    if (!isValidUsername(u)) {
+        if (errorSpan) errorSpan.innerText = "❌ Username tidak valid! Gunakan FACHMI atau AZIZAH"; 
+        if (errorDiv) errorDiv.style.display = "block"; 
+        showNotif("Username tidak valid! Gunakan FACHMI atau AZIZAH", true);
+        shakeElement(document.getElementById("loginUser"));
+        return;
+    }
     
     const originalBtnText = loginBtn ? loginBtn.innerHTML : 'Masuk';
     if (loginBtn) {
@@ -305,44 +342,32 @@ export async function handleLogin() {
     }
     
     try {
-        // Pastikan default auth data ada
         await initializeDefaultAuth();
         
         const snap = await get(ref(db, `data/auth/${u}`));
         let storedValue = snap.val();
         
         console.log("Login attempt for:", u);
-        console.log("Stored password value:", storedValue ? storedValue.substring(0, 20) + "..." : "null");
         
         let isValid = false;
-        
-        // Hash input password menggunakan simpleHash
         const inputHash = simpleHash(p, u);
         
-        // Bandingkan dengan stored value
         if (storedValue) {
-            // Cek apakah stored value sama dengan hash input
             if (storedValue === inputHash) {
                 isValid = true;
                 console.log("Hash match success");
-            }
-            // Cek plain text (untuk backward compatibility)
-            else if (storedValue === p) {
+            } else if (storedValue === p) {
                 isValid = true;
-                console.log("Plain text match, will migrate to hash");
-                // Migrasi ke hash
+                console.log("Plain text match, migrating to hash");
                 await set(ref(db, `data/auth/${u}`), inputHash);
-                console.log("Password migrated to hash for:", u);
             }
         }
         
-        // Jika masih tidak valid, coba dengan password default
+        // Cek default password
         if (!isValid && DEFAULT_PASSWORDS[u] === p) {
             isValid = true;
             console.log("Default password match");
-            // Update ke hash
             await set(ref(db, `data/auth/${u}`), inputHash);
-            console.log("Default password saved as hash for:", u);
         }
         
         if (isValid) {
@@ -377,11 +402,10 @@ export async function handleLogin() {
                 loginBtn.disabled = false;
             }
             
-            const expectedMsg = u === "FACHMI" ? "170598" : "060897";
-            if (errorSpan) errorSpan.innerText = `⚠️ Password salah! Password untuk ${getDisplayName(u)} adalah: ${expectedMsg}`;
+            if (errorSpan) errorSpan.innerText = `⚠️ Password salah untuk username: ${u}`;
             if (errorDiv) errorDiv.style.display = "block";
             shakeElement(document.getElementById("loginPass"));
-            showNotif(`Password salah! Gunakan: ${expectedMsg}`, true);
+            showNotif(`Password salah!`, true);
         }
     } catch (e) {
         console.error("Login error:", e);
@@ -390,7 +414,7 @@ export async function handleLogin() {
             loginBtn.disabled = false;
         }
         
-        if (errorSpan) errorSpan.innerText = "⚠️ Gagal koneksi. " + (e.message || "Cek koneksi internet");
+        if (errorSpan) errorSpan.innerText = "⚠️ Gagal koneksi. " + (e.message || "");
         if (errorDiv) errorDiv.style.display = "block";
         showNotif("Koneksi gagal: " + (e.message || "Cek koneksi internet"), true);
     }
@@ -662,13 +686,13 @@ export function handleLogout() {
         setCurrentUser(null);
         resetProfileState();
         
+        const loginUser = document.getElementById("loginUser");
         const loginPass = document.getElementById("loginPass");
         const loginErrorMsg = document.getElementById("loginErrorMsg");
+        
+        if (loginUser) loginUser.value = "";
         if (loginPass) loginPass.value = "";
         if (loginErrorMsg) loginErrorMsg.style.display = "none";
-        
-        const loginUserSelect = document.getElementById("loginUser");
-        if (loginUserSelect) loginUserSelect.value = "FACHMI";
         
         const loginScreen = document.getElementById("login-screen");
         const sidebar = document.getElementById("app-sidebar");
@@ -700,7 +724,6 @@ export function handleLogout() {
 
 // ============ INIT PROFILE ON LOAD ============
 export async function initProfile() {
-    // Inisialisasi default auth data
     await initializeDefaultAuth();
     
     const savedUser = sessionStorage.getItem("progrowth_user");
@@ -721,6 +744,7 @@ if (document.readyState === 'loading') {
 
 // ============ EXPORTS ============
 window.handleLogin = handleLogin;
+window.resetToDefaultPassword = resetToDefaultPassword;
 window.updateCloudPassword = updateCloudPassword;
 window.confirmLogout = confirmLogout;
 window.handleLogout = handleLogout;
@@ -733,4 +757,3 @@ window.forceRefreshProfile = forceRefreshProfile;
 window.validateSession = validateSession;
 window.cleanupAuthListeners = cleanupAuthListeners;
 window.initializeDefaultAuth = initializeDefaultAuth;
-window.forceResetPassword = forceResetPassword;
