@@ -1,4 +1,4 @@
-// js/app.js - Main Application (Dengan Multi-User Support)
+// js/app.js - Main Application (Dengan Perbaikan)
 import { db, ref, onValue, set } from './firebase-config.js';
 import { 
   masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser, 
@@ -6,7 +6,7 @@ import {
   triggerConfetti, initClickAnimation, escapeHtml
 } from './utils.js';
 import { 
-  handleLogin, handleRegister,
+  handleLogin, 
   updateCloudPassword, 
   confirmLogout, 
   handleLogout, 
@@ -38,6 +38,7 @@ import {
 import { initKeuangan } from './keuangan.js';
 import { initCatatan } from './catatan.js';
 import { initImpian } from './impian.js';
+// Hapus import backup.js
 
 let firebaseListener = null;
 let currentPage = 'dashboard';
@@ -256,30 +257,6 @@ function initOfflineIndicator() {
 function attachEventListeners() {
   console.log("Attaching event listeners...");
   
-  // Switch auth tab function
-  window.switchAuthTab = function(tab) {
-    const loginForm = document.getElementById('loginForm');
-    const registerForm = document.getElementById('registerForm');
-    const loginTab = document.getElementById('loginTabBtn');
-    const registerTab = document.getElementById('registerTabBtn');
-    
-    if (loginForm && registerForm && loginTab && registerTab) {
-      if (tab === 'login') {
-        loginForm.style.display = 'block';
-        registerForm.style.display = 'none';
-        loginTab.classList.add('active');
-        registerTab.classList.remove('active');
-      } else {
-        loginForm.style.display = 'none';
-        registerForm.style.display = 'block';
-        loginTab.classList.remove('active');
-        registerTab.classList.add('active');
-      }
-      const errorDiv = document.getElementById('loginErrorMsg');
-      if (errorDiv) errorDiv.style.display = 'none';
-    }
-  };
-  
   const profileTrigger = document.getElementById('profileTrigger');
   if (profileTrigger) {
     profileTrigger.removeEventListener('click', profileTrigger._profileListener);
@@ -289,6 +266,7 @@ function attachEventListeners() {
       if (typeof openProfileModal === 'function') {
         openProfileModal();
       }
+      // Hapus panggilan addBackupButtonToProfile
     };
     profileTrigger.addEventListener('click', profileTrigger._profileListener);
   }
@@ -303,6 +281,7 @@ function attachEventListeners() {
       if (typeof openProfileModal === 'function') {
         openProfileModal();
       }
+      // Hapus panggilan addBackupButtonToProfile
     };
     profileMenuBtn.addEventListener('click', profileMenuBtn._mobileProfileListener);
   }
@@ -431,11 +410,7 @@ function setupAppSession(u) {
     setTimeout(() => { if (appContent) appContent.style.opacity = '1'; }, 100);
   }
   
-  // Get display name from current user data if available
-  let displayName = u;
-  if (typeof currentUserData !== 'undefined' && currentUserData && currentUserData.displayName) {
-    displayName = currentUserData.displayName;
-  }
+  const displayName = u === "FACHMI" ? "Fachmi" : "Azizah";
   
   const userGreet = document.getElementById("userGreet");
   if (userGreet) userGreet.innerText = displayName;
@@ -481,20 +456,13 @@ function initFirebaseListener() {
       const data = snapshot.val() || { 
         dreams: {}, plans: {}, finances: {}, settings: {}, 
         moments: {}, vendors: {}, profiles: {}, keuangan: {},
-        catatan: {}, impian: {}, users: {}, auth: {}
+        catatan: {}, impian: {}
       };
       setMasterData(data);
       
       if (!data.auth) {
         set(ref(db, "data/auth"), { FACHMI: "gokil223", AZIZAH: "1234" })
           .catch(err => console.error("Error creating default auth:", err));
-      }
-      
-      if (!data.users) {
-        set(ref(db, "data/users"), { 
-          FACHMI: { username: "FACHMI", email: "fachmi@growthogether.com", displayName: "Fachmi", createdAt: Date.now() },
-          AZIZAH: { username: "AZIZAH", email: "azizah@growthogether.com", displayName: "Azizah", createdAt: Date.now() }
-        }).catch(err => console.error("Error creating default users:", err));
       }
       
       const loggedUser = sessionStorage.getItem("progrowth_user");
@@ -584,6 +552,8 @@ window.triggerConfetti = triggerConfetti;
 window.confirmLogout = confirmLogout;
 window.cleanupAllListeners = cleanupAllListeners;
 window.registerListener = registerListener;
+
+// Register logout handler
 window.handleLogout = handleLogout;
 
 document.addEventListener("DOMContentLoaded", init);
