@@ -1,4 +1,4 @@
-// js/auth.js - Versi Lengkap dengan Semua Export
+// js/auth.js - Versi Lengkap dengan Semua Export (TANPA DUPLIKASI)
 import { db, ref, get, update, set, push } from './firebase-config.js';
 import { showNotif, setCurrentUser as setCurrentUserUtil, compressImage, escapeHtml } from './utils.js';
 import { renderBirthdayInProfile } from './pengingat.js';
@@ -805,7 +805,7 @@ window.validateSession = validateSession;
 window.confirmLogout = confirmLogout;
 window.handleLogout = handleLogout;
 
-// Export untuk module
+// ============ EXPORT UNTUK MODULE (TANPA DUPLIKASI) ============
 export { 
     cleanupAuthListeners,
     forceRefreshProfile,
