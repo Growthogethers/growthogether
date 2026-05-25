@@ -1,4 +1,4 @@
-// js/auth.js - Versi dengan Username Manual, Session Dinamis, Reset Password
+// js/auth.js - Versi dengan Reset Password per Akun
 import { db, ref, get, update, set } from './firebase-config.js';
 import { showNotif, setCurrentUser, compressImage, escapeHtml } from './utils.js';
 import { renderBirthdayInProfile } from './pengingat.js';
@@ -11,10 +11,21 @@ let currentUsername = null;
 let authListeners = [];
 
 // ============ PASSWORD DEFAULT ============
-const DEFAULT_PASSWORDS = {
-    FACHMI: "12345",
-    AZIZAH: "12345"
-};
+const DEFAULT_PASSWORD = "12345";
+
+// ============ VALIDASI USERNAME YANG DIIZINKAN ============
+const ALLOWED_USERNAMES = ["FACHMI", "AZIZAH"];
+
+function isValidUsername(username) {
+    return ALLOWED_USERNAMES.includes(username?.toUpperCase());
+}
+
+function getDisplayName(username) {
+    const upperUsername = username?.toUpperCase();
+    if (upperUsername === "FACHMI") return "Fachmi";
+    if (upperUsername === "AZIZAH") return "Azizah";
+    return username || "User";
+}
 
 // ============ SIMPLE HASH FUNCTION ============
 function simpleHash(password, username) {
@@ -33,28 +44,14 @@ export async function initializeDefaultAuth() {
     console.log("Initializing default auth data...");
     
     try {
-        const fachmiAuth = await get(ref(db, 'data/auth/FACHMI'));
-        const azizahAuth = await get(ref(db, 'data/auth/AZIZAH'));
-        
-        const updates = {};
-        
-        if (!fachmiAuth.exists()) {
-            const hash = simpleHash(DEFAULT_PASSWORDS.FACHMI, "FACHMI");
-            updates['data/auth/FACHMI'] = hash;
-            console.log("Setting FACHMI default password");
+        for (const username of ALLOWED_USERNAMES) {
+            const authSnap = await get(ref(db, `data/auth/${username}`));
+            if (!authSnap.exists()) {
+                const hash = simpleHash(DEFAULT_PASSWORD, username);
+                await set(ref(db, `data/auth/${username}`), hash);
+                console.log(`Setting ${username} default password`);
+            }
         }
-        
-        if (!azizahAuth.exists()) {
-            const hash = simpleHash(DEFAULT_PASSWORDS.AZIZAH, "AZIZAH");
-            updates['data/auth/AZIZAH'] = hash;
-            console.log("Setting AZIZAH default password");
-        }
-        
-        if (Object.keys(updates).length > 0) {
-            await update(ref(db), updates);
-            console.log("Default auth data initialized");
-        }
-        
         return true;
     } catch (err) {
         console.error("Error initializing default auth:", err);
@@ -62,64 +59,85 @@ export async function initializeDefaultAuth() {
     }
 }
 
-// ============ RESET PASSWORD KE DEFAULT ============
+// ============ RESET PASSWORD PER AKUN ============
 export async function resetToDefaultPassword() {
-    const resetBtn = document.querySelector(".btn-outline-secondary");
-    const originalText = resetBtn ? resetBtn.innerHTML : 'Reset Password';
+    const usernameInput = document.getElementById("loginUser");
+    const username = usernameInput?.value?.toUpperCase().trim();
     
+    const errorDiv = document.getElementById("loginErrorMsg");
+    const errorSpan = document.getElementById("errorText");
+    const successDiv = document.getElementById("resetSuccessMsg");
+    const successSpan = document.getElementById("resetText");
+    const resetBtn = document.getElementById("resetPasswordBtn");
+    
+    // Sembunyikan message sebelumnya
+    if (errorDiv) errorDiv.style.display = "none";
+    if (successDiv) successDiv.style.display = "none";
+    
+    // Validasi username
+    if (!username) {
+        if (errorSpan) errorSpan.innerText = "❌ Masukkan username terlebih dahulu!";
+        if (errorDiv) errorDiv.style.display = "block";
+        showNotif("Masukkan username yang akan direset", true);
+        usernameInput?.focus();
+        return;
+    }
+    
+    if (!isValidUsername(username)) {
+        if (errorSpan) errorSpan.innerText = `❌ Username "${username}" tidak valid! Gunakan FACHMI atau AZIZAH`;
+        if (errorDiv) errorDiv.style.display = "block";
+        showNotif(`Username "${username}" tidak valid!`, true);
+        usernameInput?.focus();
+        return;
+    }
+    
+    const displayName = getDisplayName(username);
+    const confirmReset = confirm(`Yakin ingin mereset password untuk akun ${displayName} (${username}) ke default (${DEFAULT_PASSWORD})?`);
+    
+    if (!confirmReset) return;
+    
+    const originalText = resetBtn?.innerHTML;
     if (resetBtn) {
-        resetBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Meriset...';
+        resetBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Mereset...';
         resetBtn.disabled = true;
     }
     
     try {
-        // Reset Fachmi
-        const fachmiHash = simpleHash(DEFAULT_PASSWORDS.FACHMI, "FACHMI");
-        await set(ref(db, 'data/auth/FACHMI'), fachmiHash);
+        // Reset hanya untuk username yang dipilih
+        const newHash = simpleHash(DEFAULT_PASSWORD, username);
+        await set(ref(db, `data/auth/${username}`), newHash);
         
-        // Reset Azizah
-        const azizahHash = simpleHash(DEFAULT_PASSWORDS.AZIZAH, "AZIZAH");
-        await set(ref(db, 'data/auth/AZIZAH'), azizahHash);
+        console.log(`Password reset for ${username} to ${DEFAULT_PASSWORD}`);
         
-        console.log("Passwords reset to default");
-        console.log("FACHMI hash:", fachmiHash);
-        console.log("AZIZAH hash:", azizahHash);
-        
-        // Bersihkan form login
-        const usernameInput = document.getElementById("loginUser");
+        // Bersihkan field password
         const passwordInput = document.getElementById("loginPass");
-        if (usernameInput) usernameInput.value = "";
         if (passwordInput) passwordInput.value = "";
         
-        // Tampilkan notifikasi sukses
-        showNotif("✅ Password telah direset ke default (12345) untuk kedua akun!", false, 'success');
+        // Tampilkan pesan sukses
+        if (successSpan) successSpan.innerHTML = `✅ Password untuk akun ${displayName} (${username}) berhasil direset ke: ${DEFAULT_PASSWORD}`;
+        if (successDiv) successDiv.style.display = "block";
         
-        // Tampilkan alert dengan informasi
-        alert("✅ Password berhasil direset ke default!\n\nFACHMI = 12345\nAZIZAH = 12345\n\nSilakan login dengan username dan password tersebut.");
+        showNotif(`✅ Password ${displayName} berhasil direset ke ${DEFAULT_PASSWORD}`, false, 'success');
+        
+        // Auto focus ke password field
+        passwordInput?.focus();
+        
+        // Sembunyikan pesan sukses setelah 5 detik
+        setTimeout(() => {
+            if (successDiv) successDiv.style.display = "none";
+        }, 5000);
         
     } catch (err) {
-        console.error("Error resetting passwords:", err);
-        showNotif("❌ Gagal mereset password: " + err.message, true, 'error');
-        alert("❌ Gagal mereset password.\n\nPastikan koneksi internet stabil dan coba lagi.\n\nError: " + err.message);
+        console.error("Error resetting password:", err);
+        if (errorSpan) errorSpan.innerText = "❌ Gagal mereset password: " + err.message;
+        if (errorDiv) errorDiv.style.display = "block";
+        showNotif("❌ Gagal mereset password", true);
     } finally {
         if (resetBtn) {
             resetBtn.innerHTML = originalText;
             resetBtn.disabled = false;
         }
     }
-}
-
-// ============ VALIDASI USERNAME YANG DIIZINKAN ============
-function isValidUsername(username) {
-    const allowedUsernames = ["FACHMI", "AZIZAH"];
-    return allowedUsernames.includes(username?.toUpperCase());
-}
-
-function getDisplayName(username) {
-    const upperUsername = username?.toUpperCase();
-    if (upperUsername === "FACHMI") return "Fachmi";
-    if (upperUsername === "AZIZAH") return "Azizah";
-    return username || "User";
 }
 
 // ============ SESSION TOKEN FUNCTIONS ============
@@ -292,7 +310,6 @@ export function updateProfileUI() {
     const userGreet = document.getElementById("userGreet");
     if (userGreet) userGreet.innerText = escapeHtml(displayName);
     
-    // Update keuangan page title
     const keuanganUserName = document.getElementById("keuanganUserName");
     if (keuanganUserName) {
         keuanganUserName.innerHTML = `Keuangan ${displayName}`;
@@ -306,8 +323,12 @@ export async function handleLogin() {
     const errorDiv = document.getElementById("loginErrorMsg");
     const errorSpan = document.getElementById("errorText");
     const loginBtn = document.querySelector(".login-btn-modern");
+    const successDiv = document.getElementById("resetSuccessMsg");
     
-    // Convert username to uppercase for consistency
+    // Sembunyikan message sebelumnya
+    if (errorDiv) errorDiv.style.display = "none";
+    if (successDiv) successDiv.style.display = "none";
+    
     u = u?.toUpperCase().trim();
     
     if (!u) {
@@ -326,7 +347,6 @@ export async function handleLogin() {
         return; 
     }
     
-    // Validasi username yang diizinkan
     if (!isValidUsername(u)) {
         if (errorSpan) errorSpan.innerText = "❌ Username tidak valid! Gunakan FACHMI atau AZIZAH"; 
         if (errorDiv) errorDiv.style.display = "block"; 
@@ -364,7 +384,7 @@ export async function handleLogin() {
         }
         
         // Cek default password
-        if (!isValid && DEFAULT_PASSWORDS[u] === p) {
+        if (!isValid && DEFAULT_PASSWORD === p) {
             isValid = true;
             console.log("Default password match");
             await set(ref(db, `data/auth/${u}`), inputHash);
@@ -689,10 +709,12 @@ export function handleLogout() {
         const loginUser = document.getElementById("loginUser");
         const loginPass = document.getElementById("loginPass");
         const loginErrorMsg = document.getElementById("loginErrorMsg");
+        const resetSuccessMsg = document.getElementById("resetSuccessMsg");
         
         if (loginUser) loginUser.value = "";
         if (loginPass) loginPass.value = "";
         if (loginErrorMsg) loginErrorMsg.style.display = "none";
+        if (resetSuccessMsg) resetSuccessMsg.style.display = "none";
         
         const loginScreen = document.getElementById("login-screen");
         const sidebar = document.getElementById("app-sidebar");
