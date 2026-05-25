@@ -1,4 +1,3 @@
-<!-- components/login.html - Dengan Posisi Tengah yang Benar -->
 <div class="login-container">
   <div class="login-card-modern text-center">
     <div class="brand-circle-modern mx-auto">
@@ -7,62 +6,22 @@
     <h1 class="greeting-text-modern">growthogether</h1>
     <p class="sub-greeting-modern">jalan bareng, mimpi nyata ✨</p>
     
-    <!-- TABS -->
-    <div class="d-flex gap-2 mb-4 auth-tabs-wrapper">
-      <button id="loginTabBtn" class="auth-tab-btn active" onclick="switchAuthTab('login')">
-        <i class="bi bi-box-arrow-in-right me-1"></i> Login
-      </button>
-      <button id="registerTabBtn" class="auth-tab-btn" onclick="switchAuthTab('register')">
-        <i class="bi bi-person-plus me-1"></i> Register
-      </button>
+    <div class="input-icon">
+      <i class="bi bi-person-circle"></i>
+      <select id="loginUser" class="input-modern">
+        <option value="FACHMI">✨ Fachmi</option>
+        <option value="AZIZAH">🌸 Azizah</option>
+      </select>
     </div>
     
-    <!-- LOGIN FORM -->
-    <div id="loginForm" style="display: block;">
-      <div class="input-icon">
-        <i class="bi bi-person-circle"></i>
-        <input type="text" id="loginIdentifier" class="input-modern" placeholder="Username / Email / No HP">
-      </div>
-      
-      <div class="input-icon">
-        <i class="bi bi-lock-fill"></i>
-        <input type="password" id="loginPass" class="input-modern" placeholder="Kata sandi">
-      </div>
-      
-      <button onclick="handleLogin()" class="login-btn-modern w-100 mt-3">
-        <i class="bi bi-box-arrow-in-right me-2"></i> Masuk
-      </button>
+    <div class="input-icon">
+      <i class="bi bi-lock-fill"></i>
+      <input type="password" id="loginPass" class="input-modern" placeholder="Kata sandi">
     </div>
     
-    <!-- REGISTER FORM -->
-    <div id="registerForm" style="display: none;">
-      <div class="input-icon">
-        <i class="bi bi-person-badge"></i>
-        <input type="text" id="regUsername" class="input-modern" placeholder="Username *">
-      </div>
-      <div class="input-icon">
-        <i class="bi bi-envelope"></i>
-        <input type="email" id="regEmail" class="input-modern" placeholder="Email *">
-      </div>
-      <div class="input-icon">
-        <i class="bi bi-phone"></i>
-        <input type="tel" id="regPhone" class="input-modern" placeholder="No HP (opsional)">
-      </div>
-      <div class="input-icon">
-        <i class="bi bi-lock-fill"></i>
-        <input type="password" id="regPass" class="input-modern" placeholder="Kata sandi (min 4 karakter) *">
-      </div>
-      <div class="input-icon">
-        <i class="bi bi-lock-fill"></i>
-        <input type="password" id="regConfirmPass" class="input-modern" placeholder="Konfirmasi kata sandi *">
-      </div>
-      <div class="text-start small text-muted mb-3">
-        <i class="bi bi-info-circle"></i> Username dan Email harus unik
-      </div>
-      <button onclick="handleRegister()" class="login-btn-modern w-100 mt-2" style="background: linear-gradient(135deg, #10b981, #059669);">
-        <i class="bi bi-person-plus me-2"></i> Daftar
-      </button>
-    </div>
+    <button onclick="handleLogin()" class="login-btn-modern w-100 mt-3">
+      <i class="bi bi-box-arrow-in-right me-2"></i> Masuk
+    </button>
     
     <div id="loginErrorMsg" class="mt-3 text-danger" style="display:none">
       <i class="bi bi-exclamation-triangle-fill"></i> <span id="errorText"></span>
@@ -83,76 +42,3 @@
 <div class="floating-heart-bg" style="bottom: 15%; left: 10%;">💕</div>
 <div class="floating-heart-bg" style="bottom: 25%; right: 15%;">💗</div>
 <div class="floating-heart-bg" style="top: 50%; left: 20%;">💓</div>
-
-<style>
-  /* Auth Tabs */
-  .auth-tabs-wrapper {
-    background: #f1f5f9;
-    border-radius: 60px;
-    padding: 4px;
-  }
-  
-  .auth-tab-btn {
-    flex: 1;
-    border: none;
-    background: transparent;
-    padding: 10px;
-    border-radius: 60px;
-    font-weight: 600;
-    transition: all 0.3s;
-    color: #64748b;
-    cursor: pointer;
-  }
-  
-  .auth-tab-btn.active {
-    background: white !important;
-    color: #6366f1 !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
-  
-  .auth-tab-btn:hover {
-    background: rgba(255,255,255,0.5);
-  }
-  
-  /* Dark mode */
-  body.dark .auth-tabs-wrapper {
-    background: #1e293b;
-  }
-  
-  body.dark .auth-tab-btn {
-    color: #94a3b8;
-  }
-  
-  body.dark .auth-tab-btn.active {
-    background: #1e293b !important;
-    color: #818cf8 !important;
-  }
-  
-  body.dark .auth-tab-btn:hover {
-    background: rgba(255,255,255,0.1);
-  }
-</style>
-
-<script>
-  window.switchAuthTab = function(tab) {
-    const loginForm = document.getElementById('loginForm');
-    const registerForm = document.getElementById('registerForm');
-    const loginTab = document.getElementById('loginTabBtn');
-    const registerTab = document.getElementById('registerTabBtn');
-    
-    if (tab === 'login') {
-      loginForm.style.display = 'block';
-      registerForm.style.display = 'none';
-      loginTab.classList.add('active');
-      registerTab.classList.remove('active');
-    } else {
-      loginForm.style.display = 'none';
-      registerForm.style.display = 'block';
-      loginTab.classList.remove('active');
-      registerTab.classList.add('active');
-    }
-    
-    const errorDiv = document.getElementById('loginErrorMsg');
-    if (errorDiv) errorDiv.style.display = 'none';
-  };
-</script>
