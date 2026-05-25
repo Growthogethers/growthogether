@@ -1,4 +1,4 @@
-// js/auth.js - Versi Lengkap dengan Semua Export (TANPA DUPLIKASI)
+// js/auth.js - Versi Final Tanpa Duplikasi Export
 import { db, ref, get, update, set, push } from './firebase-config.js';
 import { showNotif, setCurrentUser as setCurrentUserUtil, compressImage, escapeHtml } from './utils.js';
 import { renderBirthdayInProfile } from './pengingat.js';
@@ -724,7 +724,7 @@ export function openChangePasswordFromProfile() {
 }
 
 // ============ INITIALIZE DEFAULT USERS ============
-export async function initializeDefaultUsers() {
+async function initializeDefaultUsers() {
     const defaultUsers = [
         { username: "FACHMI", fullname: "Fachmi", phone: "081234567890", email: "fachmi@growthogether.com", password: "12345" },
         { username: "AZIZAH", fullname: "Azizah", phone: "081234567891", email: "azizah@growthogether.com", password: "12345" }
@@ -762,10 +762,43 @@ export async function initProfile() {
     }
 }
 
-// ============ EXPORTS ============
-// Login & Register
+// ============ EXPORT SEMUA FUNGSI (HANYA SEKALI) ============
+export {
+    cleanupAuthListeners,
+    forceRefreshProfile,
+    updateProfileUI,
+    validateSession,
+    handleLogin,
+    handleRegister,
+    resetToDefaultPassword,
+    updateCloudPassword,
+    confirmLogout,
+    handleLogout,
+    openProfileModal,
+    openChangePasswordFromProfile,
+    handleProfilePhotoUpload,
+    updateStatus,
+    initProfile,
+    initializeDefaultAuth
+};
+
+// ============ WINDOW EXPORTS (UNTUK AKSES GLOBAL) ============
 window.handleLogin = handleLogin;
 window.handleRegister = handleRegister;
+window.resetToDefaultPassword = resetToDefaultPassword;
+window.updateCloudPassword = updateCloudPassword;
+window.confirmLogout = confirmLogout;
+window.handleLogout = handleLogout;
+window.openProfileModal = openProfileModal;
+window.openChangePasswordFromProfile = openChangePasswordFromProfile;
+window.handleProfilePhotoUpload = handleProfilePhotoUpload;
+window.updateStatus = updateStatus;
+window.updateProfileUI = updateProfileUI;
+window.forceRefreshProfile = forceRefreshProfile;
+window.validateSession = validateSession;
+window.cleanupAuthListeners = cleanupAuthListeners;
+window.initializeDefaultAuth = initializeDefaultAuth;
+
 window.switchTab = (tab) => {
     const loginTab = document.getElementById('loginTab');
     const registerTab = document.getElementById('registerTab');
@@ -786,53 +819,14 @@ window.switchTab = (tab) => {
     if (successDiv) successDiv.style.display = 'none';
 };
 
-// Password
-window.resetToDefaultPassword = resetToDefaultPassword;
-window.updateCloudPassword = updateCloudPassword;
-
-// Profile
-window.openProfileModal = openProfileModal;
-window.openChangePasswordFromProfile = openChangePasswordFromProfile;
-window.handleProfilePhotoUpload = handleProfilePhotoUpload;
-window.updateStatus = updateStatus;
-window.updateProfileUI = updateProfileUI;
-window.forceRefreshProfile = forceRefreshProfile;
-
-// Session
-window.validateSession = validateSession;
-
-// Logout
-window.confirmLogout = confirmLogout;
-window.handleLogout = handleLogout;
-
-// ============ EXPORT UNTUK MODULE (TANPA DUPLIKASI) ============
-export { 
-    cleanupAuthListeners,
-    forceRefreshProfile,
-    updateProfileUI,
-    validateSession,
-    handleLogin,
-    handleRegister,
-    resetToDefaultPassword,
-    updateCloudPassword,
-    confirmLogout,
-    handleLogout,
-    openProfileModal,
-    openChangePasswordFromProfile,
-    handleProfilePhotoUpload,
-    updateStatus,
-    initProfile,
-    initializeDefaultAuth
-};
-
-// Initialize
+// ============ INITIALIZE ============
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => { initProfile(); });
 } else {
     initProfile();
 }
 
-// Setup real-time validation listeners
+// ============ REAL-TIME VALIDATION ============
 setTimeout(() => {
     const usernameInput = document.getElementById('regUsername');
     const phoneInput = document.getElementById('regPhone');
