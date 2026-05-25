@@ -1,5 +1,5 @@
-// js/auth.js - Versi lengkap dengan Register Multi-User
-import { db, ref, get, update, query, orderByChild, equalTo } from './firebase-config.js';
+// js/auth.js - Versi dengan password hash yang konsisten
+import { db, ref, get, update } from './firebase-config.js';
 import { showNotif, setCurrentUser, compressImage, escapeHtml } from './utils.js';
 import { renderBirthdayInProfile } from './pengingat.js';
 
@@ -19,8 +19,9 @@ function resetProfileState() {
   currentUsername = null;
 }
 
-// ============ PASSWORD HASH FUNCTION ============
+// ============ PASSWORD HASH FUNCTION YANG KONSISTEN ============
 async function hashPassword(password) {
+  // Menggunakan SHA-256 untuk hash yang lebih aman dan konsisten
   const encoder = new TextEncoder();
   const data = encoder.encode(password + "growthogether_salt_2024");
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
@@ -29,6 +30,7 @@ async function hashPassword(password) {
   return hashHex;
 }
 
+// Fungsi sederhana untuk fallback jika crypto.subtle tidak tersedia (http)
 function simpleHash(str) {
   if (!str) return "";
   let hash = 0;
@@ -91,10 +93,7 @@ function getCurrentSessionUser() {
 }
 
 function getDisplayName(username) {
-  if (currentUserData && currentUserData.displayName) {
-    return currentUserData.displayName;
-  }
-  return username;
+  return username === "FACHMI" ? "Fachmi" : "Azizah";
 }
 
 function getStatusText(status) {
@@ -115,112 +114,27 @@ function shakeElement(element) {
   }, 300);
 }
 
-// ============ REGISTER VALIDATION FUNCTIONS ============
-export async function isUsernameTaken(username) {
-  try {
-    const snapshot = await get(ref(db, `data/auth/${username.toUpperCase()}`));
-    return snapshot.exists();
-  } catch (err) {
-    console.error("Error checking username:", err);
-    return false;
-  }
-}
-
-export async function isEmailTaken(email) {
-  if (!email) return false;
-  try {
-    const usersSnapshot = await get(ref(db, `data/users`));
-    const users = usersSnapshot.val() || {};
-    for (const [userId, userData] of Object.entries(users)) {
-      if (userData.email && userData.email.toLowerCase() === email.toLowerCase()) {
-        return true;
-      }
-    }
-    return false;
-  } catch (err) {
-    console.error("Error checking email:", err);
-    return false;
-  }
-}
-
-export async function isPhoneTaken(phone) {
-  if (!phone) return false;
-  try {
-    const usersSnapshot = await get(ref(db, `data/users`));
-    const users = usersSnapshot.val() || {};
-    for (const [userId, userData] of Object.entries(users)) {
-      if (userData.phone && userData.phone === phone) {
-        return true;
-      }
-    }
-    return false;
-  } catch (err) {
-    console.error("Error checking phone:", err);
-    return false;
-  }
-}
-
-export async function findUserByIdentifier(identifier) {
-  if (!identifier) return null;
-  
-  const identifierLower = identifier.toLowerCase().trim();
-  
-  try {
-    // Cek sebagai username di data/auth
-    const authSnapshot = await get(ref(db, `data/auth/${identifier.toUpperCase()}`));
-    if (authSnapshot.exists()) {
-      return { username: identifier.toUpperCase(), type: 'username' };
-    }
-    
-    // Cek di data/users berdasarkan email atau phone
-    const usersSnapshot = await get(ref(db, `data/users`));
-    const users = usersSnapshot.val() || {};
-    
-    for (const [userId, userData] of Object.entries(users)) {
-      if (userData.email && userData.email.toLowerCase() === identifierLower) {
-        return { username: userId, type: 'email' };
-      }
-      if (userData.phone && userData.phone === identifier) {
-        return { username: userId, type: 'phone' };
-      }
-    }
-    
-    return null;
-  } catch (err) {
-    console.error("Error finding user:", err);
-    return null;
-  }
-}
-
 // ============ LOAD PROFILE DATA ============
 async function loadProfileData(username) {
   try {
     console.log("Loading profile data for:", username);
-    
-    const userSnap = await get(ref(db, `data/users/${username}`));
-    const userData = userSnap.val() || {};
-    
     const profileSnap = await get(ref(db, `data/profiles/${username}`));
     const profile = profileSnap.val() || {};
-    
     currentProfilePhoto = profile.photo || null;
     currentStatus = profile.status || 'merencanakan';
-    currentUserData = {
-      ...profile,
-      ...userData,
-      displayName: userData.displayName || username
-    };
+    currentUserData = profile;
     currentUsername = username;
     
-    console.log("Profile loaded:", { username, status: currentStatus, displayName: currentUserData.displayName });
+    console.log("Profile loaded:", { username, status: currentStatus, hasPhoto: !!currentProfilePhoto });
     updateProfileUI();
-    return currentUserData;
+    return profile;
   } catch (err) {
     console.error("Error loading profile:", err);
     return {};
   }
 }
 
+// ============ FORCE REFRESH PROFILE ============
 export async function forceRefreshProfile() {
   const currentUser = getCurrentSessionUser();
   if (currentUser && validateSession()) {
@@ -236,7 +150,7 @@ export function updateProfileUI() {
     return;
   }
   
-  const displayName = currentUserData?.displayName || currentUser;
+  const displayName = getDisplayName(currentUser);
   const statusText = getStatusText(currentStatus);
   
   console.log("Updating profile UI for:", displayName, "Status:", currentStatus);
@@ -283,10 +197,9 @@ export function updateProfileUI() {
   }
   
   if (modalName) modalName.innerText = escapeHtml(displayName);
-  if (modalEmail && currentUserData?.email) {
-    modalEmail.innerText = currentUserData.email;
-  } else if (modalEmail) {
-    modalEmail.innerText = `${currentUser}@growthogether.com`;
+  if (modalEmail) {
+    const email = currentUser === "FACHMI" ? "fachmi@growthogether.com" : "azizah@growthogether.com";
+    modalEmail.innerText = email;
   }
   
   document.querySelectorAll('.status-badge').forEach(badge => {
@@ -302,212 +215,19 @@ export function updateProfileUI() {
   if (userGreet) userGreet.innerText = escapeHtml(displayName);
 }
 
-// ============ REGISTER HANDLER ============
-export async function handleRegister() {
-  const username = document.getElementById("regUsername")?.value.trim().toUpperCase();
-  const email = document.getElementById("regEmail")?.value.trim();
-  const phone = document.getElementById("regPhone")?.value.trim();
-  const password = document.getElementById("regPass")?.value;
-  const confirmPass = document.getElementById("regConfirmPass")?.value;
-  const errorDiv = document.getElementById("loginErrorMsg");
-  const errorSpan = document.getElementById("errorText");
-  const registerBtn = document.querySelector("#registerForm .login-btn-modern");
-  
-  // Validasi input
-  if (!username) {
-    if (errorSpan) errorSpan.innerText = "❌ Username harus diisi!";
-    if (errorDiv) errorDiv.style.display = "block";
-    showNotif("Username harus diisi", true);
-    return;
-  }
-  
-  if (!email) {
-    if (errorSpan) errorSpan.innerText = "❌ Email harus diisi!";
-    if (errorDiv) errorDiv.style.display = "block";
-    showNotif("Email harus diisi", true);
-    return;
-  }
-  
-  if (!password || password.length < 4) {
-    if (errorSpan) errorSpan.innerText = "❌ Password minimal 4 karakter!";
-    if (errorDiv) errorDiv.style.display = "block";
-    showNotif("Password minimal 4 karakter", true);
-    return;
-  }
-  
-  if (password !== confirmPass) {
-    if (errorSpan) errorSpan.innerText = "❌ Password dan konfirmasi tidak sama!";
-    if (errorDiv) errorDiv.style.display = "block";
-    showNotif("Password tidak cocok", true);
-    return;
-  }
-  
-  // Validasi format username
-  if (!/^[A-Z0-9_]+$/.test(username)) {
-    if (errorSpan) errorSpan.innerText = "❌ Username hanya boleh huruf besar, angka, dan underscore!";
-    if (errorDiv) errorDiv.style.display = "block";
-    showNotif("Format username tidak valid", true);
-    return;
-  }
-  
-  // Validasi format email
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    if (errorSpan) errorSpan.innerText = "❌ Format email tidak valid!";
-    if (errorDiv) errorDiv.style.display = "block";
-    showNotif("Format email tidak valid", true);
-    return;
-  }
-  
-  // Validasi format phone (opsional)
-  if (phone && !/^[0-9+\-\s]{8,15}$/.test(phone)) {
-    if (errorSpan) errorSpan.innerText = "❌ Format no HP tidak valid! (8-15 digit)";
-    if (errorDiv) errorDiv.style.display = "block";
-    showNotif("Format no HP tidak valid", true);
-    return;
-  }
-  
-  const originalBtnText = registerBtn ? registerBtn.innerHTML : 'Daftar';
-  
-  if (registerBtn) {
-    registerBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Memeriksa...';
-    registerBtn.disabled = true;
-  }
-  
-  try {
-    // Cek username sudah terdaftar
-    const usernameTaken = await isUsernameTaken(username);
-    if (usernameTaken) {
-      if (errorSpan) errorSpan.innerText = "❌ Username sudah terdaftar!";
-      if (errorDiv) errorDiv.style.display = "block";
-      showNotif("Username sudah digunakan", true);
-      if (registerBtn) {
-        registerBtn.innerHTML = originalBtnText;
-        registerBtn.disabled = false;
-      }
-      return;
-    }
-    
-    // Cek email sudah terdaftar
-    const emailTaken = await isEmailTaken(email);
-    if (emailTaken) {
-      if (errorSpan) errorSpan.innerText = "❌ Email sudah terdaftar!";
-      if (errorDiv) errorDiv.style.display = "block";
-      showNotif("Email sudah digunakan", true);
-      if (registerBtn) {
-        registerBtn.innerHTML = originalBtnText;
-        registerBtn.disabled = false;
-      }
-      return;
-    }
-    
-    // Cek no HP sudah terdaftar (jika diisi)
-    if (phone) {
-      const phoneTaken = await isPhoneTaken(phone);
-      if (phoneTaken) {
-        if (errorSpan) errorSpan.innerText = "❌ No HP sudah terdaftar!";
-        if (errorDiv) errorDiv.style.display = "block";
-        showNotif("No HP sudah digunakan", true);
-        if (registerBtn) {
-          registerBtn.innerHTML = originalBtnText;
-          registerBtn.disabled = false;
-        }
-        return;
-      }
-    }
-    
-    // Hash password
-    const hashedPassword = await hashPassword(password);
-    
-    // Simpan ke Firebase
-    await update(ref(db), { [`data/auth/${username}`]: hashedPassword });
-    
-    // Simpan data user
-    await update(ref(db), { 
-      [`data/users/${username}`]: {
-        username: username,
-        email: email,
-        phone: phone || null,
-        displayName: username,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-        role: "user"
-      }
-    });
-    
-    // Inisialisasi data kosong untuk user baru
-    await update(ref(db), {
-      [`data/profiles/${username}`]: {
-        status: "merencanakan",
-        photo: null,
-        createdAt: Date.now()
-      },
-      [`data/keuangan/${username}`]: {
-        transaksi: {}
-      },
-      [`data/impian/${username}`]: {}
-    });
-    
-    if (registerBtn) {
-      registerBtn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Berhasil!';
-      registerBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
-    }
-    
-    showNotif(`✅ Akun ${username} berhasil dibuat! Silakan login.`, false, 'success');
-    
-    // Reset form register
-    document.getElementById("regUsername").value = "";
-    document.getElementById("regEmail").value = "";
-    document.getElementById("regPhone").value = "";
-    document.getElementById("regPass").value = "";
-    document.getElementById("regConfirmPass").value = "";
-    
-    // Switch ke tab login setelah 1.5 detik
-    setTimeout(() => {
-      if (registerBtn) {
-        registerBtn.innerHTML = originalBtnText;
-        registerBtn.style.background = "";
-        registerBtn.disabled = false;
-      }
-      if (typeof window.switchAuthTab === 'function') {
-        window.switchAuthTab('login');
-      }
-      
-      const loginIdentifier = document.getElementById("loginIdentifier");
-      if (loginIdentifier) loginIdentifier.value = username;
-      
-    }, 1500);
-    
-  } catch (err) {
-    console.error("Register error:", err);
-    if (registerBtn) {
-      registerBtn.innerHTML = originalBtnText;
-      registerBtn.disabled = false;
-    }
-    if (errorSpan) errorSpan.innerText = "⚠️ Gagal membuat akun: " + (err.message || "Unknown error");
-    if (errorDiv) errorDiv.style.display = "block";
-    showNotif("Gagal membuat akun", true);
-  }
-}
-
-// ============ LOGIN HANDLER ============
+// ============ LOGIN HANDLER DENGAN FIX ============
 export async function handleLogin() {
-  const identifier = document.getElementById("loginIdentifier")?.value.trim();
-  const password = document.getElementById("loginPass")?.value;
+  const u = document.getElementById("loginUser")?.value;
+  const p = document.getElementById("loginPass")?.value;
   const errorDiv = document.getElementById("loginErrorMsg");
   const errorSpan = document.getElementById("errorText");
-  const loginBtn = document.querySelector("#loginForm .login-btn-modern");
+  const loginBtn = document.querySelector(".login-btn-modern");
   
-  if (!identifier) {
-    if (errorSpan) errorSpan.innerText = "❌ Username/Email/No HP harus diisi!";
-    if (errorDiv) errorDiv.style.display = "block";
-    showNotif("Username/Email/No HP harus diisi", true);
-    return;
-  }
-  
-  if (!password || !password.trim()) { 
+  if (!p || !p.trim()) { 
     if (errorSpan) errorSpan.innerText = "❌ Password tidak boleh kosong!"; 
     if (errorDiv) errorDiv.style.display = "block"; 
     showNotif("Password harus diisi", true); 
+    shakeElement(document.getElementById("loginPass"));
     return; 
   }
   
@@ -520,53 +240,53 @@ export async function handleLogin() {
   }
   
   try {
-    const userInfo = await findUserByIdentifier(identifier);
-    
-    if (!userInfo) {
-      if (loginBtn) {
-        loginBtn.innerHTML = originalBtnText;
-        loginBtn.disabled = false;
-      }
-      if (errorSpan) errorSpan.innerText = "⚠️ Akun tidak ditemukan!";
-      if (errorDiv) errorDiv.style.display = "block";
-      showNotif("Akun tidak ditemukan", true);
-      return;
-    }
-    
-    const username = userInfo.username;
-    
-    const snap = await get(ref(db, `data/auth/${username}`));
+    const snap = await get(ref(db, `data/auth/${u}`));
     let storedValue = snap.val();
+    
+    console.log("Stored password value type:", typeof storedValue);
+    console.log("Stored value first chars:", storedValue ? storedValue.substring(0, 20) : "null");
     
     let isValid = false;
     
+    // Cek apakah storedValue adalah hash SHA-256 (64 karakter hex)
     if (storedValue && /^[a-f0-9]{64}$/.test(storedValue)) {
-      const hashedInput = await hashPassword(password);
+      // Ini adalah hash SHA-256
+      const hashedInput = await hashPassword(p);
       isValid = (hashedInput === storedValue);
-    } else if (storedValue && /^[a-f0-9]+$/.test(storedValue) && storedValue.length < 64) {
-      const hashedInput = simpleHash(password);
+      console.log("SHA-256 comparison result:", isValid);
+    }
+    // Cek apakah storedValue adalah hash simple (angka hex)
+    else if (storedValue && /^[a-f0-9]+$/.test(storedValue) && storedValue.length < 64) {
+      const hashedInput = simpleHash(p);
       isValid = (hashedInput === storedValue);
-    } else {
-      isValid = (storedValue === password);
+      console.log("Simple hash comparison result:", isValid);
+    }
+    // Plain text (untuk backward compatibility)
+    else {
+      isValid = (storedValue === p);
+      console.log("Plain text comparison result:", isValid);
+      
+      // Migrasi ke hash SHA-256
       if (isValid) {
-        const newHash = await hashPassword(password);
-        await update(ref(db), { [`data/auth/${username}`]: newHash });
+        const newHash = await hashPassword(p);
+        await update(ref(db), { [`data/auth/${u}`]: newHash });
+        console.log("Password migrated to SHA-256 for:", u);
       }
     }
     
     if (isValid) {
       const timestamp = Date.now();
-      const token = generateSessionToken(username, timestamp);
+      const token = generateSessionToken(u, timestamp);
       
       sessionStorage.clear();
-      sessionStorage.setItem("progrowth_user", username);
+      sessionStorage.setItem("progrowth_user", u);
       sessionStorage.setItem("progrowth_token", token);
       sessionStorage.setItem("progrowth_timestamp", timestamp.toString());
       
-      setCurrentUser(username);
-      currentUsername = username;
+      setCurrentUser(u);
+      currentUsername = u;
       
-      await loadProfileData(username);
+      await loadProfileData(u);
       
       if (loginBtn) {
         loginBtn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Berhasil!';
@@ -575,19 +295,20 @@ export async function handleLogin() {
       
       setTimeout(() => {
         if (window.setupAppSession) {
-          window.setupAppSession(username);
+          window.setupAppSession(u);
         }
       }, 500);
       
-      const displayName = currentUserData?.displayName || username;
-      showNotif(`Selamat datang, ${displayName} 🎉`);
+      showNotif(`Selamat datang, ${getDisplayName(u)} 🎉`);
     } else {
       if (loginBtn) {
         loginBtn.innerHTML = originalBtnText;
         loginBtn.disabled = false;
       }
+      
       if (errorSpan) errorSpan.innerText = "⚠️ Password salah!";
       if (errorDiv) errorDiv.style.display = "block";
+      shakeElement(document.getElementById("loginPass"));
       showNotif("Password salah! Coba lagi", true);
     }
   } catch (e) {
@@ -596,13 +317,14 @@ export async function handleLogin() {
       loginBtn.innerHTML = originalBtnText;
       loginBtn.disabled = false;
     }
+    
     if (errorSpan) errorSpan.innerText = "⚠️ Gagal koneksi.";
     if (errorDiv) errorDiv.style.display = "block";
     showNotif("Koneksi gagal", true);
   }
 }
 
-// ============ PROFILE PHOTO ============
+// ============ UPDATE PROFILE PHOTO ============
 export async function updateProfilePhoto(photoBase64) {
   const currentUser = getCurrentSessionUser();
   if (!currentUser || !validateSession()) {
@@ -754,6 +476,7 @@ export function openProfileModal() {
   }
 }
 
+// ============ OPEN CHANGE PASSWORD ============
 export function openChangePasswordFromProfile() {
   console.log("openChangePasswordFromProfile called");
   
@@ -772,6 +495,7 @@ export function openChangePasswordFromProfile() {
   }, 300);
 }
 
+// ============ HANDLE PROFILE PHOTO UPLOAD ============
 export async function handleProfilePhotoUpload(input) {
   const file = input.files[0];
   if (!file) return;
@@ -798,6 +522,20 @@ export async function handleProfilePhotoUpload(input) {
     console.error("Upload error:", err);
     showNotif("❌ Gagal upload foto", true);
     input.value = '';
+  }
+}
+
+// ============ RESET PASSWORD TO PLAIN TEXT (UNTUK DEBUG) ============
+export async function resetPasswordToPlain(username, password) {
+  try {
+    await update(ref(db), { [`data/auth/${username}`]: password });
+    console.log(`Password for ${username} reset to plain text: ${password}`);
+    showNotif(`Password ${username} telah direset ke: ${password}`, false, 'warning');
+    return true;
+  } catch (err) {
+    console.error(err);
+    showNotif("Gagal reset password", true);
+    return false;
   }
 }
 
@@ -858,11 +596,12 @@ export function handleLogout() {
     resetProfileState();
     
     const loginPass = document.getElementById("loginPass");
-    const loginIdentifier = document.getElementById("loginIdentifier");
     const loginErrorMsg = document.getElementById("loginErrorMsg");
     if (loginPass) loginPass.value = "";
-    if (loginIdentifier) loginIdentifier.value = "";
     if (loginErrorMsg) loginErrorMsg.style.display = "none";
+    
+    const loginUserSelect = document.getElementById("loginUser");
+    if (loginUserSelect) loginUserSelect.value = "FACHMI";
     
     const loginScreen = document.getElementById("login-screen");
     const sidebar = document.getElementById("app-sidebar");
@@ -892,6 +631,7 @@ export function handleLogout() {
   }, 300);
 }
 
+// ============ INIT PROFILE ON LOAD ============
 export async function initProfile() {
   const savedUser = sessionStorage.getItem("progrowth_user");
   if (savedUser && validateSession()) {
@@ -902,9 +642,14 @@ export async function initProfile() {
   }
 }
 
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initProfile);
+} else {
+  initProfile();
+}
+
 // ============ EXPORTS ============
 window.handleLogin = handleLogin;
-window.handleRegister = handleRegister;
 window.updateCloudPassword = updateCloudPassword;
 window.confirmLogout = confirmLogout;
 window.handleLogout = handleLogout;
@@ -916,13 +661,4 @@ window.updateProfileUI = updateProfileUI;
 window.forceRefreshProfile = forceRefreshProfile;
 window.validateSession = validateSession;
 window.cleanupAuthListeners = cleanupAuthListeners;
-window.isUsernameTaken = isUsernameTaken;
-window.isEmailTaken = isEmailTaken;
-window.isPhoneTaken = isPhoneTaken;
-window.findUserByIdentifier = findUserByIdentifier;
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initProfile);
-} else {
-  initProfile();
-}
+window.resetPasswordToPlain = resetPasswordToPlain;
