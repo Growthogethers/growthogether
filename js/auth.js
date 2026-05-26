@@ -606,13 +606,23 @@ export function handleLogout() {
     setCurrentUser(null);
     resetProfileState();
     
-    // Reset form login
+    // RESET FORM LOGIN - PERBAIKAN UTAMA
     const loginPass = document.getElementById("loginPass");
     const loginErrorMsg = document.getElementById("loginErrorMsg");
     const loginUserInput = document.getElementById("loginUser");
+    const loginBtn = document.querySelector(".login-btn-modern");
+    
     if (loginPass) loginPass.value = "";
     if (loginErrorMsg) loginErrorMsg.style.display = "none";
     if (loginUserInput) loginUserInput.value = "";
+    
+    // RESET TOMBOL LOGIN KE STATE SEMULA
+    if (loginBtn) {
+      loginBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i> Masuk';
+      loginBtn.disabled = false;
+      loginBtn.style.background = "linear-gradient(135deg, #7009b4, #4000C6)";
+      loginBtn.style.opacity = "1";
+    }
     
     // Sembunyikan elemen app
     const loginScreen = document.getElementById("login-screen");
@@ -681,17 +691,13 @@ export function setupAppSession(u) {
     }, 300);
   }
   
-  // Tampilkan sidebar dan app content
-  if (sidebar) {
-    if (window.innerWidth > 768) {
-      sidebar.style.display = "flex";
-    } else {
-      sidebar.style.display = "none";
-    }
-  }
-  
-  if (bottomNav) {
-    bottomNav.style.display = "flex";
+  // Tampilkan sidebar untuk desktop, bottom nav untuk mobile
+  if (window.innerWidth > 768) {
+    if (sidebar) sidebar.style.display = "flex";
+    if (bottomNav) bottomNav.style.display = "none";
+  } else {
+    if (sidebar) sidebar.style.display = "none";
+    if (bottomNav) bottomNav.style.display = "flex";
   }
   
   if (appContent) {
