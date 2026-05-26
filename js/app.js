@@ -162,7 +162,6 @@ function initHamburgerMenu() {
   
   if (!hamburgerBtn || !sidebar) {
     console.log("Hamburger menu elements not found, will retry later");
-    // Retry after a short delay if elements not found
     setTimeout(() => {
       const retryBtn = document.getElementById('hamburgerMenuBtn');
       const retrySidebar = document.getElementById('app-sidebar');
@@ -173,7 +172,6 @@ function initHamburgerMenu() {
     return;
   }
   
-  // Fungsi untuk membuka sidebar
   function openSidebar() {
     sidebar.classList.add('open');
     if (overlay) overlay.classList.add('active');
@@ -181,7 +179,6 @@ function initHamburgerMenu() {
     console.log("Sidebar opened");
   }
   
-  // Fungsi untuk menutup sidebar
   function closeSidebar() {
     sidebar.classList.remove('open');
     if (overlay) overlay.classList.remove('active');
@@ -189,7 +186,6 @@ function initHamburgerMenu() {
     console.log("Sidebar closed");
   }
   
-  // Event listener untuk tombol hamburger
   hamburgerBtn.removeEventListener('click', openSidebar);
   hamburgerBtn.addEventListener('click', (e) => {
     e.preventDefault();
@@ -197,7 +193,6 @@ function initHamburgerMenu() {
     openSidebar();
   });
   
-  // Event listener untuk tombol close
   if (closeBtn) {
     closeBtn.removeEventListener('click', closeSidebar);
     closeBtn.addEventListener('click', (e) => {
@@ -207,7 +202,6 @@ function initHamburgerMenu() {
     });
   }
   
-  // Event listener untuk overlay (klik di luar sidebar)
   if (overlay) {
     overlay.removeEventListener('click', closeSidebar);
     overlay.addEventListener('click', (e) => {
@@ -216,7 +210,6 @@ function initHamburgerMenu() {
     });
   }
   
-  // Tutup sidebar saat memilih menu (pada mobile)
   const navLinks = document.querySelectorAll('.sidebar .nav-link, #app-sidebar .nav-link');
   navLinks.forEach(link => {
     link.removeEventListener('click', closeSidebar);
@@ -227,7 +220,6 @@ function initHamburgerMenu() {
     });
   });
   
-  // Tutup sidebar saat resize dari mobile ke desktop
   window.removeEventListener('resize', closeSidebar);
   window.addEventListener('resize', () => {
     if (window.innerWidth > 768) {
@@ -299,24 +291,36 @@ function applyDarkMode(isDark, darkFab) {
   document.documentElement.style.setProperty('--border-light', isDark ? '#4c1d6e' : '#e9d5ff');
 }
 
+// ============ HANDLE RESIZE ============
 function handleResize() {
   const appContent = document.getElementById("app-content");
   const sidebar = document.getElementById("app-sidebar");
   const hamburgerBtn = document.getElementById("hamburgerMenuBtn");
+  const bottomNav = document.querySelector(".bottom-nav");
   
   if (window.innerWidth > 768) {
+    // DESKTOP MODE
     if (appContent) appContent.style.marginLeft = "280px";
     if (sidebar) {
       sidebar.style.display = "flex";
       sidebar.classList.remove('open');
     }
     if (hamburgerBtn) hamburgerBtn.style.display = "none";
+    if (bottomNav) bottomNav.style.display = "none";
+    
+    // Pastikan overlay tertutup
+    const overlay = document.getElementById('sidebarOverlay');
+    if (overlay) overlay.classList.remove('active');
+    document.body.style.overflow = '';
   } else {
+    // MOBILE MODE
     if (appContent) appContent.style.marginLeft = "0";
     if (sidebar) {
       sidebar.style.display = "flex";
+      // Jangan otomatis buka, biarkan tertutup
     }
     if (hamburgerBtn) hamburgerBtn.style.display = "flex";
+    if (bottomNav) bottomNav.style.display = "flex";
   }
 }
 
@@ -491,19 +495,7 @@ function setupAppSession(u) {
   }
   
   // Atur tampilan berdasarkan ukuran layar
-  if (window.innerWidth > 768) {
-    if (sidebar) {
-      sidebar.style.display = "flex";
-      sidebar.classList.remove('open');
-    }
-    if (hamburgerBtn) hamburgerBtn.style.display = "none";
-  } else {
-    if (sidebar) {
-      sidebar.style.display = "flex";
-      sidebar.classList.remove('open');
-    }
-    if (hamburgerBtn) hamburgerBtn.style.display = "flex";
-  }
+  handleResize();
   
   if (appContent) {
     appContent.style.display = "block";
@@ -519,7 +511,6 @@ function setupAppSession(u) {
   setTimeout(() => {
     if (typeof forceRefreshProfile === 'function') forceRefreshProfile();
     if (typeof updateProfileUI === 'function') updateProfileUI();
-    handleResize();
   }, 200);
   
   renderDashboard();
@@ -654,6 +645,7 @@ window.confirmLogout = confirmLogout;
 window.cleanupAllListeners = cleanupAllListeners;
 window.registerListener = registerListener;
 window.initHamburgerMenu = initHamburgerMenu;
+window.handleResize = handleResize;
 
 // Register logout handler
 window.handleLogout = handleLogout;
