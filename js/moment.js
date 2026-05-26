@@ -1,21 +1,22 @@
-// js/moment.js - Optimasi dengan Lazy Loading + Calendar Cache
+// js/moment.js - Optimasi dengan Lazy Loading + Calendar Cache + Filter Tanggal
 import { db, ref, push, update, remove } from './firebase-config.js';
 import { 
   masterData, escapeHtml, showNotif, compressImage, showCustomConfirm, 
-  throttle, showLoading, hideLoading 
+  throttle, showLoading, hideLoading, validateAndCompressPhotos
 } from './utils.js';
 
 let currentViewDate = new Date();
 let currentDetailMomentId = null;
 let currentMomentPhotos = [];
 let isRenderingCalendar = false;
+let currentMonthFilter = null;
+let currentYearFilter = null;
 
-// PERBAIKAN #4: Calendar cache
+// Calendar cache
 let cachedCalendarHtml = null;
 let cachedMonthYear = null;
 let cachedMomentsHash = null;
 
-// Fungsi untuk generate hash dari moments (deteksi perubahan)
 function getMomentsHash(moments) {
   const momentKeys = Object.keys(moments).sort();
   return JSON.stringify(momentKeys.map(key => moments[key].date));
@@ -44,35 +45,19 @@ function renderPhotoGrid() {
 
 export async function handleMultiplePhotos(input) {
   const files = Array.from(input.files);
-  const remainingSlots = 5 - currentMomentPhotos.length;
   
-  if (files.length > remainingSlots) {
-    showNotif(`❌ Maksimal 5 foto, tersisa ${remainingSlots} slot`, true);
-    input.value = '';
-    return;
-  }
+  if (files.length === 0) return;
   
-  showNotif('📸 Memproses foto...');
+  // Gunakan validasi dari utils
+  const compressedPhotos = await validateAndCompressPhotos(files, 2, 5 - currentMomentPhotos.length);
   
-  for (const file of files) {
-    if (file.size > 2 * 1024 * 1024) {
-      showNotif(`❌ Foto ${file.name} terlalu besar (max 2MB)`, true);
-      continue;
-    }
-    
-    try {
-      const compressed = await compressImage(file, 1);
-      currentMomentPhotos.push(compressed);
-    } catch (err) {
-      console.error('Compression error:', err);
-    }
+  if (compressedPhotos) {
+    currentMomentPhotos.push(...compressedPhotos);
+    renderPhotoGrid();
+    showNotif(`✅ ${compressedPhotos.length} foto berhasil ditambahkan`);
   }
   
   input.value = '';
-  renderPhotoGrid();
-  if (files.length > 0) {
-    showNotif(`✅ ${files.length} foto berhasil ditambahkan`);
-  }
 }
 
 export function removePhotoAtIndex(index) {
@@ -81,7 +66,6 @@ export function removePhotoAtIndex(index) {
   showNotif('🗑️ Foto dihapus');
 }
 
-// PERBAIKAN #4: Render calendar dengan cache
 export function renderCalendar() {
   if (isRenderingCalendar) return;
   
@@ -91,7 +75,6 @@ export function renderCalendar() {
   const cacheKey = `${year}-${month}`;
   const currentMomentsHash = getMomentsHash(moments);
   
-  // Cek cache
   if (cachedCalendarHtml && cachedMonthYear === cacheKey && cachedMomentsHash === currentMomentsHash) {
     console.log("Using cached calendar for", cacheKey);
     const grid = document.getElementById('calendarGrid');
@@ -100,7 +83,6 @@ export function renderCalendar() {
     }
     isRenderingCalendar = false;
     
-    // Update month/year display
     const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
     const monthYearEl = document.getElementById('currentMonthYear');
     if (monthYearEl) monthYearEl.innerHTML = `${monthNames[month]} ${year}`;
@@ -176,7 +158,6 @@ export function renderCalendar() {
     `;
   }
   
-  // Simpan ke cache
   cachedCalendarHtml = calendarHtml;
   cachedMonthYear = cacheKey;
   cachedMomentsHash = currentMomentsHash;
@@ -185,12 +166,70 @@ export function renderCalendar() {
   isRenderingCalendar = false;
 }
 
-// Fungsi untuk clear cache calendar (panggil saat moments berubah)
 export function clearCalendarCache() {
   cachedCalendarHtml = null;
   cachedMonthYear = null;
   cachedMomentsHash = null;
   console.log("Calendar cache cleared");
+}
+
+// FITUR FILTER TANGGAL DI MOMEN
+function initMomentFilters() {
+  const filterContainer = document.getElementById('momentFilters');
+  if (!filterContainer) return;
+  
+  filterContainer.innerHTML = `
+    <div class="row g-2 mb-3">
+      <div class="col-6">
+        <select id="momentMonthFilter" class="form-select form-select-sm rounded-pill">
+          <option value="">Semua Bulan</option>
+          <option value="1">Januari</option>
+          <option value="2">Februari</option>
+          <option value="3">Maret</option>
+          <option value="4">April</option>
+          <option value="5">Mei</option>
+          <option value="6">Juni</option>
+          <option value="7">Juli</option>
+          <option value="8">Agustus</option>
+          <option value="9">September</option>
+          <option value="10">Oktober</option>
+          <option value="11">November</option>
+          <option value="12">Desember</option>
+        </select>
+      </div>
+      <div class="col-6">
+        <select id="momentYearFilter" class="form-select form-select-sm rounded-pill">
+          <option value="">Semua Tahun</option>
+        </select>
+      </div>
+    </div>
+  `;
+  
+  // Populate tahun
+  const yearSelect = document.getElementById('momentYearFilter');
+  if (yearSelect) {
+    const currentYear = new Date().getFullYear();
+    for (let y = currentYear - 2; y <= currentYear + 2; y++) {
+      yearSelect.innerHTML += `<option value="${y}">${y}</option>`;
+    }
+  }
+  
+  // Event listeners
+  const monthFilter = document.getElementById('momentMonthFilter');
+  const yearFilter = document.getElementById('momentYearFilter');
+  
+  if (monthFilter) monthFilter.addEventListener('change', () => applyMomentFilters());
+  if (yearFilter) yearFilter.addEventListener('change', () => applyMomentFilters());
+}
+
+function applyMomentFilters() {
+  const monthFilter = document.getElementById('momentMonthFilter')?.value;
+  const yearFilter = document.getElementById('momentYearFilter')?.value;
+  
+  currentMonthFilter = monthFilter ? parseInt(monthFilter) : null;
+  currentYearFilter = yearFilter ? parseInt(yearFilter) : null;
+  
+  renderMomentsList();
 }
 
 const throttledRenderMoments = throttle(() => {
@@ -206,7 +245,18 @@ export function renderMomentsList() {
   const momentsCountEl = document.getElementById('momentsCount');
   if (!momentsListEl) return;
   
-  const momentsArray = Object.entries(moments).map(([id, m]) => ({ id, ...m }));
+  let momentsArray = Object.entries(moments).map(([id, m]) => ({ id, ...m }));
+  
+  // Filter berdasarkan bulan dan tahun
+  if (currentMonthFilter || currentYearFilter) {
+    momentsArray = momentsArray.filter(m => {
+      if (!m.date) return false;
+      const [year, month] = m.date.split('-');
+      if (currentYearFilter && parseInt(year) !== currentYearFilter) return false;
+      if (currentMonthFilter && parseInt(month) !== currentMonthFilter) return false;
+      return true;
+    });
+  }
   
   momentsArray.sort((a, b) => {
     if (a.isSpecial && !b.isSpecial) return -1;
@@ -214,15 +264,18 @@ export function renderMomentsList() {
     return (b.date || '').localeCompare(a.date || '');
   });
   
-  if (momentsCountEl) momentsCountEl.innerHTML = `${momentsArray.length} momen`;
+  if (momentsCountEl) {
+    const filterText = (currentMonthFilter || currentYearFilter) ? ' (terfilter)' : '';
+    momentsCountEl.innerHTML = `${momentsArray.length} momen${filterText}`;
+  }
   
   if (momentsArray.length === 0) {
     momentsListEl.innerHTML = `
       <div class="col-12">
         <div class="text-center py-5">
           <i class="bi bi-calendar-heart fs-1 text-muted"></i>
-          <h6 class="mt-2">Belum ada momen</h6>
-          <p class="text-muted small">Klik tanggal pada kalender untuk menambah momen</p>
+          <h6 class="mt-2">${(currentMonthFilter || currentYearFilter) ? 'Tidak ada momen untuk filter ini' : 'Belum ada momen'}</h6>
+          <p class="text-muted small">${(currentMonthFilter || currentYearFilter) ? 'Coba pilih filter lain' : 'Klik tanggal pada kalender untuk menambah momen'}</p>
         </div>
       </div>
     `;
@@ -351,7 +404,6 @@ export async function saveMoment() {
       showNotif('✏️ Momen berhasil diperbarui! ✨');
     }
     
-    // Clear calendar cache karena moments berubah
     clearCalendarCache();
     
     const modal = bootstrap.Modal.getInstance(document.getElementById('momentModal'));
@@ -400,7 +452,6 @@ export async function viewMomentDetail(momentId) {
     
     const carouselElement = document.getElementById('detailCarousel');
     if (carouselElement && typeof bootstrap !== 'undefined') {
-      // Destroy existing carousel before creating new one
       const existingCarousel = bootstrap.Carousel.getInstance(carouselElement);
       if (existingCarousel) existingCarousel.dispose();
       new bootstrap.Carousel(carouselElement, { interval: false });
@@ -430,7 +481,6 @@ export async function deleteMomentFromDetail() {
       await remove(ref(db, `data/moments/${currentDetailMomentId}`));
       showNotif('🗑️ Momen berhasil dihapus');
       
-      // Clear calendar cache karena moments berubah
       clearCalendarCache();
       
       const modal = bootstrap.Modal.getInstance(document.getElementById('momentDetailModal'));
@@ -452,6 +502,22 @@ export function changeMonth(delta) {
   renderCalendar();
 }
 
+// Tambahkan filter container ke content.html moment page
+export function addFilterToMomentPage() {
+  const momentContainer = document.getElementById('moment-page');
+  if (!momentContainer) return;
+  
+  const filterSection = document.createElement('div');
+  filterSection.id = 'momentFilters';
+  filterSection.className = 'mb-3';
+  
+  const calendarCard = momentContainer.querySelector('.card.border-0.shadow-sm.mb-4');
+  if (calendarCard) {
+    calendarCard.insertAdjacentElement('afterend', filterSection);
+    initMomentFilters();
+  }
+}
+
 // Exports
 window.renderCalendar = renderCalendar;
 window.renderMomentsList = renderMomentsList;
@@ -465,3 +531,4 @@ window.editMomentFromDetail = editMomentFromDetail;
 window.deleteMomentFromDetail = deleteMomentFromDetail;
 window.changeMonth = changeMonth;
 window.clearCalendarCache = clearCalendarCache;
+window.addFilterToMomentPage = addFilterToMomentPage;
