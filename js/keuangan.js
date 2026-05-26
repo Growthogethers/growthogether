@@ -1,8 +1,9 @@
-// js/keuangan.js - Versi lengkap dengan Chart, Search, Filter, Export (FULL DIPERBAIKI)
+// js/keuangan.js - Versi lengkap dengan validasi duplikat
 import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
 import { 
   showNotif, formatNumberRp, escapeHtml, showCustomPrompt, showCustomConfirm, 
-  getCache, setCache, clearCache, throttle, showLoading, hideLoading 
+  getCache, setCache, clearCache, throttle, showLoading, hideLoading,
+  checkDuplicateTransaction
 } from './utils.js';
 
 let currentUser = null;
@@ -12,7 +13,7 @@ let targetKategori = {};
 let editTransaksiId = null;
 let dynamicCategories = [];
 let isInitialized = false;
-let keuanganChart = null; // PERBAIKAN #2: Simpan instance chart
+let keuanganChart = null;
 let currentChartPeriod = 'month';
 let currentFilter = {
   search: '',
@@ -20,12 +21,10 @@ let currentFilter = {
   endDate: ''
 };
 
-// ============ PERBAIKAN #2: CHART DESTROY SEBELUM INIT ULANG ============
 function initKeuanganChart() {
   const ctx = document.getElementById('keuanganChart');
   if (!ctx) return;
   
-  // DESTROY existing chart sebelum buat baru
   if (keuanganChart) {
     keuanganChart.destroy();
     keuanganChart = null;
@@ -185,7 +184,6 @@ window.changeChartPeriod = function(period) {
   showNotif(`Menampilkan grafik ${period === 'week' ? 'Mingguan' : period === 'month' ? 'Bulanan' : 'Tahunan'}`, false, 'info');
 };
 
-// ============ AMBIL KATEGORI DARI CATATAN ============
 async function loadKategoriFromCatatan() {
   try {
     const snapshot = await get(ref(db, `data/catatan/bersama/kategori`));
@@ -221,7 +219,6 @@ function updateKategoriSelect() {
   select.innerHTML = options;
 }
 
-// ============ RENDER PROGRESS PER KATEGORI ============
 function renderKategoriProgress() {
   const container = document.getElementById('kategoriProgressContainer');
   if (!container) return;
@@ -289,7 +286,6 @@ function renderKategoriProgress() {
   container.innerHTML = html;
 }
 
-// ============ TAMBAH PEMASUKAN PER KATEGORI ============
 window.addPemasukanKeKategori = async function(kategoriNama) {
   const nominal = await showCustomPrompt(
     `Tambah Tabungan untuk "${kategoriNama}"`, 
@@ -363,7 +359,6 @@ window.addPengeluaranKeKategori = async function(kategoriNama) {
   }
 };
 
-// ============ LOAD & RENDER TRANSACTION ============
 async function loadAllTransaksiOptimized(forceRefresh = false) {
   const cacheKey = `keuangan_transaksi_${currentUser}`;
   if (!forceRefresh) {
@@ -400,15 +395,12 @@ function updateRingkasan() {
   const totalSaldoEl = document.getElementById('totalSaldo');
   const totalPemasukanEl = document.getElementById('totalPemasukan');
   const totalPengeluaranEl = document.getElementById('totalPengeluaran');
-  const saldoDetailEl = document.getElementById('saldoDetail');
   
   if (totalSaldoEl) totalSaldoEl.innerHTML = formatNumberRp(saldo);
   if (totalPemasukanEl) totalPemasukanEl.innerHTML = formatNumberRp(pemasukan);
   if (totalPengeluaranEl) totalPengeluaranEl.innerHTML = formatNumberRp(pengeluaran);
-  if (saldoDetailEl) saldoDetailEl.innerHTML = `Pemasukan - Pengeluaran`;
 }
 
-// ============ FILTER FUNCTIONS ============
 function applyFilters() {
   const searchInput = document.getElementById('searchTransaksi');
   const startDateInput = document.getElementById('filterDateStart');
@@ -492,7 +484,6 @@ window.resetFilters = function() {
   showNotif("Filter direset", false, 'info');
 };
 
-// ============ EXPORT FUNCTIONS ============
 window.exportKeuanganToCSV = function() {
   const headers = ['Tanggal', 'Tipe', 'Kategori', 'Nominal', 'Catatan'];
   const rows = transaksiList.map(t => [
@@ -517,8 +508,22 @@ window.exportKeuanganToCSV = function() {
   showNotif(`✅ Laporan keuangan berhasil diexport! (${transaksiList.length} transaksi)`, false, 'success');
 };
 
-// ============ CRUD FUNCTIONS ============
 export async function addTransaksiFromExternal(userId, data) {
+  // VALIDASI DUPLIKAT TRANSAKSI
+  const existingTransaksi = await get(ref(db, `data/keuangan/${userId}/transaksi`));
+  const existingList = Object.values(existingTransaksi.val() || {});
+  
+  const isDuplicate = checkDuplicateTransaction(existingList, {
+    tanggal: Date.now(),
+    kategori: data.kategori,
+    nominal: data.nominal,
+    tipe: data.tipe
+  });
+  
+  if (isDuplicate) {
+    return null;
+  }
+  
   const transaksiData = {
     tipe: data.tipe || 'pengeluaran',
     kategori: data.kategori || 'Pernikahan',
@@ -622,6 +627,18 @@ window.saveTransaksi = async function() {
     return;
   }
   
+  // VALIDASI DUPLIKAT SEBELUM SAVE
+  const isDuplicate = checkDuplicateTransaction(transaksiList, {
+    tanggal: new Date(tanggal).getTime(),
+    kategori: kategori,
+    nominal: nominal,
+    tipe: tipe
+  });
+  
+  if (isDuplicate && !editTransaksiId) {
+    return;
+  }
+  
   showLoading("Menyimpan transaksi...");
   
   const transaksiData = {
@@ -686,7 +703,6 @@ window.deleteTransaksi = async function(id) {
   }
 };
 
-// ============ INIT FUNCTION ============
 export function initKeuangan() {
   currentUser = sessionStorage.getItem("progrowth_user");
   if (!currentUser) return;
@@ -710,10 +726,9 @@ export function initKeuangan() {
     loadAllTransaksiOptimized()
   ]).finally(() => {
     hideLoading();
-    initKeuanganChart(); // PERBAIKAN #2: Sekarang aman dipanggil berulang
+    initKeuanganChart();
   });
   
-  // Setup listener untuk perubahan data
   onValue(ref(db, `data/catatan/bersama/kategori`), () => {
     loadKategoriFromCatatan();
     renderKategoriProgress();
@@ -725,7 +740,6 @@ export function initKeuangan() {
     renderKategoriProgress();
   });
   
-  // Setup filter event listeners setelah DOM siap
   setTimeout(() => {
     const searchInput = document.getElementById('searchTransaksi');
     const startDateInput = document.getElementById('filterDateStart');
@@ -751,7 +765,6 @@ async function refreshData() {
   }
 }
 
-// Export untuk dipanggil dari file lain
 window.initKeuangan = initKeuangan;
 window.addTransaksiFromExternal = addTransaksiFromExternal;
 window.exportKeuanganToCSV = exportKeuanganToCSV;
