@@ -1,8 +1,9 @@
-// js/dashboard.js - Versi revisi: hanya keuangan per user + momen terbaru
-import { masterData, formatNumberRp, showNotif } from './utils.js';
+// js/dashboard.js - Versi revisi: dengan fitur pencarian momen
+import { masterData, formatNumberRp, showNotif, escapeHtml } from './utils.js';
 import { db, ref, get } from './firebase-config.js';
 
 let currentUser = null;
+let searchTimeout = null;
 
 export async function renderDashboard() {
   if (!masterData) return;
@@ -13,7 +14,6 @@ export async function renderDashboard() {
   const moments = masterData.moments || {};
   const momentsArray = Object.values(moments);
   
-  // Ambil data keuangan per user
   const keuanganData = await getKeuanganPerUser();
   
   // Render Ringkasan Keuangan Per User
@@ -49,30 +49,80 @@ export async function renderDashboard() {
     `;
   }
   
-  // Render Recent Moments (3 momen terakhir)
+  // Render Recent Moments dengan fitur pencarian
   const recentContainer = document.getElementById('recentMomentsPreview');
   if (recentContainer) {
-    const recentMoments = momentsArray
-      .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
-      .slice(0, 3);
-    
-    if (recentMoments.length === 0) {
-      recentContainer.innerHTML = `<div class="col-12 text-center text-muted py-4">Belum ada momen. Yuk tambah momen spesial!</div>`;
-    } else {
-      recentContainer.innerHTML = recentMoments.map(moment => `
-        <div class="col-4">
-          <div class="moment-card h-100" onclick="window.selectMomentDate('${moment.date}')" style="cursor: pointer;">
-            ${moment.photos && moment.photos[0] 
-              ? `<img src="${moment.photos[0]}" class="moment-image" style="height: 100px; width: 100%; object-fit: cover;">` 
-              : `<div class="moment-image-placeholder" style="height: 100px;"><i class="bi bi-camera-fill"></i></div>`}
-            <div class="p-2 text-center">
-              <small class="fw-bold d-block text-truncate">${escapeHtml(moment.title || 'Momen')}</small>
-              <small class="text-muted">${moment.date || ''}</small>
-            </div>
-          </div>
+    // Tambahkan input pencarian di dashboard
+    const searchHtml = `
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text bg-transparent border-end-0 rounded-pill">
+            <i class="bi bi-search"></i>
+          </span>
+          <input type="text" id="dashboardSearchMoment" class="form-control border-start-0 rounded-pill" 
+                 placeholder="Cari momen berdasarkan judul atau cerita..." style="border-left: none;">
         </div>
-      `).join('');
+      </div>
+      <div id="dashboardMomentsList"></div>
+    `;
+    
+    recentContainer.innerHTML = searchHtml;
+    
+    const searchInput = document.getElementById('dashboardSearchMoment');
+    const momentsListDiv = document.getElementById('dashboardMomentsList');
+    
+    // Fungsi render momen dengan filter
+    const renderFilteredMoments = (searchTerm = '') => {
+      let filteredMoments = [...momentsArray];
+      
+      if (searchTerm.trim()) {
+        const term = searchTerm.toLowerCase();
+        filteredMoments = filteredMoments.filter(m => 
+          (m.title && m.title.toLowerCase().includes(term)) ||
+          (m.story && m.story.toLowerCase().includes(term))
+        );
+      }
+      
+      const recentMoments = filteredMoments
+        .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+        .slice(0, 6);
+      
+      if (recentMoments.length === 0) {
+        momentsListDiv.innerHTML = `<div class="col-12 text-center text-muted py-4">
+          ${searchTerm ? 'Tidak ada momen yang cocok dengan pencarian.' : 'Belum ada momen. Yuk tambah momen spesial!'}
+        </div>`;
+      } else {
+        momentsListDiv.innerHTML = `
+          <div class="row g-2">
+            ${recentMoments.map(moment => `
+              <div class="col-4">
+                <div class="moment-card h-100" onclick="window.selectMomentDate('${moment.date}')" style="cursor: pointer;">
+                  ${moment.photos && moment.photos[0] 
+                    ? `<img src="${moment.photos[0]}" class="moment-image" style="height: 100px; width: 100%; object-fit: cover;">` 
+                    : `<div class="moment-image-placeholder" style="height: 100px;"><i class="bi bi-camera-fill"></i></div>`}
+                  <div class="p-2 text-center">
+                    <small class="fw-bold d-block text-truncate">${escapeHtml(moment.title || 'Momen')}</small>
+                    <small class="text-muted">${moment.date || ''}</small>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+    };
+    
+    // Event listener untuk search dengan debounce
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        if (searchTimeout) clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          renderFilteredMoments(e.target.value);
+        }, 300);
+      });
     }
+    
+    renderFilteredMoments();
   }
 }
 
@@ -105,11 +155,6 @@ async function getKeuanganPerUser() {
       azizah: { saldo: 0, pemasukan: 0, pengeluaran: 0 }
     };
   }
-}
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 window.renderDashboard = renderDashboard;
