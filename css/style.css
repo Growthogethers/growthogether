@@ -1,5 +1,5 @@
 /* style.css - UI/UX Enhanced Version - TEMA UNGU #7009b4 & #4000C6 */
-/* DESKTOP: Sidebar | MOBILE: Bottom Navigation */
+/* DESKTOP: Sidebar | MOBILE: Bottom Navigation + Hamburger Menu */
 
 * {
   margin: 0;
@@ -190,7 +190,81 @@ body.dark {
   pointer-events: none;
 }
 
-/* ============ SIDEBAR (DESKTOP ONLY) ============ */
+/* ============ HAMBURGER MENU BUTTON (MOBILE ONLY) ============ */
+.hamburger-menu-btn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1060;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7009b4, #4000C6);
+  color: white;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.hamburger-menu-btn i {
+  font-size: 24px;
+}
+
+.hamburger-menu-btn:active {
+  transform: scale(0.95);
+}
+
+/* Tombol Close di Sidebar (Mobile) */
+.sidebar-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-light);
+  color: var(--text-primary);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.sidebar-close-btn i {
+  font-size: 18px;
+}
+
+.sidebar-close-btn:active {
+  transform: scale(0.95);
+  background: #e9d5ff;
+}
+
+/* Overlay untuk menutup sidebar */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1040;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+/* ============ SIDEBAR (DESKTOP DEFAULT) ============ */
 .sidebar, #app-sidebar {
   width: 280px;
   height: 100vh;
@@ -944,13 +1018,26 @@ button:active,
 }
 
 /* ============ RESPONSIVE STYLES ============ */
-/* DESKTOP (≥769px) - Sidebar muncul, Bottom nav hidden */
+/* DESKTOP (≥769px) - Sidebar muncul, Bottom nav hidden, Hamburger hidden */
 @media (min-width: 769px) {
   .sidebar, #app-sidebar {
     display: flex !important;
+    left: 0 !important;
   }
   
   .bottom-nav {
+    display: none !important;
+  }
+  
+  .hamburger-menu-btn {
+    display: none !important;
+  }
+  
+  .sidebar-close-btn {
+    display: none !important;
+  }
+  
+  .sidebar-overlay {
     display: none !important;
   }
   
@@ -965,16 +1052,42 @@ button:active,
   }
 }
 
-/* MOBILE (≤768px) - Sidebar hidden, Bottom nav muncul */
+/* MOBILE (≤768px) - Sidebar hidden by default (slide from left), Bottom nav muncul, Hamburger muncul */
 @media (max-width: 768px) {
   html {
     font-size: 14px;
   }
   
-  .sidebar, #app-sidebar {
-    display: none !important;
+  /* Tampilkan tombol hamburger */
+  .hamburger-menu-btn {
+    display: flex;
   }
   
+  /* Sidebar disembunyikan di luar layar */
+  .sidebar, #app-sidebar {
+    position: fixed !important;
+    top: 0;
+    left: -280px;
+    width: 280px;
+    height: 100vh;
+    z-index: 1050;
+    transition: left 0.3s ease;
+    display: flex !important;
+    box-shadow: none;
+  }
+  
+  /* Sidebar saat terbuka */
+  .sidebar.open, #app-sidebar.open {
+    left: 0;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Tampilkan tombol close di mobile */
+  .sidebar-close-btn {
+    display: flex;
+  }
+  
+  /* Bottom navigation */
   .bottom-nav {
     display: flex !important;
     justify-content: flex-start !important;
@@ -982,11 +1095,13 @@ button:active,
     padding: 8px 12px 20px;
   }
   
+  /* Main content */
   #app-content {
     margin-left: 0 !important;
-    padding: 12px 12px 80px !important;
+    padding: 70px 12px 80px !important;
   }
   
+  /* Dark mode FAB adjustment */
   .dark-mode-fab {
     bottom: 90px;
     right: 16px;
@@ -1033,24 +1148,19 @@ button:active,
   .moment-image-placeholder {
     height: 130px;
   }
-}
-
-/* Tablet (769px - 1024px) - Penyesuaian */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .sidebar, #app-sidebar {
-    width: 240px;
+  
+  /* Dark mode adjustments */
+  body.dark .hamburger-menu-btn {
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
   }
   
-  #app-content {
-    margin-left: 240px !important;
+  body.dark .sidebar-close-btn {
+    background: #4c1d6e;
+    color: #e9d5ff;
   }
   
-  .bottom-nav-item {
-    padding: 8px 16px;
-  }
-  
-  .bottom-nav-item span {
-    font-size: 0.75rem;
+  body.dark .sidebar-close-btn:active {
+    background: #5d2a7a;
   }
 }
 
@@ -1275,14 +1385,16 @@ body.dark ::-webkit-scrollbar-thumb:hover {
 #app-content, 
 .bottom-nav, 
 .dark-mode-fab,
-#customToastContainer {
+#customToastContainer,
+.hamburger-menu-btn {
   display: none;
 }
 
 body.logged-in #app-sidebar,
 body.logged-in #app-content,
 body.logged-in .dark-mode-fab,
-body.logged-in #customToastContainer {
+body.logged-in #customToastContainer,
+body.logged-in .hamburger-menu-btn {
   display: block;
 }
 
@@ -1292,4 +1404,10 @@ body.logged-in .bottom-nav {
 
 body.logged-in #login-screen {
   display: none !important;
+}
+
+/* Sidebar display fix for logged-in state */
+body.logged-in .sidebar,
+body.logged-in #app-sidebar {
+  display: flex;
 }
