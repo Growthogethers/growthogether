@@ -1,4 +1,5 @@
 /* style.css - UI/UX Enhanced Version - TEMA UNGU #7009b4 & #4000C6 */
+/* DESKTOP: Sidebar | MOBILE: Bottom Navigation */
 
 * {
   margin: 0;
@@ -165,14 +166,14 @@ body.dark {
   }
 }
 
-/* ============ LOGIN SCREEN - WARNA BARU ============ */
+/* ============ LOGIN SCREEN - WARNA #7009b4 & #4000C6 ============ */
 #login-screen {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #7009b4 0%, #8b5cf6 50%, #4000C6 100%);
+  background: linear-gradient(135deg, #7009b4 0%, #4000C6 100%);
   z-index: 9999 !important;
   display: flex;
   align-items: center;
@@ -189,7 +190,7 @@ body.dark {
   pointer-events: none;
 }
 
-/* ============ SIDEBAR (DESKTOP) ============ */
+/* ============ SIDEBAR (DESKTOP ONLY) ============ */
 .sidebar, #app-sidebar {
   width: 280px;
   height: 100vh;
@@ -390,7 +391,7 @@ section {
   color: var(--text-muted);
 }
 
-/* ============ BOTTOM NAVIGATION (MOBILE) ============ */
+/* ============ BOTTOM NAVIGATION (MOBILE ONLY) ============ */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -457,7 +458,7 @@ section {
   background: rgba(112, 9, 180, 0.1);
 }
 
-/* ============ DARK MODE FAB - WARNA BARU ============ */
+/* ============ DARK MODE FAB ============ */
 .dark-mode-fab {
   position: fixed;
   bottom: 20px;
@@ -479,14 +480,6 @@ section {
 
 .dark-mode-fab:active {
   transform: scale(0.95);
-}
-
-/* Mobile specific for FAB */
-@media (max-width: 768px) {
-  .dark-mode-fab {
-    bottom: 90px;
-    right: 16px;
-  }
 }
 
 /* ============ TOAST NOTIFICATION ============ */
@@ -951,20 +944,28 @@ button:active,
 }
 
 /* ============ RESPONSIVE STYLES ============ */
+/* DESKTOP (≥769px) - Sidebar muncul, Bottom nav hidden */
 @media (min-width: 769px) {
-  #app-content {
-    padding: 1.5rem 2rem;
+  .sidebar, #app-sidebar {
+    display: flex !important;
   }
   
   .bottom-nav {
     display: none !important;
   }
   
-  .sidebar, #app-sidebar {
-    display: flex !important;
+  #app-content {
+    margin-left: 280px !important;
+    padding: 1.5rem 2rem !important;
+  }
+  
+  .dark-mode-fab {
+    bottom: 20px;
+    right: 20px;
   }
 }
 
+/* MOBILE (≤768px) - Sidebar hidden, Bottom nav muncul */
 @media (max-width: 768px) {
   html {
     font-size: 14px;
@@ -1034,6 +1035,26 @@ button:active,
   }
 }
 
+/* Tablet (769px - 1024px) - Penyesuaian */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar, #app-sidebar {
+    width: 240px;
+  }
+  
+  #app-content {
+    margin-left: 240px !important;
+  }
+  
+  .bottom-nav-item {
+    padding: 8px 16px;
+  }
+  
+  .bottom-nav-item span {
+    font-size: 0.75rem;
+  }
+}
+
+/* Mobile kecil */
 @media (max-width: 480px) {
   .row {
     margin-left: -6px;
@@ -1050,10 +1071,6 @@ button:active,
   .calendar-day {
     font-size: 0.65rem;
     min-width: 32px;
-  }
-  
-  .bg-gradient-success h2 {
-    font-size: 1.3rem;
   }
   
   .bottom-nav-item {
