@@ -1,12 +1,35 @@
-// js/pengingat.js - Versi revisi: hanya untuk birthday di profile
+// js/pengingat.js - Versi revisi: dengan notifikasi ulang tahun
 import { db, ref, get, set } from './firebase-config.js';
 import { showNotif } from './utils.js';
 
 let currentUser = null;
+let birthdayCheckInterval = null;
 
-// Inisialisasi - tidak perlu listener ke pengingat lagi
+// Inisialisasi
 export function initPengingat() {
-  console.log("Pengingat module loaded (birthday only)");
+  console.log("Pengingat module loaded (birthday with notifications)");
+  startBirthdayChecker();
+}
+
+// Start periodic birthday check
+function startBirthdayChecker() {
+  if (birthdayCheckInterval) clearInterval(birthdayCheckInterval);
+  
+  // Cek setiap 1 jam
+  birthdayCheckInterval = setInterval(() => {
+    checkUpcomingBirthdays();
+  }, 60 * 60 * 1000);
+  
+  // Cek saat inisialisasi
+  setTimeout(() => checkUpcomingBirthdays(), 2000);
+}
+
+// Stop birthday checker
+export function stopBirthdayChecker() {
+  if (birthdayCheckInterval) {
+    clearInterval(birthdayCheckInterval);
+    birthdayCheckInterval = null;
+  }
 }
 
 // Simpan birthday ke database
@@ -19,7 +42,6 @@ export async function saveBirthday(userId, birthdayDate) {
       updatedAt: Date.now()
     });
     
-    // Simpan juga ke localStorage untuk fallback
     localStorage.setItem(`partnerBirthday_${userId}`, birthdayDate);
     
     showNotif("✅ Tanggal ulang tahun disimpan", false, 'success');
@@ -38,7 +60,6 @@ export async function getBirthday(userId) {
     const data = snapshot.val();
     if (data && data.date) return data.date;
     
-    // Fallback ke localStorage
     return localStorage.getItem(`partnerBirthday_${userId}`) || null;
   } catch (err) {
     console.error("Error getting birthday:", err);
@@ -74,12 +95,65 @@ function formatDate(dateStr) {
   return dateStr;
 }
 
+// CEK DAN TAMPILKAN NOTIFIKASI ULANG TAHUN
+export async function checkUpcomingBirthdays() {
+  const currentUser = sessionStorage.getItem("progrowth_user");
+  if (!currentUser) return;
+  
+  const partnerUser = currentUser === "FACHMI" ? "AZIZAH" : "FACHMI";
+  const partnerBirthday = await getBirthday(partnerUser);
+  const partnerName = partnerUser === "FACHMI" ? "Fachmi" : "Azizah";
+  const currentUserName = currentUser === "FACHMI" ? "Fachmi" : "Azizah";
+  
+  if (partnerBirthday) {
+    const countdown = getBirthdayCountdown(partnerBirthday);
+    const formattedDate = formatDate(partnerBirthday);
+    
+    // Notifikasi H-7, H-3, H-1, dan hari H
+    if (countdown !== null) {
+      const lastNotified = localStorage.getItem(`birthday_notified_${partnerUser}_${countdown}`);
+      const today = new Date().toDateString();
+      
+      if (countdown === 0 && lastNotified !== today) {
+        // Hari ini ulang tahun!
+        showNotif(`🎂🎉 SELAMAT ULANG TAHUN ${partnerName}! 🎉🎂\nJangan lupa beri kejutan spesial! ❤️`, false, 'success');
+        localStorage.setItem(`birthday_notified_${partnerUser}_${countdown}`, today);
+        
+        // Trigger confetti untuk suasana meriah
+        if (typeof window.triggerConfetti === 'function') {
+          setTimeout(() => window.triggerConfetti(), 500);
+        }
+      } 
+      else if (countdown === 1 && lastNotified !== today) {
+        showNotif(`🎂 H-1 ulang tahun ${partnerName}! Besok adalah hari spesial! Siapkan kejutan! 🎁`, false, 'warning');
+        localStorage.setItem(`birthday_notified_${partnerUser}_${countdown}`, today);
+      }
+      else if (countdown === 3 && lastNotified !== today) {
+        showNotif(`🎂 H-3 ulang tahun ${partnerName}! Waktunya mempersiapkan hadiah spesial! 🎁`, false, 'info');
+        localStorage.setItem(`birthday_notified_${partnerUser}_${countdown}`, today);
+      }
+      else if (countdown === 7 && lastNotified !== today) {
+        showNotif(`🎂 H-7 ulang tahun ${partnerName}! Mulai rencanakan kejutan untuk pasanganmu! 💝`, false, 'info');
+        localStorage.setItem(`birthday_notified_${partnerUser}_${countdown}`, today);
+      }
+    }
+  }
+  
+  // Cek juga birthday user sendiri untuk ditampilkan di profile
+  const myBirthday = await getBirthday(currentUser);
+  if (myBirthday) {
+    const myCountdown = getBirthdayCountdown(myBirthday);
+    if (myCountdown === 0) {
+      showNotif(`🎂 Selamat ulang tahun ${currentUserName}! Semoga hari ini menyenangkan! 🎉`, false, 'success');
+    }
+  }
+}
+
 // Tampilkan birthday di profile modal
 export async function renderBirthdayInProfile() {
   const currentUser = sessionStorage.getItem("progrowth_user");
   if (!currentUser) return;
   
-  // Ambil birthday partner (user lain)
   const partnerUser = currentUser === "FACHMI" ? "AZIZAH" : "FACHMI";
   const partnerBirthday = await getBirthday(partnerUser);
   const partnerName = partnerUser === "FACHMI" ? "Fachmi" : "Azizah";
@@ -90,6 +164,21 @@ export async function renderBirthdayInProfile() {
   if (partnerBirthday) {
     const countdown = getBirthdayCountdown(partnerBirthday);
     const formattedDate = formatDate(partnerBirthday);
+    let countdownText = '';
+    let countdownClass = '';
+    
+    if (countdown !== null) {
+      if (countdown === 0) {
+        countdownText = 'Hari ini! 🎉🎂';
+        countdownClass = 'text-danger fw-bold';
+      } else if (countdown <= 7) {
+        countdownText = `${countdown} hari lagi 🎂`;
+        countdownClass = 'text-warning fw-bold';
+      } else {
+        countdownText = `${countdown} hari lagi 🎂`;
+        countdownClass = 'text-primary';
+      }
+    }
     
     birthdayContainer.innerHTML = `
       <div class="mb-3">
@@ -100,7 +189,7 @@ export async function renderBirthdayInProfile() {
           <div>
             <span class="fw-medium">${partnerName}</span>
             <small class="text-muted d-block">${formattedDate}</small>
-            ${countdown !== null ? `<small class="text-primary">${countdown} hari lagi 🎂</small>` : ''}
+            ${countdown !== null ? `<small class="${countdownClass}">${countdownText}</small>` : ''}
           </div>
           <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="openBirthdayEditModal()">
             <i class="bi bi-pencil"></i>
@@ -172,6 +261,9 @@ window.saveBirthdayFromProfile = async function() {
     await saveBirthday(partnerUser, date);
     await renderBirthdayInProfile();
     
+    // Cek ulang tahun setelah simpan
+    setTimeout(() => checkUpcomingBirthdays(), 1000);
+    
     const modal = bootstrap.Modal.getInstance(document.getElementById('birthdayEditModal'));
     if (modal) modal.hide();
   }
@@ -179,3 +271,5 @@ window.saveBirthdayFromProfile = async function() {
 
 window.initPengingat = initPengingat;
 window.renderBirthdayInProfile = renderBirthdayInProfile;
+window.checkUpcomingBirthdays = checkUpcomingBirthdays;
+window.stopBirthdayChecker = stopBirthdayChecker;
