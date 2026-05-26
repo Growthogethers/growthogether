@@ -1,6 +1,3 @@
-/* style.css - UI/UX Enhanced Version - TEMA UNGU #7009b4 & #4000C6 */
-/* DESKTOP: Sidebar | MOBILE: Bottom Navigation + Hamburger Menu */
-
 * {
   margin: 0;
   padding: 0;
@@ -278,7 +275,7 @@ body.dark {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, left 0.3s ease;
 }
 
 .sidebar .nav-link, #app-sidebar .nav-link {
@@ -1017,6 +1014,13 @@ button:active,
   transform: translateY(0);
 }
 
+/* ============ GRAFIK KEUANGAN - PENYESUAIAN UKURAN ============ */
+#keuanganChart {
+  width: 100% !important;
+  max-height: 300px !important;
+  min-height: 200px !important;
+}
+
 /* ============ RESPONSIVE STYLES ============ */
 /* DESKTOP (≥769px) - Sidebar muncul, Bottom nav hidden, Hamburger hidden */
 @media (min-width: 769px) {
@@ -1049,6 +1053,26 @@ button:active,
   .dark-mode-fab {
     bottom: 20px;
     right: 20px;
+  }
+  
+  /* Ukuran grafik desktop lebih besar */
+  #keuanganChart {
+    max-height: 350px !important;
+    min-height: 250px !important;
+  }
+  
+  /* Kalender desktop lebih besar */
+  .calendar-grid {
+    gap: 12px;
+    padding: 20px;
+  }
+  
+  .calendar-day {
+    min-width: 50px;
+  }
+  
+  .calendar-day .day-number {
+    font-size: 16px;
   }
 }
 
@@ -1121,6 +1145,13 @@ button:active,
     font-size: 14px;
   }
   
+  /* Ukuran grafik keuangan mobile lebih kecil tapi tetap proporsional */
+  #keuanganChart {
+    max-height: 200px !important;
+    min-height: 180px !important;
+  }
+  
+  /* Kalender mobile compact */
   .calendar-grid {
     gap: 4px;
     padding: 12px;
@@ -1128,6 +1159,10 @@ button:active,
   
   .calendar-day {
     min-width: 35px;
+  }
+  
+  .calendar-day .day-number {
+    font-size: 12px;
   }
   
   .photo-upload-grid {
@@ -1194,6 +1229,12 @@ button:active,
   
   .bottom-nav-item span {
     font-size: 0.6rem;
+  }
+  
+  /* Grafik keuangan di layar sangat kecil */
+  #keuanganChart {
+    max-height: 160px !important;
+    min-height: 150px !important;
   }
 }
 
