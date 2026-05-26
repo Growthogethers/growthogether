@@ -1,4 +1,4 @@
-// js/app.js - Main Application (Dengan Perbaikan)
+// js/app.js - Main Application (Dengan Perbaikan + Hamburger Menu)
 import { db, ref, onValue, set } from './firebase-config.js';
 import { 
   masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser, 
@@ -38,7 +38,6 @@ import {
 import { initKeuangan } from './keuangan.js';
 import { initCatatan } from './catatan.js';
 import { initImpian } from './impian.js';
-// Hapus import backup.js
 
 let firebaseListener = null;
 let currentPage = 'dashboard';
@@ -93,7 +92,7 @@ function showInitialLoading() {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #7009b4 0%, #4000C6 100%);
     z-index: 10000;
     display: flex;
     align-items: center;
@@ -145,12 +144,100 @@ async function loadComponents() {
     console.log("Components loaded successfully");
     attachEventListeners();
     initDarkMode();
+    initHamburgerMenu();
     handleResize();
     
   } catch (error) {
     console.error('Error loading components:', error);
     showNotif("❌ Gagal memuat aplikasi", true, 'error');
   }
+}
+
+// ============ HAMBURGER MENU FUNCTIONS ============
+function initHamburgerMenu() {
+  const hamburgerBtn = document.getElementById('hamburgerMenuBtn');
+  const sidebar = document.getElementById('app-sidebar');
+  const closeBtn = document.getElementById('sidebarCloseBtn');
+  const overlay = document.getElementById('sidebarOverlay');
+  
+  if (!hamburgerBtn || !sidebar) {
+    console.log("Hamburger menu elements not found, will retry later");
+    // Retry after a short delay if elements not found
+    setTimeout(() => {
+      const retryBtn = document.getElementById('hamburgerMenuBtn');
+      const retrySidebar = document.getElementById('app-sidebar');
+      if (retryBtn && retrySidebar) {
+        initHamburgerMenu();
+      }
+    }, 500);
+    return;
+  }
+  
+  // Fungsi untuk membuka sidebar
+  function openSidebar() {
+    sidebar.classList.add('open');
+    if (overlay) overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    console.log("Sidebar opened");
+  }
+  
+  // Fungsi untuk menutup sidebar
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    if (overlay) overlay.classList.remove('active');
+    document.body.style.overflow = '';
+    console.log("Sidebar closed");
+  }
+  
+  // Event listener untuk tombol hamburger
+  hamburgerBtn.removeEventListener('click', openSidebar);
+  hamburgerBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openSidebar();
+  });
+  
+  // Event listener untuk tombol close
+  if (closeBtn) {
+    closeBtn.removeEventListener('click', closeSidebar);
+    closeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeSidebar();
+    });
+  }
+  
+  // Event listener untuk overlay (klik di luar sidebar)
+  if (overlay) {
+    overlay.removeEventListener('click', closeSidebar);
+    overlay.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeSidebar();
+    });
+  }
+  
+  // Tutup sidebar saat memilih menu (pada mobile)
+  const navLinks = document.querySelectorAll('.sidebar .nav-link, #app-sidebar .nav-link');
+  navLinks.forEach(link => {
+    link.removeEventListener('click', closeSidebar);
+    link.addEventListener('click', () => {
+      if (window.innerWidth <= 768) {
+        closeSidebar();
+      }
+    });
+  });
+  
+  // Tutup sidebar saat resize dari mobile ke desktop
+  window.removeEventListener('resize', closeSidebar);
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) {
+      closeSidebar();
+      if (overlay) overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  });
+  
+  console.log("Hamburger menu initialized");
 }
 
 // ============ DARK MODE ============
@@ -205,23 +292,31 @@ function applyDarkMode(isDark, darkFab) {
     if (darkFab) darkFab.innerHTML = '<i class="bi bi-moon-stars fs-5"></i>';
   }
   
-  document.documentElement.style.setProperty('--bg-body', isDark ? '#0f172a' : '#f8fafc');
-  document.documentElement.style.setProperty('--card-bg', isDark ? '#1e293b' : '#ffffff');
-  document.documentElement.style.setProperty('--text-primary', isDark ? '#f1f5f9' : '#1e293b');
-  document.documentElement.style.setProperty('--text-muted', isDark ? '#94a3b8' : '#64748b');
-  document.documentElement.style.setProperty('--border-light', isDark ? '#334155' : '#e2e8f0');
+  document.documentElement.style.setProperty('--bg-body', isDark ? '#1a1025' : '#faf5ff');
+  document.documentElement.style.setProperty('--card-bg', isDark ? '#2d1a3a' : '#ffffff');
+  document.documentElement.style.setProperty('--text-primary', isDark ? '#e9d5ff' : '#4c1d95');
+  document.documentElement.style.setProperty('--text-muted', isDark ? '#d8b4fe' : '#6b21a5');
+  document.documentElement.style.setProperty('--border-light', isDark ? '#4c1d6e' : '#e9d5ff');
 }
 
 function handleResize() {
   const appContent = document.getElementById("app-content");
   const sidebar = document.getElementById("app-sidebar");
+  const hamburgerBtn = document.getElementById("hamburgerMenuBtn");
   
   if (window.innerWidth > 768) {
     if (appContent) appContent.style.marginLeft = "280px";
-    if (sidebar) sidebar.style.display = "flex";
+    if (sidebar) {
+      sidebar.style.display = "flex";
+      sidebar.classList.remove('open');
+    }
+    if (hamburgerBtn) hamburgerBtn.style.display = "none";
   } else {
     if (appContent) appContent.style.marginLeft = "0";
-    if (sidebar) sidebar.style.display = "none";
+    if (sidebar) {
+      sidebar.style.display = "flex";
+    }
+    if (hamburgerBtn) hamburgerBtn.style.display = "flex";
   }
 }
 
@@ -266,7 +361,6 @@ function attachEventListeners() {
       if (typeof openProfileModal === 'function') {
         openProfileModal();
       }
-      // Hapus panggilan addBackupButtonToProfile
     };
     profileTrigger.addEventListener('click', profileTrigger._profileListener);
   }
@@ -281,7 +375,6 @@ function attachEventListeners() {
       if (typeof openProfileModal === 'function') {
         openProfileModal();
       }
-      // Hapus panggilan addBackupButtonToProfile
     };
     profileMenuBtn.addEventListener('click', profileMenuBtn._mobileProfileListener);
   }
@@ -388,6 +481,7 @@ function setupAppSession(u) {
   const loginScreen = document.getElementById("login-screen");
   const sidebar = document.getElementById("app-sidebar");
   const appContent = document.getElementById("app-content");
+  const hamburgerBtn = document.getElementById("hamburgerMenuBtn");
   
   if (loginScreen) {
     loginScreen.style.transition = 'all 0.3s ease-out';
@@ -396,12 +490,19 @@ function setupAppSession(u) {
     setTimeout(() => { loginScreen.style.display = "none"; }, 300);
   }
   
-  if (sidebar) {
-    if (window.innerWidth > 768) {
+  // Atur tampilan berdasarkan ukuran layar
+  if (window.innerWidth > 768) {
+    if (sidebar) {
       sidebar.style.display = "flex";
-    } else {
-      sidebar.style.display = "none";
+      sidebar.classList.remove('open');
     }
+    if (hamburgerBtn) hamburgerBtn.style.display = "none";
+  } else {
+    if (sidebar) {
+      sidebar.style.display = "flex";
+      sidebar.classList.remove('open');
+    }
+    if (hamburgerBtn) hamburgerBtn.style.display = "flex";
   }
   
   if (appContent) {
@@ -552,6 +653,7 @@ window.triggerConfetti = triggerConfetti;
 window.confirmLogout = confirmLogout;
 window.cleanupAllListeners = cleanupAllListeners;
 window.registerListener = registerListener;
+window.initHamburgerMenu = initHamburgerMenu;
 
 // Register logout handler
 window.handleLogout = handleLogout;
