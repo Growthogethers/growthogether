@@ -58,6 +58,7 @@ export function clearCache(key) {
       });
     } catch(e) {}
   }
+  console.log("Cache cleared:", key || "all");
 }
 
 // ============ LOADING INDICATOR ============
@@ -342,6 +343,56 @@ export function sanitizeNumber(val) {
   return isNaN(num) ? 0 : Math.max(0, Math.min(num, 999999999));
 }
 
+// ============ VALIDASI DUPLIKAT TRANSAKSI ============
+export function checkDuplicateTransaction(existingTransactions, newTransaction) {
+  const duplicate = existingTransactions.find(t => 
+    t.tanggal === newTransaction.tanggal &&
+    t.kategori === newTransaction.kategori &&
+    t.nominal === newTransaction.nominal &&
+    t.tipe === newTransaction.tipe &&
+    Math.abs((t.tanggal || 0) - (newTransaction.tanggal || 0)) < 1000
+  );
+  
+  if (duplicate) {
+    showNotif("⚠️ Transaksi dengan data yang sama sudah ada!", true, 'warning');
+    return true;
+  }
+  return false;
+}
+
+// ============ VALIDASI UKURAN FOTO ============
+export async function validateAndCompressPhotos(files, maxSizeMB = 2, maxFiles = 5) {
+  if (files.length > maxFiles) {
+    showNotif(`❌ Maksimal ${maxFiles} foto`, true, 'error');
+    return null;
+  }
+  
+  const compressedPhotos = [];
+  
+  for (const file of files) {
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      showNotif(`❌ Foto ${file.name} terlalu besar (max ${maxSizeMB}MB)`, true, 'error');
+      return null;
+    }
+    
+    if (!file.type.startsWith('image/')) {
+      showNotif(`❌ File ${file.name} bukan gambar`, true, 'error');
+      return null;
+    }
+    
+    try {
+      const compressed = await compressImage(file, maxSizeMB);
+      compressedPhotos.push(compressed);
+    } catch (err) {
+      console.error('Compression error:', err);
+      showNotif(`❌ Gagal memproses ${file.name}`, true, 'error');
+      return null;
+    }
+  }
+  
+  return compressedPhotos;
+}
+
 // ============ UTILITY FUNCTIONS ============
 export function formatNumberRp(val) { 
   if (privacyHidden) return "●●● ●●●";
@@ -507,7 +558,7 @@ export function triggerPixelParticles(x, y) {
 // Add click animation to interactive elements
 export function initClickAnimation() {
   document.body.addEventListener('click', (e) => {
-    const target = e.target.closest('button, .nav-link, .bottom-nav-item, .calendar-day, .moment-card');
+    const target = e.target.closest('button, .nav-link, .calendar-day, .moment-card');
     if (target && window.innerWidth <= 768) {
       triggerPixelParticles(e.clientX, e.clientY);
     }
@@ -528,3 +579,5 @@ window.sanitizeInput = sanitizeInput;
 window.sanitizeNumber = sanitizeNumber;
 window.throttle = throttle;
 window.debounce = debounce;
+window.checkDuplicateTransaction = checkDuplicateTransaction;
+window.validateAndCompressPhotos = validateAndCompressPhotos;
