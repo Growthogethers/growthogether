@@ -1,4 +1,10 @@
+<!-- components/sidebar.html - Dengan Tombol Hamburger untuk Mobile -->
 <div class="sidebar" id="app-sidebar">
+  <!-- Tombol Close untuk Mobile -->
+  <div class="sidebar-close-btn" id="sidebarCloseBtn">
+    <i class="bi bi-x-lg"></i>
+  </div>
+  
   <div class="sidebar-header text-center mb-4">
     <div class="d-flex flex-column align-items-center">
       <div class="logo-wrapper mb-2">
@@ -9,11 +15,11 @@
     </div>
   </div>
 
-  <!-- Profile Section untuk Desktop -->
+  <!-- Profile Section untuk Desktop & Mobile -->
   <div class="profile-section text-center mb-4" id="profileTrigger" style="cursor: pointer;">
     <div class="position-relative d-inline-block">
       <div class="profile-avatar-wrapper">
-        <img id="profileAvatar" class="profile-avatar" src="https://ui-avatars.com/api/?background=6366f1&color=fff&bold=true&name=User" alt="Profile">
+        <img id="profileAvatar" class="profile-avatar" src="https://ui-avatars.com/api/?background=7009b4&color=fff&bold=true&name=User" alt="Profile">
         <div class="profile-status" id="profileStatus">
           <i class="bi bi-calendar-check-fill"></i>
         </div>
@@ -62,3 +68,11 @@
     </div>
   </div>
 </div>
+
+<!-- Tombol Hamburger untuk Mobile -->
+<button class="hamburger-menu-btn" id="hamburgerMenuBtn">
+  <i class="bi bi-list"></i>
+</button>
+
+<!-- Overlay untuk menutup sidebar saat klik di luar -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
