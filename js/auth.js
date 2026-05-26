@@ -1,4 +1,4 @@
-// js/auth.js - Versi dengan tema pink peach dan perbaikan login position
+// js/auth.js - Versi dengan tema ungu #7009b4 & #4000C6 dan login input teks
 import { db, ref, get, update } from './firebase-config.js';
 import { showNotif, setCurrentUser, compressImage, escapeHtml } from './utils.js';
 import { renderBirthdayInProfile } from './pengingat.js';
@@ -162,7 +162,7 @@ export function updateProfileUI() {
     if (currentProfilePhoto) {
       profileAvatar.src = currentProfilePhoto;
     } else {
-      profileAvatar.src = `https://ui-avatars.com/api/?background=ec4899&color=fff&bold=true&size=80&name=${encodeURIComponent(displayName)}`;
+      profileAvatar.src = `https://ui-avatars.com/api/?background=7009b4&color=fff&bold=true&size=80&name=${encodeURIComponent(displayName)}`;
     }
   }
   
@@ -190,7 +190,7 @@ export function updateProfileUI() {
     if (currentProfilePhoto) {
       modalAvatar.src = currentProfilePhoto;
     } else {
-      modalAvatar.src = `https://ui-avatars.com/api/?background=fff&color=ec4899&bold=true&size=100&name=${encodeURIComponent(displayName)}`;
+      modalAvatar.src = `https://ui-avatars.com/api/?background=fff&color=7009b4&bold=true&size=100&name=${encodeURIComponent(displayName)}`;
     }
   }
   
@@ -213,7 +213,7 @@ export function updateProfileUI() {
   if (userGreet) userGreet.innerText = escapeHtml(displayName);
 }
 
-// ============ LOGIN HANDLER DENGAN PERBAIKAN ============
+// ============ LOGIN HANDLER DENGAN INPUT USERNAME BIASA ============
 export async function handleLogin() {
   const u = document.getElementById("loginUser")?.value;
   const p = document.getElementById("loginPass")?.value;
@@ -221,12 +221,34 @@ export async function handleLogin() {
   const errorSpan = document.getElementById("errorText");
   const loginBtn = document.querySelector(".login-btn-modern");
   
+  // Validasi username tidak boleh kosong
+  if (!u || !u.trim()) { 
+    if (errorSpan) errorSpan.innerText = "❌ Username tidak boleh kosong!"; 
+    if (errorDiv) errorDiv.style.display = "block"; 
+    showNotif("Username harus diisi", true); 
+    shakeElement(document.getElementById("loginUser"));
+    return; 
+  }
+  
+  // Validasi password tidak boleh kosong
   if (!p || !p.trim()) { 
     if (errorSpan) errorSpan.innerText = "❌ Password tidak boleh kosong!"; 
     if (errorDiv) errorDiv.style.display = "block"; 
     showNotif("Password harus diisi", true); 
     shakeElement(document.getElementById("loginPass"));
     return; 
+  }
+  
+  // Konversi username ke UPPERCASE untuk validasi (sesuai dengan data auth)
+  const usernameUpper = u.trim().toUpperCase();
+  
+  // Validasi username hanya menerima FACHMI atau AZIZAH
+  if (usernameUpper !== "FACHMI" && usernameUpper !== "AZIZAH") {
+    if (errorSpan) errorSpan.innerText = "❌ Username tidak valid! (FACHMI atau AZIZAH)"; 
+    if (errorDiv) errorDiv.style.display = "block"; 
+    showNotif("Username tidak valid! Gunakan Fachmi atau Azizah", true); 
+    shakeElement(document.getElementById("loginUser"));
+    return;
   }
   
   resetProfileState();
@@ -238,9 +260,10 @@ export async function handleLogin() {
   }
   
   try {
-    const snap = await get(ref(db, `data/auth/${u}`));
+    const snap = await get(ref(db, `data/auth/${usernameUpper}`));
     let storedValue = snap.val();
     
+    console.log("Login attempt for:", usernameUpper);
     console.log("Stored password value type:", typeof storedValue);
     
     let isValid = false;
@@ -261,40 +284,40 @@ export async function handleLogin() {
       
       if (isValid) {
         const newHash = await hashPassword(p);
-        await update(ref(db), { [`data/auth/${u}`]: newHash });
-        console.log("Password migrated to SHA-256 for:", u);
+        await update(ref(db), { [`data/auth/${usernameUpper}`]: newHash });
+        console.log("Password migrated to SHA-256 for:", usernameUpper);
       }
     }
     
     if (isValid) {
       const timestamp = Date.now();
-      const token = generateSessionToken(u, timestamp);
+      const token = generateSessionToken(usernameUpper, timestamp);
       
       sessionStorage.clear();
-      sessionStorage.setItem("progrowth_user", u);
+      sessionStorage.setItem("progrowth_user", usernameUpper);
       sessionStorage.setItem("progrowth_token", token);
       sessionStorage.setItem("progrowth_timestamp", timestamp.toString());
       
-      setCurrentUser(u);
-      currentUsername = u;
+      setCurrentUser(usernameUpper);
+      currentUsername = usernameUpper;
       
-      await loadProfileData(u);
+      await loadProfileData(usernameUpper);
       
       if (loginBtn) {
         loginBtn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Berhasil!';
         loginBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
       }
       
-      // Tambahkan class logged-in ke body
+      // Tambah class logged-in ke body
       document.body.classList.add('logged-in');
       
       setTimeout(() => {
         if (window.setupAppSession) {
-          window.setupAppSession(u);
+          window.setupAppSession(usernameUpper);
         }
       }, 500);
       
-      showNotif(`Selamat datang, ${getDisplayName(u)} 🎉`);
+      showNotif(`Selamat datang, ${getDisplayName(usernameUpper)} 🎉`);
     } else {
       if (loginBtn) {
         loginBtn.innerHTML = originalBtnText;
@@ -586,11 +609,10 @@ export function handleLogout() {
     // Reset form login
     const loginPass = document.getElementById("loginPass");
     const loginErrorMsg = document.getElementById("loginErrorMsg");
+    const loginUserInput = document.getElementById("loginUser");
     if (loginPass) loginPass.value = "";
     if (loginErrorMsg) loginErrorMsg.style.display = "none";
-    
-    const loginUserSelect = document.getElementById("loginUser");
-    if (loginUserSelect) loginUserSelect.value = "FACHMI";
+    if (loginUserInput) loginUserInput.value = "";
     
     // Sembunyikan elemen app
     const loginScreen = document.getElementById("login-screen");
