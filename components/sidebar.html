@@ -1,4 +1,4 @@
-<!-- components/sidebar.html - Dengan Tombol Hamburger untuk Mobile -->
+<!-- components/sidebar.html - Dengan Tombol Hamburger untuk Mobile & Scrollable -->
 <div class="sidebar" id="app-sidebar">
   <!-- Tombol Close untuk Mobile -->
   <div class="sidebar-close-btn" id="sidebarCloseBtn">
@@ -32,32 +32,35 @@
     <small class="text-muted status-text" id="profileStatusText">sedang merencanakan</small>
   </div>
 
-  <nav class="nav flex-column">
-    <a class="nav-link" data-page="dashboard">
-      <i class="bi bi-speedometer2 me-3"></i>
-      <span class="nav-text">Dashboard</span>
-    </a>
-    <a class="nav-link" data-page="moment">
-      <i class="bi bi-calendar-heart me-3"></i>
-      <span class="nav-text">Moment</span>
-    </a>
-    <a class="nav-link" data-page="keuangan">
-      <i class="bi bi-wallet2 me-3"></i>
-      <span class="nav-text">Keuangan</span>
-    </a>
-    <a class="nav-link" data-page="catatan">
-      <i class="bi bi-journal-bookmark-fill me-3"></i>
-      <span class="nav-text">Catatan</span>
-    </a>
-    <a class="nav-link" data-page="impian">
-      <i class="bi bi-stars me-3"></i>
-      <span class="nav-text">Impian</span>
-    </a>
-    <a class="nav-link" data-page="laporan">
-      <i class="bi bi-file-text-fill me-3"></i>
-      <span class="nav-text">Laporan</span>
-    </a>
-  </nav>
+  <!-- NAVIGATION MENU - Scrollable area untuk mobile -->
+  <div class="sidebar-nav-scroll">
+    <nav class="nav flex-column">
+      <a class="nav-link" data-page="dashboard">
+        <i class="bi bi-speedometer2 me-3"></i>
+        <span class="nav-text">Dashboard</span>
+      </a>
+      <a class="nav-link" data-page="moment">
+        <i class="bi bi-calendar-heart me-3"></i>
+        <span class="nav-text">Moment</span>
+      </a>
+      <a class="nav-link" data-page="keuangan">
+        <i class="bi bi-wallet2 me-3"></i>
+        <span class="nav-text">Keuangan</span>
+      </a>
+      <a class="nav-link" data-page="catatan">
+        <i class="bi bi-journal-bookmark-fill me-3"></i>
+        <span class="nav-text">Catatan</span>
+      </a>
+      <a class="nav-link" data-page="impian">
+        <i class="bi bi-stars me-3"></i>
+        <span class="nav-text">Impian</span>
+      </a>
+      <a class="nav-link" data-page="laporan">
+        <i class="bi bi-file-text-fill me-3"></i>
+        <span class="nav-text">Laporan</span>
+      </a>
+    </nav>
+  </div>
 
   <div class="mt-auto pt-4">
     <div class="d-grid gap-2">
