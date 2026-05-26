@@ -1,4 +1,4 @@
-// js/app.js - Main Application (Dengan Perbaikan + Hamburger Menu)
+// js/app.js - Main Application (Tanpa Bottom Nav)
 import { db, ref, onValue, set } from './firebase-config.js';
 import { 
   masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser, 
@@ -127,16 +127,14 @@ async function loadComponents() {
   try {
     console.log("Loading components...");
     
-    const [sidebarHtml, bottomNavHtml, modalsHtml, contentHtml, loginHtml] = await Promise.all([
+    const [sidebarHtml, modalsHtml, contentHtml, loginHtml] = await Promise.all([
       fetch('components/sidebar.html').then(r => r.text()),
-      fetch('components/navbar.html').then(r => r.text()),
       fetch('components/modals.html').then(r => r.text()),
       fetch('components/content.html').then(r => r.text()),
       fetch('components/login.html').then(r => r.text())
     ]);
     
     document.getElementById('sidebar-container').innerHTML = sidebarHtml;
-    document.getElementById('bottom-nav-container').innerHTML = bottomNavHtml;
     document.getElementById('modals-container').innerHTML = modalsHtml;
     document.getElementById('app-content').innerHTML = contentHtml;
     document.getElementById('login-screen').innerHTML = loginHtml;
@@ -296,7 +294,6 @@ function handleResize() {
   const appContent = document.getElementById("app-content");
   const sidebar = document.getElementById("app-sidebar");
   const hamburgerBtn = document.getElementById("hamburgerMenuBtn");
-  const bottomNav = document.querySelector(".bottom-nav");
   
   if (window.innerWidth > 768) {
     // DESKTOP MODE
@@ -306,9 +303,7 @@ function handleResize() {
       sidebar.classList.remove('open');
     }
     if (hamburgerBtn) hamburgerBtn.style.display = "none";
-    if (bottomNav) bottomNav.style.display = "none";
     
-    // Pastikan overlay tertutup
     const overlay = document.getElementById('sidebarOverlay');
     if (overlay) overlay.classList.remove('active');
     document.body.style.overflow = '';
@@ -317,10 +312,8 @@ function handleResize() {
     if (appContent) appContent.style.marginLeft = "0";
     if (sidebar) {
       sidebar.style.display = "flex";
-      // Jangan otomatis buka, biarkan tertutup
     }
     if (hamburgerBtn) hamburgerBtn.style.display = "flex";
-    if (bottomNav) bottomNav.style.display = "flex";
   }
 }
 
@@ -369,31 +362,6 @@ function attachEventListeners() {
     profileTrigger.addEventListener('click', profileTrigger._profileListener);
   }
   
-  const profileMenuBtn = document.getElementById('profileMenuBtn');
-  if (profileMenuBtn) {
-    profileMenuBtn.removeEventListener('click', profileMenuBtn._mobileProfileListener);
-    profileMenuBtn._mobileProfileListener = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log("Profile button clicked from bottom nav");
-      if (typeof openProfileModal === 'function') {
-        openProfileModal();
-      }
-    };
-    profileMenuBtn.addEventListener('click', profileMenuBtn._mobileProfileListener);
-  }
-  
-  const logoutMenuBtn = document.getElementById('logoutMenuBtn');
-  if (logoutMenuBtn) {
-    logoutMenuBtn.removeEventListener('click', logoutMenuBtn._logoutListener);
-    logoutMenuBtn._logoutListener = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      confirmLogout();
-    };
-    logoutMenuBtn.addEventListener('click', logoutMenuBtn._logoutListener);
-  }
-  
   const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
   if (sidebarLogoutBtn) {
     sidebarLogoutBtn.removeEventListener('click', sidebarLogoutBtn._sidebarLogoutListener);
@@ -420,9 +388,7 @@ function attachEventListeners() {
     showPage(page);
   }, 300);
   
-  document.querySelectorAll(".nav-link, .bottom-nav-item").forEach(el => {
-    if (el.id === 'profileMenuBtn' || el.id === 'logoutMenuBtn') return;
-    
+  document.querySelectorAll(".nav-link").forEach(el => {
     el.removeEventListener('click', el._navListener);
     el._navListener = (e) => {
       const page = el.getAttribute("data-page");
@@ -455,7 +421,7 @@ function showPage(pageId) {
     pageElement.style.display = "block";
   }
   
-  document.querySelectorAll(".nav-link, .bottom-nav-item").forEach(el => {
+  document.querySelectorAll(".nav-link").forEach(el => {
     el.classList.remove("active");
   });
   document.querySelectorAll(`[data-page="${pageId}"]`).forEach(el => {
@@ -494,7 +460,6 @@ function setupAppSession(u) {
     setTimeout(() => { loginScreen.style.display = "none"; }, 300);
   }
   
-  // Atur tampilan berdasarkan ukuran layar
   handleResize();
   
   if (appContent) {
