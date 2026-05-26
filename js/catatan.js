@@ -15,42 +15,129 @@ let editItemId = null;
 let isGeneratingAI = false;
 let isInitialized = false;
 
-// Wedding Templates
+// Wedding Templates - 3 template untuk setiap kategori
 const weddingTemplates = {
-  basic: {
-    name: "Paket Basic (Minimalis)",
-    categories: [
-      { nama: "Administrasi & Dokumen", icon: "bi-files", estimasiBiaya: 1500000, items: ["KTP & KK (scan & asli)", "Akta Kelahiran", "Ijazah terakhir", "Surat kesehatan pranikah", "Pengesahan KUA"] },
-      { nama: "Venue & Dekorasi", icon: "bi-building", estimasiBiaya: 15000000, items: ["Booking venue akad", "Booking venue resepsi", "Dekorasi pelaminan sederhana", "Backdrop foto"] },
-      { nama: "Busana & Makeup", icon: "bi-person-standing", estimasiBiaya: 5000000, items: ["Baju akad pria (sewa)", "Baju akad wanita (sewa)", "MUA untuk akad & resepsi", "Aksesoris"] },
-      { nama: "Dokumentasi", icon: "bi-camera", estimasiBiaya: 3500000, items: ["Fotografer 4 jam", "Videografer 4 jam", "Foto pre-wedding simple"] },
-      { nama: "Konsumsi", icon: "bi-cup-straw", estimasiBiaya: 10000000, items: ["Catering untuk 100 tamu", "Air mineral", "Snack box"] },
-      { nama: "Undangan", icon: "bi-envelope", estimasiBiaya: 1500000, items: ["Desain undangan digital", "Cetak undangan 100 pcs", "Amplop & materai"] }
-    ]
-  },
-  premium: {
-    name: "Paket Premium (Lengkap)",
-    categories: [
-      { nama: "Administrasi & Dokumen", icon: "bi-files", estimasiBiaya: 3000000, items: ["Semua dokumen + legalisasi", "Konsultasi pernikahan", "Asuransi pernikahan"] },
-      { nama: "Venue & Dekorasi", icon: "bi-building", estimasiBiaya: 35000000, items: ["Hotel bintang 4", "Dekorasi mewah dengan bunga segar", "Sound system & lighting", "Karpet merah", "Photo booth"] },
-      { nama: "Busana & Makeup", icon: "bi-person-standing", estimasiBiaya: 15000000, items: ["Baju akad custom", "Baju resepsi 2 model", "MUA profesional 3 sesi", "Makeup trial", "Rias keluarga"] },
-      { nama: "Dokumentasi", icon: "bi-camera", estimasiBiaya: 12000000, items: ["Fotografer full day", "Videografer full day + drone", "Album cetak mewah", "Pre-wedding outdoor 2 lokasi"] },
-      { nama: "Konsumsi", icon: "bi-cup-straw", estimasiBiaya: 30000000, items: ["Catering untuk 300 tamu", "Live cooking station", "Kue pernikahan 3 tingkat", "Welcome drink", "Floating market"] },
-      { nama: "Undangan", icon: "bi-envelope", estimasiBiaya: 5000000, items: ["Desain eksklusif", "Cetak undangan premium 200 pcs", "Undangan digital interaktif", "Souvenir undangan"] },
-      { nama: "Hiburan", icon: "bi-music-note", estimasiBiaya: 8000000, items: ["Live band atau DJ", "MC profesional", "Karaoke", "Games & Doorprize"] },
-      { nama: "Penginapan & Transport", icon: "bi-truck", estimasiBiaya: 10000000, items: ["Hotel untuk keluarga", "Sewa mobil hias", "Transport antar jemput tamu"] }
-    ]
-  },
-  destination: {
-    name: "Paket Destination Wedding",
-    categories: [
-      { nama: "Dokumen & Perizinan", icon: "bi-files", estimasiBiaya: 5000000, items: ["Paspor", "Visa (jika luar negeri)", "Surat pindah nikah", "Dokumen resmi negara tujuan"] },
-      { nama: "Venue & Akomodasi", icon: "bi-building", estimasiBiaya: 50000000, items: ["Resort/villa eksklusif", "Dekorasi beach/outdoor", "Akomodasi tamu (3 hari 2 malam)"] },
-      { nama: "Transportasi", icon: "bi-truck", estimasiBiaya: 20000000, items: ["Tiket pesawat untuk 10 orang", "Sewa mobil di lokasi", "Transfer bandara"] },
-      { nama: "Dokumentasi", icon: "bi-camera", estimasiBiaya: 15000000, items: ["Fotografer & videografer full coverage", "Pre-wedding di lokasi destination", "Album & video cinematic"] },
-      { nama: "Konsumsi", icon: "bi-cup-straw", estimasiBiaya: 25000000, items: ["Catering untuk 50 tamu", "Welcome dinner", "Wedding cake"] }
-    ]
-  }
+  basic: [
+    {
+      name: "Paket Basic (Minimalis Hemat)",
+      description: "Cocok untuk pernikahan sederhana dengan budget terbatas",
+      categories: [
+        { nama: "Administrasi & Dokumen", icon: "bi-files", estimasiBiaya: 1500000, items: ["KTP & KK (scan & asli)", "Akta Kelahiran", "Ijazah terakhir", "Surat kesehatan pranikah", "Pengesahan KUA"] },
+        { nama: "Venue & Dekorasi", icon: "bi-building", estimasiBiaya: 8000000, items: ["Booking venue akad sederhana", "Dekorasi pelaminan minimalis", "Backdrop foto simple"] },
+        { nama: "Busana & Makeup", icon: "bi-person-standing", estimasiBiaya: 3500000, items: ["Baju akad pria (sewa)", "Baju akad wanita (sewa)", "MUA untuk akad"] },
+        { nama: "Dokumentasi", icon: "bi-camera", estimasiBiaya: 2500000, items: ["Fotografer 3 jam", "Foto pre-wedding simple"] },
+        { nama: "Konsumsi", icon: "bi-cup-straw", estimasiBiaya: 5000000, items: ["Catering untuk 50 tamu", "Air mineral", "Snack box sederhana"] },
+        { nama: "Undangan", icon: "bi-envelope", estimasiBiaya: 1000000, items: ["Desain undangan digital", "Cetak undangan 50 pcs"] }
+      ]
+    },
+    {
+      name: "Paket Basic (Standar)",
+      description: "Pilihan standar dengan fasilitas lengkap untuk 100 tamu",
+      categories: [
+        { nama: "Administrasi & Dokumen", icon: "bi-files", estimasiBiaya: 2000000, items: ["KTP & KK (scan & asli)", "Akta Kelahiran", "Ijazah terakhir", "Surat kesehatan pranikah", "Pengesahan KUA", "Konsultasi pernikahan"] },
+        { nama: "Venue & Dekorasi", icon: "bi-building", estimasiBiaya: 15000000, items: ["Booking venue akad", "Booking venue resepsi", "Dekorasi pelaminan standar", "Backdrop foto", "Sound system sederhana"] },
+        { nama: "Busana & Makeup", icon: "bi-person-standing", estimasiBiaya: 7000000, items: ["Baju akad pria (sewa)", "Baju akad wanita (sewa)", "Baju resepsi (sewa)", "MUA untuk akad & resepsi", "Aksesoris"] },
+        { nama: "Dokumentasi", icon: "bi-camera", estimasiBiaya: 5000000, items: ["Fotografer 6 jam", "Videografer 4 jam", "Foto pre-wedding 1 lokasi", "Album foto"] },
+        { nama: "Konsumsi", icon: "bi-cup-straw", estimasiBiaya: 12000000, items: ["Catering untuk 100 tamu", "Air mineral", "Snack box", "Welcome drink"] },
+        { nama: "Undangan", icon: "bi-envelope", estimasiBiaya: 2000000, items: ["Desain undangan digital", "Cetak undangan 100 pcs", "Amplop & materai"] }
+      ]
+    },
+    {
+      name: "Paket Basic (Plus)",
+      description: "Paket basic dengan tambahan hiburan dan souvenir",
+      categories: [
+        { nama: "Administrasi & Dokumen", icon: "bi-files", estimasiBiaya: 2500000, items: ["KTP & KK (scan & asli)", "Akta Kelahiran", "Ijazah terakhir", "Surat kesehatan pranikah", "Pengesahan KUA", "Konsultasi pernikahan", "Asuransi kecil"] },
+        { nama: "Venue & Dekorasi", icon: "bi-building", estimasiBiaya: 18000000, items: ["Booking venue akad", "Booking venue resepsi", "Dekorasi pelaminan plus", "Backdrop foto 2 sisi", "Sound system & lighting sederhana"] },
+        { nama: "Busana & Makeup", icon: "bi-person-standing", estimasiBiaya: 10000000, items: ["Baju akad pria (sewa premium)", "Baju akad wanita (sewa premium)", "Baju resepsi 2 model (sewa)", "MUA profesional", "Makeup trial", "Aksesoris lengkap"] },
+        { nama: "Dokumentasi", icon: "bi-camera", estimasiBiaya: 7000000, items: ["Fotografer full day", "Videografer 6 jam", "Foto pre-wedding 1 lokasi", "Album foto mewah", "Video highlight"] },
+        { nama: "Konsumsi", icon: "bi-cup-straw", estimasiBiaya: 15000000, items: ["Catering untuk 120 tamu", "Air mineral", "Snack box", "Welcome drink", "Kue pernikahan 1 tingkat"] },
+        { nama: "Undangan", icon: "bi-envelope", estimasiBiaya: 3000000, items: ["Desain undangan digital", "Cetak undangan 120 pcs premium", "Amplop & materai", "Souvenir undangan"] },
+        { nama: "Hiburan", icon: "bi-music-note", estimasiBiaya: 3000000, items: ["Musik akustik", "MC sederhana"] }
+      ]
+    }
+  ],
+  premium: [
+    {
+      name: "Paket Premium (Eksklusif)",
+      description: "Pernikahan mewah dengan sentuhan elegan untuk 200 tamu",
+      categories: [
+        { nama: "Administrasi & Dokumen", icon: "bi-files", estimasiBiaya: 4000000, items: ["Semua dokumen + legalisasi", "Konsultasi pernikahan", "Asuransi pernikahan", "Dokumen notaris"] },
+        { nama: "Venue & Dekorasi", icon: "bi-building", estimasiBiaya: 30000000, items: ["Hotel bintang 3", "Dekorasi mewah dengan bunga segar", "Sound system & lighting", "Karpet merah", "Photo booth 2 sisi"] },
+        { nama: "Busana & Makeup", icon: "bi-person-standing", estimasiBiaya: 15000000, items: ["Baju akad custom", "Baju resepsi 2 model", "MUA profesional 2 sesi", "Makeup trial", "Rias keluarga", "Aksesoris mewah"] },
+        { nama: "Dokumentasi", icon: "bi-camera", estimasiBiaya: 12000000, items: ["Fotografer full day", "Videografer full day", "Album cetak mewah", "Pre-wedding outdoor 1 lokasi", "Video cinematic"] },
+        { nama: "Konsumsi", icon: "bi-cup-straw", estimasiBiaya: 25000000, items: ["Catering untuk 200 tamu", "Live cooking station", "Kue pernikahan 2 tingkat", "Welcome drink", "Floating market sederhana"] },
+        { nama: "Undangan", icon: "bi-envelope", estimasiBiaya: 5000000, items: ["Desain eksklusif", "Cetak undangan premium 200 pcs", "Undangan digital interaktif", "Souvenir undangan"] },
+        { nama: "Hiburan", icon: "bi-music-note", estimasiBiaya: 8000000, items: ["Live band", "MC profesional", "Karaoke", "Games & Doorprize"] }
+      ]
+    },
+    {
+      name: "Paket Premium (Lengkap)",
+      description: "Pernikahan lengkap dengan semua fasilitas terbaik",
+      categories: [
+        { nama: "Administrasi & Dokumen", icon: "bi-files", estimasiBiaya: 5000000, items: ["Semua dokumen + legalisasi", "Konsultasi pernikahan", "Asuransi pernikahan", "Dokumen notaris", "Koordinasi wedding organizer"] },
+        { nama: "Venue & Dekorasi", icon: "bi-building", estimasiBiaya: 45000000, items: ["Hotel bintang 4", "Dekorasi mewah dengan bunga segar + lampu", "Sound system & lighting premium", "Karpet merah panjang", "Photo booth 3 sisi", "Welcome sign mewah"] },
+        { nama: "Busana & Makeup", icon: "bi-person-standing", estimasiBiaya: 20000000, items: ["Baju akad custom import", "Baju resepsi 3 model", "MUA profesional 3 sesi", "Makeup trial", "Rias keluarga inti", "Aksesoris mewah", "Sewain jewelry"] },
+        { nama: "Dokumentasi", icon: "bi-camera", estimasiBiaya: 18000000, items: ["Fotografer 2 orang full day", "Videografer 2 orang full day + drone", "Album cetak mewah 2 buku", "Pre-wedding outdoor 2 lokasi", "Video cinematic + highlight", "Behind the scene"] },
+        { nama: "Konsumsi", icon: "bi-cup-straw", estimasiBiaya: 35000000, items: ["Catering untuk 250 tamu", "Live cooking station 2 titik", "Kue pernikahan 3 tingkat", "Welcome drink", "Floating market", "Coffee bar", "Mocktail bar"] },
+        { nama: "Undangan", icon: "bi-envelope", estimasiBiaya: 7000000, items: ["Desain eksklusif custom", "Cetak undangan premium 250 pcs", "Undangan digital interaktif", "Souvenir undangan premium", "Amplop custom"] },
+        { nama: "Hiburan", icon: "bi-music-note", estimasiBiaya: 12000000, items: ["Live band full", "DJ", "MC profesional", "Karaoke", "Games & Doorprize mewah", "Entertainer"] },
+        { nama: "Penginapan & Transport", icon: "bi-truck", estimasiBiaya: 10000000, items: ["Hotel untuk keluarga inti", "Sewa mobil hias", "Transport antar jemput tamu"] }
+      ]
+    },
+    {
+      name: "Paket Premium (Ultimate)",
+      description: "Pernikahan impian tanpa batas dengan fasilitas super mewah",
+      categories: [
+        { nama: "Administrasi & Dokumen", icon: "bi-files", estimasiBiaya: 7000000, items: ["Semua dokumen + legalisasi", "Konsultasi pernikahan", "Asuransi pernikahan", "Dokumen notaris", "Full Wedding Organizer", "Legal advisor"] },
+        { nama: "Venue & Dekorasi", icon: "bi-building", estimasiBiaya: 75000000, items: ["Hotel bintang 5", "Dekorasi super mewah dengan bunga impor", "Sound system & lighting premium plus", "Karpet merah panjang VIP", "Photo booth 5 konsep", "Welcome sign custom", "LED screen backdrop"] },
+        { nama: "Busana & Makeup", icon: "bi-person-standing", estimasiBiaya: 35000000, items: ["Baju akad custom designer", "Baju resepsi 4 model", "MUA profesional 4 sesi", "Makeup trial", "Rias keluarga besar", "Aksesoris mewah import", "Sewain jewelry premium"] },
+        { nama: "Dokumentasi", icon: "bi-camera", estimasiBiaya: 25000000, items: ["Fotografer 3 orang full day", "Videografer 3 orang full day + drone", "Album cetak super mewah 3 buku", "Pre-wedding outdoor 3 lokasi + indoor", "Video cinematic + highlight + documentary", "Behind the scene", "Same day edit video"] },
+        { nama: "Konsumsi", icon: "bi-cup-straw", estimasiBiaya: 50000000, items: ["Catering untuk 300 tamu", "Live cooking station 5 titik", "Kue pernikahan 4 tingkat", "Welcome drink", "Floating market", "Coffee bar premium", "Mocktail bar", "Chocolate fountain", "Praline bar"] },
+        { nama: "Undangan", icon: "bi-envelope", estimasiBiaya: 12000000, items: ["Desain eksklusif custom", "Cetak undangan premium 300 pcs", "Undangan digital interaktif", "Souvenir undangan premium", "Amplop custom", "Undangan video"] },
+        { nama: "Hiburan", icon: "bi-music-note", estimasiBiaya: 20000000, items: ["Live band famous", "DJ terkenal", "MC terkenal", "Karaoke premium", "Games & Doorprize super mewah", "Entertainer", "Fireworks"] },
+        { nama: "Penginapan & Transport", icon: "bi-truck", estimasiBiaya: 20000000, items: ["Hotel bintang 5 untuk keluarga besar", "Sewa mobil hias mewah", "Transport antar jemput tamu VIP", "Bus untuk tamu"] },
+        { nama: "Goodie Bag & Souvenir", icon: "bi-gift", estimasiBiaya: 15000000, items: ["Souvenir eksklusif", "Goodie bag untuk tamu", "Wedding favor premium"] }
+      ]
+    }
+  ],
+  destination: [
+    {
+      name: "Paket Destination (Bali Simple)",
+      description: "Pernikahan di pantai Bali dengan konsep intimate wedding",
+      categories: [
+        { nama: "Dokumen & Perizinan", icon: "bi-files", estimasiBiaya: 3000000, items: ["Paspor", "Surat pindah nikah", "Dokumen resmi KUA", "Surat keterangan dari desa"] },
+        { nama: "Venue & Akomodasi", icon: "bi-building", estimasiBiaya: 25000000, items: ["Villa di Bali", "Dekorasi beach simple", "Akomodasi tamu 10 orang (2 hari 1 malam)"] },
+        { nama: "Transportasi", icon: "bi-truck", estimasiBiaya: 10000000, items: ["Tiket pesawat untuk 10 orang", "Sewa mobil di Bali"] },
+        { nama: "Dokumentasi", icon: "bi-camera", estimasiBiaya: 8000000, items: ["Fotografer & videografer", "Pre-wedding di pantai", "Album foto"] },
+        { nama: "Konsumsi", icon: "bi-cup-straw", estimasiBiaya: 12000000, items: ["Catering untuk 20 tamu", "Welcome dinner", "Wedding cake simple"] }
+      ]
+    },
+    {
+      name: "Paket Destination (Luar Negeri - Malaysia/Thailand)",
+      description: "Pernikahan di luar negeri dengan budget menengah",
+      categories: [
+        { nama: "Dokumen & Perizinan", icon: "bi-files", estimasiBiaya: 5000000, items: ["Paspor", "Visa", "Surat pindah nikah", "Dokumen resmi negara tujuan", "Penerjemah dokumen"] },
+        { nama: "Venue & Akomodasi", icon: "bi-building", estimasiBiaya: 40000000, items: ["Hotel bintang 4", "Dekorasi mewah", "Akomodasi tamu 20 orang (3 hari 2 malam)"] },
+        { nama: "Transportasi", icon: "bi-truck", estimasiBiaya: 20000000, items: ["Tiket pesawat untuk 20 orang", "Sewa bus di lokasi", "Transfer bandara"] },
+        { nama: "Dokumentasi", icon: "bi-camera", estimasiBiaya: 15000000, items: ["Fotografer & videografer full coverage", "Pre-wedding di lokasi destination", "Album & video cinematic"] },
+        { nama: "Konsumsi", icon: "bi-cup-straw", estimasiBiaya: 20000000, items: ["Catering untuk 20 tamu", "Welcome dinner", "Wedding cake 2 tingkat", "Reception dinner"] },
+        { nama: "Wedding Planner", icon: "bi-calendar-check", estimasiBiaya: 5000000, items: ["Local wedding planner", "Koordinasi vendor"] }
+      ]
+    },
+    {
+      name: "Paket Destination (Europe - Dream Wedding)",
+      description: "Pernikahan impian di Eropa (Bali, Prancis, atau Italia)",
+      categories: [
+        { nama: "Dokumen & Perizinan", icon: "bi-files", estimasiBiaya: 10000000, items: ["Paspor", "Visa Schengen", "Surat pindah nikah", "Dokumen resmi negara tujuan", "Penerjemah tersumpah", "Legalitas internasional"] },
+        { nama: "Venue & Akomodasi", icon: "bi-building", estimasiBiaya: 100000000, items: ["Chateau/Villa mewah", "Dekorasi super mewah", "Akomodasi tamu 30 orang (4 hari 3 malam)", "Castle wedding venue"] },
+        { nama: "Transportasi", icon: "bi-truck", estimasiBiaya: 50000000, items: ["Tiket pesawat business class untuk 30 orang", "Sewa mobil mewah", "Transfer bandara VIP"] },
+        { nama: "Dokumentasi", icon: "bi-camera", estimasiBiaya: 35000000, items: ["Fotografer internasional", "Videografer full coverage + drone", "Pre-wedding di lokasi iconic", "Album & video cinematic mewah", "Same day edit"] },
+        { nama: "Konsumsi", icon: "bi-cup-straw", estimasiBiaya: 60000000, items: ["Catering fine dining", "Welcome dinner mewah", "Wedding cake 3 tingkat", "Reception dinner", "After party"] },
+        { nama: "Wedding Planner", icon: "bi-calendar-check", estimasiBiaya: 15000000, items: ["International wedding planner", "Koordinasi vendor luar negeri", "Translator"] },
+        { nama: "Busana & Makeup", icon: "bi-person-standing", estimasiBiaya: 40000000, items: ["Designer wedding gown", "Suit custom", "Makeup artist international", "Hair stylist"] }
+      ]
+    }
+  ]
 };
 
 const throttledRender = throttle(() => {
@@ -258,15 +345,36 @@ function renderKategori() {
         <p class="mt-2">Belum ada kategori persiapan pernikahan.</p>
         <p class="small">Klik salah satu template di bawah untuk memulai:</p>
         <div class="d-flex gap-2 justify-content-center mt-3 flex-wrap">
-          <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="window.generateWeddingPlanning('basic')">
-            <i class="bi bi-stars me-1"></i> Basic Plan
-          </button>
-          <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="window.generateWeddingPlanning('premium')">
-            <i class="bi bi-diamond me-1"></i> Premium Plan
-          </button>
-          <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="window.generateWeddingPlanning('destination')">
-            <i class="bi bi-globe me-1"></i> Destination
-          </button>
+          <div class="dropdown">
+            <button class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle" data-bs-toggle="dropdown">
+              <i class="bi bi-stars me-1"></i> Basic Plan (3 Template)
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#" onclick="window.generateWeddingPlanning('basic', 0)">${escapeHtml(weddingTemplates.basic[0].name)}</a></li>
+              <li><a class="dropdown-item" href="#" onclick="window.generateWeddingPlanning('basic', 1)">${escapeHtml(weddingTemplates.basic[1].name)}</a></li>
+              <li><a class="dropdown-item" href="#" onclick="window.generateWeddingPlanning('basic', 2)">${escapeHtml(weddingTemplates.basic[2].name)}</a></li>
+            </ul>
+          </div>
+          <div class="dropdown">
+            <button class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle" data-bs-toggle="dropdown">
+              <i class="bi bi-diamond me-1"></i> Premium Plan (3 Template)
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#" onclick="window.generateWeddingPlanning('premium', 0)">${escapeHtml(weddingTemplates.premium[0].name)}</a></li>
+              <li><a class="dropdown-item" href="#" onclick="window.generateWeddingPlanning('premium', 1)">${escapeHtml(weddingTemplates.premium[1].name)}</a></li>
+              <li><a class="dropdown-item" href="#" onclick="window.generateWeddingPlanning('premium', 2)">${escapeHtml(weddingTemplates.premium[2].name)}</a></li>
+            </ul>
+          </div>
+          <div class="dropdown">
+            <button class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle" data-bs-toggle="dropdown">
+              <i class="bi bi-globe me-1"></i> Destination Plan (3 Template)
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#" onclick="window.generateWeddingPlanning('destination', 0)">${escapeHtml(weddingTemplates.destination[0].name)}</a></li>
+              <li><a class="dropdown-item" href="#" onclick="window.generateWeddingPlanning('destination', 1)">${escapeHtml(weddingTemplates.destination[1].name)}</a></li>
+              <li><a class="dropdown-item" href="#" onclick="window.generateWeddingPlanning('destination', 2)">${escapeHtml(weddingTemplates.destination[2].name)}</a></li>
+            </ul>
+          </div>
         </div>
       </div>
     `;
@@ -282,7 +390,6 @@ function renderKategori() {
     const completedCount = validItems.filter(([_, item]) => item.selesai).length;
     const percentItem = validItems.length > 0 ? (completedCount / validItems.length) * 100 : 0;
     
-    // MENGGUNAKAN TOMBOL LANGSUNG, BUKAN DROPDOWN
     tempDiv.innerHTML = `
       <div class="card mb-3 border-0 shadow-sm" data-kategori-id="${kat.id}">
         <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center p-3 flex-wrap gap-2">
@@ -343,16 +450,35 @@ function renderKategori() {
 }
 
 // ============ GENERATE WEDDING PLANNING ============
-window.generateWeddingPlanning = async function(templateId = 'basic') {
-  const template = weddingTemplates[templateId];
+window.generateWeddingPlanning = async function(templateId = 'basic', templateIndex = 0) {
+  let template;
+  let templateName;
+  
+  if (templateId === 'basic') {
+    template = weddingTemplates.basic[templateIndex];
+    templateName = template.name;
+  } else if (templateId === 'premium') {
+    template = weddingTemplates.premium[templateIndex];
+    templateName = template.name;
+  } else if (templateId === 'destination') {
+    template = weddingTemplates.destination[templateIndex];
+    templateName = template.name;
+  } else {
+    showNotif("Template tidak ditemukan", true, 'error');
+    return;
+  }
+  
   if (!template) {
     showNotif("Template tidak ditemukan", true, 'error');
     return;
   }
   
+  // Escape HTML untuk pesan konfirmasi
+  const safeTemplateName = escapeHtml(templateName);
+  
   const confirmed = await showCustomConfirm(
     "Generate Planning Wedding", 
-    `Yakin ingin menggunakan template "${template.name}"? Data catatan yang ada akan DIGANTI SEPENUHNYA.`
+    `Yakin ingin menggunakan template "${safeTemplateName}"?\n\n${template.description || ''}\n\nData catatan yang ada akan DIGANTI SEPENUHNYA.`
   );
   
   if (!confirmed) return;
@@ -395,7 +521,7 @@ window.generateWeddingPlanning = async function(templateId = 'basic') {
     updateProgress();
     generateAIRecommendations();
     
-    showNotif(`✅ Template "${template.name}" berhasil! Total estimasi: Rp ${totalEstimasi.toLocaleString('id-ID')}`, false, 'success');
+    showNotif(`✅ Template "${templateName}" berhasil! Total estimasi: Rp ${totalEstimasi.toLocaleString('id-ID')}`, false, 'success');
     
     if (typeof triggerConfetti === 'function') triggerConfetti();
     
@@ -440,16 +566,37 @@ async function generateAIRecommendations() {
           <i class="bi bi-magic fs-5 text-purple"></i>
           <span class="fw-bold small">✨ AI Planning Assistant</span>
         </div>
-        <div class="btn-group btn-group-sm" role="group">
-          <button class="btn btn-outline-primary rounded-pill" onclick="window.generateWeddingPlanning('basic')" style="font-size: 11px;">
-            <i class="bi bi-stars me-1"></i> Basic Plan
-          </button>
-          <button class="btn btn-outline-primary rounded-pill" onclick="window.generateWeddingPlanning('premium')" style="font-size: 11px;">
-            <i class="bi bi-diamond me-1"></i> Premium Plan
-          </button>
-          <button class="btn btn-outline-primary rounded-pill" onclick="window.generateWeddingPlanning('destination')" style="font-size: 11px;">
-            <i class="bi bi-globe me-1"></i> Destination
-          </button>
+        <div class="d-flex gap-2 flex-wrap">
+          <div class="dropdown">
+            <button class="btn btn-outline-primary rounded-pill dropdown-toggle btn-sm" data-bs-toggle="dropdown" style="font-size: 11px;">
+              <i class="bi bi-stars me-1"></i> Basic Plan
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#" onclick="window.generateWeddingPlanning('basic', 0)">${escapeHtml(weddingTemplates.basic[0].name)}</a></li>
+              <li><a class="dropdown-item" href="#" onclick="window.generateWeddingPlanning('basic', 1)">${escapeHtml(weddingTemplates.basic[1].name)}</a></li>
+              <li><a class="dropdown-item" href="#" onclick="window.generateWeddingPlanning('basic', 2)">${escapeHtml(weddingTemplates.basic[2].name)}</a></li>
+            </ul>
+          </div>
+          <div class="dropdown">
+            <button class="btn btn-outline-primary rounded-pill dropdown-toggle btn-sm" data-bs-toggle="dropdown" style="font-size: 11px;">
+              <i class="bi bi-diamond me-1"></i> Premium Plan
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#" onclick="window.generateWeddingPlanning('premium', 0)">${escapeHtml(weddingTemplates.premium[0].name)}</a></li>
+              <li><a class="dropdown-item" href="#" onclick="window.generateWeddingPlanning('premium', 1)">${escapeHtml(weddingTemplates.premium[1].name)}</a></li>
+              <li><a class="dropdown-item" href="#" onclick="window.generateWeddingPlanning('premium', 2)">${escapeHtml(weddingTemplates.premium[2].name)}</a></li>
+            </ul>
+          </div>
+          <div class="dropdown">
+            <button class="btn btn-outline-primary rounded-pill dropdown-toggle btn-sm" data-bs-toggle="dropdown" style="font-size: 11px;">
+              <i class="bi bi-globe me-1"></i> Destination
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#" onclick="window.generateWeddingPlanning('destination', 0)">${escapeHtml(weddingTemplates.destination[0].name)}</a></li>
+              <li><a class="dropdown-item" href="#" onclick="window.generateWeddingPlanning('destination', 1)">${escapeHtml(weddingTemplates.destination[1].name)}</a></li>
+              <li><a class="dropdown-item" href="#" onclick="window.generateWeddingPlanning('destination', 2)">${escapeHtml(weddingTemplates.destination[2].name)}</a></li>
+            </ul>
+          </div>
         </div>
       </div>
       
@@ -490,7 +637,6 @@ window.deleteItem = async function(kategoriId, itemId) {
     return;
   }
   
-  // Cari nama item untuk ditampilkan di konfirmasi
   let itemName = "Item ini";
   if (checklistItems[kategoriId] && checklistItems[kategoriId][itemId]) {
     itemName = checklistItems[kategoriId][itemId].nama || "Item ini";
@@ -532,7 +678,6 @@ window.deleteKategori = async function(id) {
     return;
   }
   
-  // Cari nama kategori untuk ditampilkan di konfirmasi
   const kategori = kategoriList.find(k => k.id === id);
   const kategoriName = kategori ? kategori.nama : 'Kategori ini';
   
@@ -546,23 +691,18 @@ window.deleteKategori = async function(id) {
   showLoading("Menghapus kategori...");
   
   try {
-    // Hapus data kategori dari Firebase
     await remove(ref(db, `data/catatan/bersama/kategori/${id}`));
     console.log("Kategori removed from Firebase");
     
-    // Hapus semua items dalam kategori tersebut
     await remove(ref(db, `data/catatan/bersama/items/${id}`));
     console.log("Items removed from Firebase");
     
-    // Clear semua cache terkait catatan
     clearCache(`catatan_kategori_bersama`);
     clearCache(`catatan_items_bersama`);
     
-    // Refresh data dari Firebase
     await loadKategoriOptimized(true);
     await loadChecklistItemsOptimized(true);
     
-    // Render ulang UI
     renderKategori();
     updateProgress();
     generateAIRecommendations();
