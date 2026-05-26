@@ -1,16 +1,14 @@
-// js/auth.js - Versi dengan tema ungu #7009b4 & #4000C6 dan login input teks
+// js/auth.js - Tambahkan clearCache saat logout
 import { db, ref, get, update } from './firebase-config.js';
-import { showNotif, setCurrentUser, compressImage, escapeHtml } from './utils.js';
-import { renderBirthdayInProfile } from './pengingat.js';
+import { showNotif, setCurrentUser, compressImage, escapeHtml, clearCache } from './utils.js';
+import { renderBirthdayInProfile, stopBirthdayChecker } from './pengingat.js';
 
-// ============ GLOBAL STATE PROFILE ============
 let currentProfilePhoto = null;
 let currentStatus = 'merencanakan';
 let currentUserData = null;
 let currentUsername = null;
 let authListeners = [];
 
-// ============ RESET PROFILE STATE ============
 function resetProfileState() {
   console.log("Resetting profile state...");
   currentProfilePhoto = null;
@@ -19,7 +17,6 @@ function resetProfileState() {
   currentUsername = null;
 }
 
-// ============ PASSWORD HASH FUNCTION ============
 async function hashPassword(password) {
   const encoder = new TextEncoder();
   const data = encoder.encode(password + "growthogether_salt_2024");
@@ -40,7 +37,6 @@ function simpleHash(str) {
   return Math.abs(hash).toString(16);
 }
 
-// ============ SESSION TOKEN FUNCTIONS ============
 function generateSessionToken(username, timestamp) {
   const salt = "growthogether_secret_2024";
   return btoa(`${username}|${timestamp}|${salt}`).substring(0, 32);
@@ -79,7 +75,6 @@ export function cleanupAuthListeners() {
   authListeners = [];
 }
 
-// ============ HELPER FUNCTIONS ============
 function getCurrentSessionUser() {
   const user = sessionStorage.getItem("progrowth_user");
   if (user !== currentUsername) {
@@ -112,7 +107,6 @@ function shakeElement(element) {
   }, 300);
 }
 
-// ============ LOAD PROFILE DATA ============
 async function loadProfileData(username) {
   try {
     console.log("Loading profile data for:", username);
@@ -132,7 +126,6 @@ async function loadProfileData(username) {
   }
 }
 
-// ============ FORCE REFRESH PROFILE ============
 export async function forceRefreshProfile() {
   const currentUser = getCurrentSessionUser();
   if (currentUser && validateSession()) {
@@ -140,7 +133,6 @@ export async function forceRefreshProfile() {
   }
 }
 
-// ============ UPDATE PROFILE UI ============
 export function updateProfileUI() {
   const currentUser = getCurrentSessionUser();
   if (!currentUser || !validateSession()) {
@@ -213,7 +205,6 @@ export function updateProfileUI() {
   if (userGreet) userGreet.innerText = escapeHtml(displayName);
 }
 
-// ============ LOGIN HANDLER DENGAN INPUT USERNAME BIASA ============
 export async function handleLogin() {
   const u = document.getElementById("loginUser")?.value;
   const p = document.getElementById("loginPass")?.value;
@@ -221,7 +212,6 @@ export async function handleLogin() {
   const errorSpan = document.getElementById("errorText");
   const loginBtn = document.querySelector(".login-btn-modern");
   
-  // Validasi username tidak boleh kosong
   if (!u || !u.trim()) { 
     if (errorSpan) errorSpan.innerText = "❌ Username tidak boleh kosong!"; 
     if (errorDiv) errorDiv.style.display = "block"; 
@@ -230,7 +220,6 @@ export async function handleLogin() {
     return; 
   }
   
-  // Validasi password tidak boleh kosong
   if (!p || !p.trim()) { 
     if (errorSpan) errorSpan.innerText = "❌ Password tidak boleh kosong!"; 
     if (errorDiv) errorDiv.style.display = "block"; 
@@ -239,10 +228,8 @@ export async function handleLogin() {
     return; 
   }
   
-  // Konversi username ke UPPERCASE untuk validasi (sesuai dengan data auth)
   const usernameUpper = u.trim().toUpperCase();
   
-  // Validasi username hanya menerima FACHMI atau AZIZAH
   if (usernameUpper !== "FACHMI" && usernameUpper !== "AZIZAH") {
     if (errorSpan) errorSpan.innerText = "❌ Username tidak valid! (FACHMI atau AZIZAH)"; 
     if (errorDiv) errorDiv.style.display = "block"; 
@@ -264,23 +251,19 @@ export async function handleLogin() {
     let storedValue = snap.val();
     
     console.log("Login attempt for:", usernameUpper);
-    console.log("Stored password value type:", typeof storedValue);
     
     let isValid = false;
     
     if (storedValue && /^[a-f0-9]{64}$/.test(storedValue)) {
       const hashedInput = await hashPassword(p);
       isValid = (hashedInput === storedValue);
-      console.log("SHA-256 comparison result:", isValid);
     }
     else if (storedValue && /^[a-f0-9]+$/.test(storedValue) && storedValue.length < 64) {
       const hashedInput = simpleHash(p);
       isValid = (hashedInput === storedValue);
-      console.log("Simple hash comparison result:", isValid);
     }
     else {
       isValid = (storedValue === p);
-      console.log("Plain text comparison result:", isValid);
       
       if (isValid) {
         const newHash = await hashPassword(p);
@@ -308,7 +291,6 @@ export async function handleLogin() {
         loginBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
       }
       
-      // Tambah class logged-in ke body
       document.body.classList.add('logged-in');
       
       setTimeout(() => {
@@ -342,7 +324,6 @@ export async function handleLogin() {
   }
 }
 
-// ============ UPDATE PROFILE PHOTO ============
 export async function updateProfilePhoto(photoBase64) {
   const currentUser = getCurrentSessionUser();
   if (!currentUser || !validateSession()) {
@@ -364,7 +345,6 @@ export async function updateProfilePhoto(photoBase64) {
   }
 }
 
-// ============ UPDATE STATUS ============
 export async function updateStatus(status) {
   const currentUser = getCurrentSessionUser();
   if (!currentUser || !validateSession()) {
@@ -393,7 +373,6 @@ export async function updateStatus(status) {
   }
 }
 
-// ============ UPDATE PASSWORD ============
 export async function updateCloudPassword() {
   const p1 = document.getElementById("newPass")?.value;
   const p2 = document.getElementById("confirmPass")?.value;
@@ -461,7 +440,6 @@ export async function updateCloudPassword() {
   }
 }
 
-// ============ OPEN PROFILE MODAL ============
 export function openProfileModal() {
   console.log("openProfileModal called");
   updateProfileUI();
@@ -494,7 +472,6 @@ export function openProfileModal() {
   }
 }
 
-// ============ OPEN CHANGE PASSWORD ============
 export function openChangePasswordFromProfile() {
   console.log("openChangePasswordFromProfile called");
   
@@ -513,7 +490,6 @@ export function openChangePasswordFromProfile() {
   }, 300);
 }
 
-// ============ HANDLE PROFILE PHOTO UPLOAD ============
 export async function handleProfilePhotoUpload(input) {
   const file = input.files[0];
   if (!file) return;
@@ -543,7 +519,6 @@ export async function handleProfilePhotoUpload(input) {
   }
 }
 
-// ============ LOGOUT FUNCTIONS DENGAN PERBAIKAN ============
 export function confirmLogout() {
   console.log("confirmLogout called");
   const modalEl = document.getElementById("confirmLogoutModal");
@@ -576,7 +551,15 @@ export function confirmLogout() {
 export function handleLogout() {
   console.log("Executing logout...");
   
-  // Sembunyikan semua modal
+  // Hentikan birthday checker
+  if (typeof stopBirthdayChecker === 'function') {
+    stopBirthdayChecker();
+  }
+  
+  // BERSIHKAN SEMUA CACHE
+  clearCache();
+  console.log("All cache cleared on logout");
+  
   const modals = ['profileModal', 'passModal', 'confirmLogoutModal', 'momentModal', 'momentDetailModal', 'transaksiModal', 'impianModal', 'kategoriModal', 'itemModal'];
   modals.forEach(modalId => {
     const modalEl = document.getElementById(modalId);
@@ -586,27 +569,22 @@ export function handleLogout() {
     }
   });
   
-  // Animasi fade out
   const appContent = document.getElementById("app-content");
   const sidebar = document.getElementById("app-sidebar");
-  const bottomNav = document.querySelector(".bottom-nav");
   
   if (appContent) {
     appContent.style.transition = 'opacity 0.3s ease';
     appContent.style.opacity = '0';
   }
   if (sidebar) sidebar.style.transition = 'opacity 0.3s ease';
-  if (bottomNav) bottomNav.style.transition = 'opacity 0.3s ease';
   
   setTimeout(() => {
-    // Clear session
     sessionStorage.removeItem("progrowth_user");
     sessionStorage.removeItem("progrowth_token");
     sessionStorage.removeItem("progrowth_timestamp");
     setCurrentUser(null);
     resetProfileState();
     
-    // RESET FORM LOGIN - PERBAIKAN UTAMA
     const loginPass = document.getElementById("loginPass");
     const loginErrorMsg = document.getElementById("loginErrorMsg");
     const loginUserInput = document.getElementById("loginUser");
@@ -616,7 +594,6 @@ export function handleLogout() {
     if (loginErrorMsg) loginErrorMsg.style.display = "none";
     if (loginUserInput) loginUserInput.value = "";
     
-    // RESET TOMBOL LOGIN KE STATE SEMULA
     if (loginBtn) {
       loginBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i> Masuk';
       loginBtn.disabled = false;
@@ -624,23 +601,17 @@ export function handleLogout() {
       loginBtn.style.opacity = "1";
     }
     
-    // Sembunyikan elemen app
     const loginScreen = document.getElementById("login-screen");
     const appContentEl = document.getElementById("app-content");
     const sidebarEl = document.getElementById("app-sidebar");
-    const bottomNavEl = document.querySelector(".bottom-nav");
     
     if (appContentEl) appContentEl.style.display = "none";
     if (sidebarEl) sidebarEl.style.display = "none";
-    if (bottomNavEl) bottomNavEl.style.display = "none";
     
-    // Hapus class logged-in dari body
     document.body.classList.remove('logged-in');
     
-    // Reset opacity
     if (appContentEl) appContentEl.style.opacity = '';
     
-    // Tampilkan login screen dengan animasi
     if (loginScreen) {
       loginScreen.style.display = "flex";
       loginScreen.classList.remove('hide');
@@ -659,7 +630,6 @@ export function handleLogout() {
   }, 300);
 }
 
-// ============ INIT PROFILE ON LOAD ============
 export async function initProfile() {
   const savedUser = sessionStorage.getItem("progrowth_user");
   if (savedUser && validateSession()) {
@@ -672,16 +642,13 @@ export async function initProfile() {
   }
 }
 
-// ============ SETUP APP SESSION ============
 export function setupAppSession(u) {
   console.log("Setting up session for user:", u);
   
   const loginScreen = document.getElementById("login-screen");
   const sidebar = document.getElementById("app-sidebar");
   const appContent = document.getElementById("app-content");
-  const bottomNav = document.querySelector(".bottom-nav");
   
-  // Animasi hide login screen
   if (loginScreen) {
     loginScreen.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
     loginScreen.style.opacity = '0';
@@ -691,13 +658,10 @@ export function setupAppSession(u) {
     }, 300);
   }
   
-  // Tampilkan sidebar untuk desktop, bottom nav untuk mobile
   if (window.innerWidth > 768) {
     if (sidebar) sidebar.style.display = "flex";
-    if (bottomNav) bottomNav.style.display = "none";
   } else {
-    if (sidebar) sidebar.style.display = "none";
-    if (bottomNav) bottomNav.style.display = "flex";
+    if (sidebar) sidebar.style.display = "flex";
   }
   
   if (appContent) {
@@ -708,20 +672,22 @@ export function setupAppSession(u) {
     }, 100);
   }
   
-  // Update greeting
   const displayName = u === "FACHMI" ? "Fachmi" : "Azizah";
   const userGreet = document.getElementById("userGreet");
   if (userGreet) userGreet.innerText = displayName;
   
-  // Refresh profile dan render dashboard
   setTimeout(() => {
     if (typeof forceRefreshProfile === 'function') forceRefreshProfile();
     if (typeof updateProfileUI === 'function') updateProfileUI();
     if (typeof window.renderDashboard === 'function') window.renderDashboard();
     if (typeof window.showPage === 'function') window.showPage('dashboard');
+    
+    // Tambahkan filter ke halaman moment
+    if (typeof window.addFilterToMomentPage === 'function') {
+      setTimeout(() => window.addFilterToMomentPage(), 500);
+    }
   }, 200);
   
-  // Trigger confetti
   setTimeout(() => {
     if (typeof window.triggerConfetti === 'function') {
       window.triggerConfetti();
@@ -730,7 +696,6 @@ export function setupAppSession(u) {
   }, 500);
 }
 
-// ============ EXPORTS ============
 window.handleLogin = handleLogin;
 window.updateCloudPassword = updateCloudPassword;
 window.confirmLogout = confirmLogout;
