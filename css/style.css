@@ -1,3 +1,6 @@
+/* style.css - UI/UX Enhanced Version - TEMA UNGU #7009b4 & #4000C6 */
+/* DESKTOP: Sidebar | MOBILE: Sidebar + Hamburger Menu (Tanpa Bottom Nav) */
+
 * {
   margin: 0;
   padding: 0;
@@ -274,8 +277,32 @@ body.dark {
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  overflow: hidden; /* Hindari overflow ganda */
   transition: background 0.2s ease, left 0.3s ease;
+}
+
+/* Scrollable area untuk navigasi di sidebar */
+.sidebar-nav-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin: 0 -0.5rem;
+  padding: 0 0.5rem;
+}
+
+/* Custom scrollbar untuk sidebar nav scroll */
+.sidebar-nav-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-nav-scroll::-webkit-scrollbar-track {
+  background: var(--border-light);
+  border-radius: 4px;
+}
+
+.sidebar-nav-scroll::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
 }
 
 .sidebar .nav-link, #app-sidebar .nav-link {
@@ -308,6 +335,7 @@ body.dark {
 /* Profile Section di Sidebar */
 .profile-section {
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .profile-avatar {
@@ -460,73 +488,6 @@ section {
   margin-bottom: 6px;
   font-size: 0.85rem;
   color: var(--text-muted);
-}
-
-/* ============ BOTTOM NAVIGATION (MOBILE ONLY) ============ */
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--card-bg);
-  border-top: 1px solid var(--border-light);
-  display: none;
-  justify-content: space-around;
-  align-items: center;
-  padding: 8px 8px 20px;
-  z-index: 1050;
-  backdrop-filter: blur(10px);
-  overflow-x: auto;
-  overflow-y: hidden;
-  white-space: nowrap;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-}
-
-.bottom-nav::-webkit-scrollbar {
-  height: 2px;
-}
-
-.bottom-nav::-webkit-scrollbar-track {
-  background: var(--border-light);
-}
-
-.bottom-nav::-webkit-scrollbar-thumb {
-  background: #7009b4;
-  border-radius: 2px;
-}
-
-.bottom-nav-item {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  font-size: 0.7rem;
-  font-weight: 500;
-  padding: 8px 12px;
-  border-radius: 30px;
-  transition: all 0.2s;
-  cursor: pointer;
-  min-height: 44px;
-  min-width: 55px;
-  flex-shrink: 0;
-}
-
-.bottom-nav-item i {
-  font-size: 1.3rem;
-  margin-bottom: 4px;
-}
-
-.bottom-nav-item:active {
-  transform: scale(0.95);
-}
-
-.bottom-nav-item.active {
-  color: #7009b4;
-  background: rgba(112, 9, 180, 0.1);
 }
 
 /* ============ DARK MODE FAB ============ */
@@ -1022,15 +983,11 @@ button:active,
 }
 
 /* ============ RESPONSIVE STYLES ============ */
-/* DESKTOP (≥769px) - Sidebar muncul, Bottom nav hidden, Hamburger hidden */
+/* DESKTOP (≥769px) - Sidebar muncul, Hamburger hidden */
 @media (min-width: 769px) {
   .sidebar, #app-sidebar {
     display: flex !important;
     left: 0 !important;
-  }
-  
-  .bottom-nav {
-    display: none !important;
   }
   
   .hamburger-menu-btn {
@@ -1076,7 +1033,7 @@ button:active,
   }
 }
 
-/* MOBILE (≤768px) - Sidebar hidden by default (slide from left), Bottom nav muncul, Hamburger muncul */
+/* MOBILE (≤768px) - Sidebar hidden by default (slide from left), Hamburger muncul */
 @media (max-width: 768px) {
   html {
     font-size: 14px;
@@ -1085,6 +1042,10 @@ button:active,
   /* Tampilkan tombol hamburger */
   .hamburger-menu-btn {
     display: flex;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 1060;
   }
   
   /* Sidebar disembunyikan di luar layar */
@@ -1097,6 +1058,7 @@ button:active,
     z-index: 1050;
     transition: left 0.3s ease;
     display: flex !important;
+    flex-direction: column;
     box-shadow: none;
   }
   
@@ -1111,23 +1073,23 @@ button:active,
     display: flex;
   }
   
-  /* Bottom navigation */
-  .bottom-nav {
-    display: flex !important;
-    justify-content: flex-start !important;
-    gap: 4px;
-    padding: 8px 12px 20px;
+  /* Pastikan sidebar nav scroll bekerja di mobile */
+  .sidebar-nav-scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
   }
   
   /* Main content */
   #app-content {
     margin-left: 0 !important;
-    padding: 70px 12px 80px !important;
+    padding: 70px 12px 20px !important;
   }
   
   /* Dark mode FAB adjustment */
   .dark-mode-fab {
-    bottom: 90px;
+    bottom: 20px;
     right: 16px;
   }
   
@@ -1218,19 +1180,6 @@ button:active,
     min-width: 32px;
   }
   
-  .bottom-nav-item {
-    padding: 6px 10px;
-    min-width: 50px;
-  }
-  
-  .bottom-nav-item i {
-    font-size: 1.1rem;
-  }
-  
-  .bottom-nav-item span {
-    font-size: 0.6rem;
-  }
-  
   /* Grafik keuangan di layar sangat kecil */
   #keuanganChart {
     max-height: 160px !important;
@@ -1283,20 +1232,6 @@ body.dark .modal-content {
   background: #3d1f3d;
 }
 
-body.dark .bottom-nav {
-  background: #3d1f3d;
-  border-top-color: #4c1d6e;
-}
-
-body.dark .bottom-nav-item {
-  color: #d8b4fe;
-}
-
-body.dark .bottom-nav-item.active {
-  color: #a855f7;
-  background: rgba(112, 9, 180, 0.2);
-}
-
 body.dark .list-group-item {
   background: #3d1f3d;
   color: #e9d5ff;
@@ -1345,7 +1280,6 @@ body.dark .btn-secondary {
 /* ============ TOUCH FEEDBACK UNTUK MOBILE ============ */
 @media (max-width: 768px) {
   button:active, 
-  .bottom-nav-item:active, 
   .calendar-day:active,
   .moment-card:active,
   .nav-link:active {
@@ -1354,9 +1288,9 @@ body.dark .btn-secondary {
   }
   
   .btn, 
-  .bottom-nav-item,
   .calendar-day,
-  .moment-card {
+  .moment-card,
+  .nav-link {
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
@@ -1364,20 +1298,18 @@ body.dark .btn-secondary {
 
 /* ============ SAFE AREA UNTUK ANDROID ============ */
 @supports (padding: max(0px)) {
-  .bottom-nav { 
-    padding-bottom: max(12px, env(safe-area-inset-bottom)); 
-    padding-left: max(8px, env(safe-area-inset-left));
-    padding-right: max(8px, env(safe-area-inset-right));
-  }
-  
   .dark-mode-fab {
-    bottom: max(90px, calc(env(safe-area-inset-bottom) + 90px));
+    bottom: max(20px, env(safe-area-inset-bottom));
     right: max(16px, env(safe-area-inset-right));
   }
   
   #app-content {
     padding-left: max(12px, env(safe-area-inset-left));
     padding-right: max(12px, env(safe-area-inset-right));
+  }
+  
+  .sidebar, #app-sidebar {
+    padding-top: max(1rem, env(safe-area-inset-top));
   }
 }
 
@@ -1424,7 +1356,6 @@ body.dark ::-webkit-scrollbar-thumb:hover {
 /* ============ HIDE ELEMENTS BEFORE LOGIN ============ */
 #app-sidebar, 
 #app-content, 
-.bottom-nav, 
 .dark-mode-fab,
 #customToastContainer,
 .hamburger-menu-btn {
@@ -1437,10 +1368,6 @@ body.logged-in .dark-mode-fab,
 body.logged-in #customToastContainer,
 body.logged-in .hamburger-menu-btn {
   display: block;
-}
-
-body.logged-in .bottom-nav {
-  display: flex;
 }
 
 body.logged-in #login-screen {
