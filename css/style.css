@@ -1,5 +1,4 @@
-/* style.css - UI/UX Enhanced Version - TEMA PINK PEACH */
-/* Warna Utama: Pink (#ec4899, #f43f5e, #fbcfe8) dan Peach (#fbbf24, #fde68a) */
+/* style.css - UI/UX Enhanced Version - TEMA UNGU #7009b4 & #4000C6 */
 
 * {
   margin: 0;
@@ -21,21 +20,21 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* ============ THEME VARIABLES - PINK PEACH ============ */
+/* ============ THEME VARIABLES - WARNA BARU #7009b4 & #4000C6 ============ */
 :root {
-  --bg-body: #fff5f7;
+  --bg-body: #faf5ff;
   --card-bg: #ffffff;
-  --text-primary: #831843;
-  --text-muted: #9d174d;
-  --border-light: #fce7f3;
+  --text-primary: #4c1d95;
+  --text-muted: #6b21a5;
+  --border-light: #e9d5ff;
   --sidebar-bg: #ffffff;
   --input-bg: #ffffff;
-  --bg-light: #fdf2f8;
-  --primary: #ec4899;
-  --primary-dark: #db2777;
-  --primary-light: #fbcfe8;
-  --secondary: #fbbf24;
-  --secondary-dark: #f59e0b;
+  --bg-light: #f3e8ff;
+  --primary: #7009b4;
+  --primary-dark: #4000C6;
+  --primary-light: #d8b4fe;
+  --secondary: #8b5cf6;
+  --secondary-dark: #7c3aed;
   --success: #10b981;
   --danger: #ef4444;
   --warning: #f59e0b;
@@ -49,34 +48,38 @@ body {
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 }
 
-/* ============ DARK MODE VARIABLES - PINK PEACH DARK ============ */
+/* ============ DARK MODE VARIABLES ============ */
 body.dark {
-  --bg-body: #2d1b2e !important;
-  --card-bg: #3d1f3d !important;
-  --text-primary: #fbcfe8 !important;
-  --text-muted: #f9a8d4 !important;
-  --border-light: #4c1d3d !important;
-  --sidebar-bg: #2d1b2e !important;
-  --input-bg: #3d1f3d !important;
-  --bg-light: #4a2040 !important;
-  --primary: #f472b6 !important;
-  --primary-dark: #ec4899 !important;
-  --secondary: #fcd34d !important;
+  --bg-body: #1a1025 !important;
+  --card-bg: #2d1a3a !important;
+  --text-primary: #e9d5ff !important;
+  --text-muted: #d8b4fe !important;
+  --border-light: #4c1d6e !important;
+  --sidebar-bg: #1a1025 !important;
+  --input-bg: #2d1a3a !important;
+  --bg-light: #3a1f4a !important;
+  --primary: #a855f7 !important;
+  --primary-dark: #7c3aed !important;
+  --secondary: #818cf8 !important;
+  --success: #34d399 !important;
+  --danger: #f87171 !important;
+  --warning: #fbbf24 !important;
+  --info: #60a5fa !important;
 }
 
 body.dark {
-  background-color: #2d1b2e !important;
+  background-color: #1a1025 !important;
 }
 
 /* ============ ANIMASI ============ */
 @keyframes pulse {
   0%, 100% {
     transform: scale(1);
-    box-shadow: 0 8px 20px rgba(236, 72, 153, 0.3);
+    box-shadow: 0 8px 20px rgba(112, 9, 180, 0.3);
   }
   50% {
     transform: scale(1.05);
-    box-shadow: 0 12px 30px rgba(236, 72, 153, 0.5);
+    box-shadow: 0 12px 30px rgba(112, 9, 180, 0.5);
   }
 }
 
@@ -162,14 +165,14 @@ body.dark {
   }
 }
 
-/* ============ LOGIN SCREEN PERBAIKAN - PINK PEACH THEME ============ */
+/* ============ LOGIN SCREEN - WARNA BARU ============ */
 #login-screen {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #ec4899 0%, #fbbf24 50%, #f43f5e 100%);
+  background: linear-gradient(135deg, #7009b4 0%, #8b5cf6 50%, #4000C6 100%);
   z-index: 9999 !important;
   display: flex;
   align-items: center;
@@ -184,154 +187,6 @@ body.dark {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-}
-
-.login-container {
-  width: 100%;
-  max-width: 420px;
-  padding: 1rem;
-  position: relative;
-  z-index: 10000;
-  animation: fadeInUp 0.5s ease-out;
-}
-
-.login-card-modern {
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(10px);
-  border-radius: 48px;
-  padding: 2.5rem 2rem;
-  box-shadow: 0 25px 50px -12px rgba(236, 72, 153, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  transition: transform 0.3s ease;
-}
-
-.login-card-modern:hover {
-  transform: translateY(-5px);
-}
-
-.brand-circle-modern {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, #ec4899, #fbbf24);
-  border-radius: 40px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 8px 20px rgba(236, 72, 153, 0.3);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.brand-circle-modern i {
-  font-size: 40px;
-  color: white;
-}
-
-.greeting-text-modern {
-  font-size: 1.8rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #831843, #ec4899);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  margin-bottom: 0.5rem;
-}
-
-.sub-greeting-modern {
-  font-size: 0.9rem;
-  color: #9d174d;
-  margin-bottom: 2rem;
-}
-
-.input-modern {
-  width: 100%;
-  border: 2px solid #fce7f3;
-  border-radius: 60px;
-  padding: 1rem 1.5rem;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  background: white;
-}
-
-.input-modern:focus {
-  border-color: #ec4899;
-  outline: none;
-  box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.15);
-  transform: translateY(-2px);
-}
-
-.input-icon {
-  position: relative;
-  margin-bottom: 1.25rem;
-}
-
-.input-icon i {
-  position: absolute;
-  left: 18px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #ec4899;
-  font-size: 1.1rem;
-  z-index: 1;
-}
-
-.input-icon .input-modern {
-  padding-left: 48px;
-}
-
-.login-btn-modern {
-  background: linear-gradient(135deg, #ec4899, #fbbf24);
-  border: none;
-  border-radius: 60px;
-  padding: 1rem;
-  font-weight: 700;
-  font-size: 1rem;
-  color: white;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  width: 100%;
-  position: relative;
-  overflow: hidden;
-}
-
-.login-btn-modern::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-  transition: left 0.5s ease;
-}
-
-.login-btn-modern:hover::before {
-  left: 100%;
-}
-
-.login-btn-modern:active {
-  transform: scale(0.98);
-}
-
-/* Floating hearts background */
-.floating-heart-bg {
-  position: absolute;
-  font-size: 24px;
-  opacity: 0.5;
-  animation: floatHeartBg 8s ease-in-out infinite;
-  pointer-events: none;
-  z-index: 1;
-}
-
-@keyframes floatHeartBg {
-  0%, 100% {
-    transform: translateY(0) rotate(0deg);
-    opacity: 0.4;
-  }
-  50% {
-    transform: translateY(-25px) rotate(10deg);
-    opacity: 0.2;
-  }
 }
 
 /* ============ SIDEBAR (DESKTOP) ============ */
@@ -374,7 +229,7 @@ body.dark {
 }
 
 .sidebar .nav-link.active, #app-sidebar .nav-link.active {
-  background: linear-gradient(135deg, #ec4899, #fbbf24);
+  background: linear-gradient(135deg, #7009b4, #4000C6);
   color: white;
 }
 
@@ -388,7 +243,7 @@ body.dark {
   height: 80px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #ec4899;
+  border: 3px solid #7009b4;
 }
 
 .profile-status {
@@ -410,7 +265,7 @@ body.dark {
   right: -5px;
   width: 28px;
   height: 28px;
-  background: #ec4899;
+  background: #7009b4;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -453,7 +308,7 @@ section {
   transform: scale(0.99);
 }
 
-/* ============ BUTTONS - PINK PEACH ============ */
+/* ============ BUTTONS - WARNA BARU ============ */
 .btn {
   padding: 12px 20px;
   border-radius: 40px;
@@ -469,8 +324,12 @@ section {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #ec4899, #fbbf24);
+  background: linear-gradient(135deg, #7009b4, #4000C6);
   color: white;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #8b20d4, #5a00e6);
 }
 
 .btn-secondary {
@@ -490,6 +349,12 @@ section {
 
 .btn-warning {
   background: #f59e0b;
+  color: white;
+}
+
+.btn-purple {
+  background: linear-gradient(135deg, #7009b4, #4000C6);
+  border: none;
   color: white;
 }
 
@@ -513,8 +378,8 @@ section {
 
 .form-control:focus,
 .form-select:focus {
-  border-color: #ec4899;
-  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+  border-color: #7009b4;
+  box-shadow: 0 0 0 3px rgba(112, 9, 180, 0.1);
   outline: none;
 }
 
@@ -555,7 +420,7 @@ section {
 }
 
 .bottom-nav::-webkit-scrollbar-thumb {
-  background: #ec4899;
+  background: #7009b4;
   border-radius: 2px;
 }
 
@@ -588,11 +453,11 @@ section {
 }
 
 .bottom-nav-item.active {
-  color: #ec4899;
-  background: rgba(236, 72, 153, 0.1);
+  color: #7009b4;
+  background: rgba(112, 9, 180, 0.1);
 }
 
-/* ============ DARK MODE FAB - PINK PEACH ============ */
+/* ============ DARK MODE FAB - WARNA BARU ============ */
 .dark-mode-fab {
   position: fixed;
   bottom: 20px;
@@ -601,7 +466,7 @@ section {
   width: 48px;
   height: 48px;
   border-radius: 24px;
-  background: linear-gradient(135deg, #ec4899, #fbbf24);
+  background: linear-gradient(135deg, #7009b4, #4000C6);
   color: white;
   display: flex;
   align-items: center;
@@ -713,6 +578,10 @@ section {
   transition: width 0.5s ease;
 }
 
+.progress-bar.bg-purple {
+  background: linear-gradient(135deg, #7009b4, #4000C6);
+}
+
 /* ============ CALENDAR ============ */
 .calendar-grid {
   display: grid;
@@ -747,7 +616,7 @@ section {
 }
 
 .calendar-day:hover {
-  background: #fce7f3;
+  background: #e9d5ff;
   transform: scale(1.02);
 }
 
@@ -762,7 +631,7 @@ section {
 }
 
 .calendar-day.today {
-  background: linear-gradient(135deg, #ec4899, #fbbf24);
+  background: linear-gradient(135deg, #7009b4, #4000C6);
   border-color: transparent;
 }
 
@@ -772,13 +641,13 @@ section {
 }
 
 .calendar-day.has-moment {
-  background: #fce7f3;
-  border-color: #ec4899;
+  background: #e9d5ff;
+  border-color: #7009b4;
 }
 
 .calendar-day.special-moment {
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
-  border: 2px solid #fbbf24;
+  background: linear-gradient(135deg, #e9d5ff, #d8b4fe);
+  border: 2px solid #7009b4;
 }
 
 .moment-love {
@@ -846,7 +715,7 @@ section {
 .moment-image-placeholder {
   width: 100%;
   height: 160px;
-  background: linear-gradient(135deg, #ec4899, #fbbf24);
+  background: linear-gradient(135deg, #7009b4, #4000C6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -886,8 +755,8 @@ section {
 }
 
 .photo-upload-item:hover {
-  border-color: #ec4899;
-  color: #ec4899;
+  border-color: #7009b4;
+  color: #7009b4;
 }
 
 .photo-preview-item {
@@ -942,7 +811,7 @@ section {
 }
 
 .status-badge.active {
-  background: linear-gradient(135deg, #ec4899, #fbbf24) !important;
+  background: linear-gradient(135deg, #7009b4, #4000C6) !important;
   color: white !important;
 }
 
@@ -980,7 +849,7 @@ section {
   border-radius: 12px;
   padding: 12px;
   margin-bottom: 8px;
-  border-left: 4px solid #ec4899;
+  border-left: 4px solid #7009b4;
   transition: all 0.2s ease;
 }
 
@@ -994,11 +863,8 @@ section {
 }
 
 /* ============ UTILITY CLASSES ============ */
-.text-purple { color: #ec4899; }
-.text-pink { color: #ec4899; }
-.text-peach { color: #fbbf24; }
-.bg-purple { background: linear-gradient(135deg, #ec4899, #fbbf24); }
-.btn-purple { background: linear-gradient(135deg, #ec4899, #fbbf24); border: none; color: white; }
+.text-purple { color: #7009b4; }
+.bg-purple { background: linear-gradient(135deg, #7009b4, #4000C6); }
 
 /* ============ DROPDOWN FIX ============ */
 .dropdown-menu {
@@ -1166,29 +1032,6 @@ button:active,
   .moment-image-placeholder {
     height: 130px;
   }
-  
-  .login-card-modern {
-    padding: 1.8rem 1.5rem;
-    margin: 0 16px;
-  }
-  
-  .greeting-text-modern {
-    font-size: 1.5rem;
-  }
-  
-  .brand-circle-modern {
-    width: 65px;
-    height: 65px;
-  }
-  
-  .brand-circle-modern i {
-    font-size: 32px;
-  }
-  
-  .input-modern {
-    padding: 0.875rem 1.2rem;
-    font-size: 0.95rem;
-  }
 }
 
 @media (max-width: 480px) {
@@ -1225,14 +1068,6 @@ button:active,
   .bottom-nav-item span {
     font-size: 0.6rem;
   }
-  
-  .login-card-modern {
-    padding: 1.5rem 1.2rem;
-  }
-  
-  .greeting-text-modern {
-    font-size: 1.3rem;
-  }
 }
 
 /* ============ DARK MODE SPECIFIC OVERRIDES ============ */
@@ -1242,7 +1077,7 @@ body.dark .calendar-day {
 }
 
 body.dark .calendar-day .day-number {
-  color: #fbcfe8;
+  color: #e9d5ff;
 }
 
 body.dark .calendar-day.has-moment {
@@ -1250,12 +1085,17 @@ body.dark .calendar-day.has-moment {
 }
 
 body.dark .calendar-day.special-moment {
-  background: #4a3a1a;
+  background: linear-gradient(135deg, #4c1d6e, #3a1f4a);
+  border: 2px solid #a855f7;
+}
+
+body.dark .calendar-day.today {
+  background: linear-gradient(135deg, #a855f7, #7c3aed);
 }
 
 body.dark .moment-card {
   background: #3d1f3d;
-  border-color: #4c1d3d;
+  border-color: #4c1d6e;
 }
 
 body.dark .moment-card.special-card {
@@ -1268,7 +1108,7 @@ body.dark .photo-upload-item {
 }
 
 body.dark .photo-upload-item:hover {
-  border-color: #ec4899;
+  border-color: #a855f7;
 }
 
 body.dark .modal-content {
@@ -1277,44 +1117,44 @@ body.dark .modal-content {
 
 body.dark .bottom-nav {
   background: #3d1f3d;
-  border-top-color: #4c1d3d;
+  border-top-color: #4c1d6e;
 }
 
 body.dark .bottom-nav-item {
-  color: #f9a8d4;
+  color: #d8b4fe;
 }
 
 body.dark .bottom-nav-item.active {
-  color: #f472b6;
-  background: rgba(236, 72, 153, 0.2);
+  color: #a855f7;
+  background: rgba(112, 9, 180, 0.2);
 }
 
 body.dark .list-group-item {
   background: #3d1f3d;
-  color: #fbcfe8;
-  border-color: #4c1d3d;
+  color: #e9d5ff;
+  border-color: #4c1d6e;
 }
 
 body.dark .form-control,
 body.dark .form-select {
-  background: #2d1b2e;
-  border-color: #4c1d3d;
-  color: #fbcfe8;
+  background: #2d1a3a;
+  border-color: #4c1d6e;
+  color: #e9d5ff;
 }
 
 body.dark .input-group-text {
-  background: #2d1b2e;
-  border-color: #4c1d3d;
-  color: #f9a8d4;
+  background: #2d1a3a;
+  border-color: #4c1d6e;
+  color: #d8b4fe;
 }
 
 body.dark .progress {
-  background-color: #4c1d3d;
+  background-color: #4c1d6e;
 }
 
 body.dark .sidebar, body.dark #app-sidebar {
-  background: #2d1b2e;
-  border-right-color: #4c1d3d;
+  background: #1a1025;
+  border-right-color: #4c1d6e;
 }
 
 body.dark .profile-status {
@@ -1326,12 +1166,12 @@ body.dark .card {
 }
 
 body.dark .text-muted {
-  color: #f9a8d4 !important;
+  color: #d8b4fe !important;
 }
 
 body.dark .btn-secondary {
-  background: #4c1d3d;
-  color: #fbcfe8;
+  background: #4c1d6e;
+  color: #e9d5ff;
 }
 
 /* ============ TOUCH FEEDBACK UNTUK MOBILE ============ */
@@ -1397,12 +1237,20 @@ body.dark .btn-secondary {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #ec4899;
+  background: #7009b4;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #db2777;
+  background: #4000C6;
+}
+
+body.dark ::-webkit-scrollbar-thumb {
+  background: #a855f7;
+}
+
+body.dark ::-webkit-scrollbar-thumb:hover {
+  background: #c084fc;
 }
 
 /* ============ HIDE ELEMENTS BEFORE LOGIN ============ */
