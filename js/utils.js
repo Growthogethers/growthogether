@@ -1,4 +1,6 @@
 // js/utils.js - Lengkap dengan Enhanced XSS Protection & Limit Functions
+import { db, ref, get } from './firebase-config.js';
+
 export let currentUser = null;
 export let masterData = null;
 export let privacyHidden = false;
@@ -396,8 +398,6 @@ export async function validateAndCompressPhotos(files, maxSizeMB = 2, maxFiles =
 }
 
 // ============ LIMIT FUNCTIONS BERDASARKAN LEVEL ============
-import { db, ref, get } from './firebase-config.js';
-
 export async function loadUserLevelAndLimits(username) {
   try {
     const userSnap = await get(ref(db, `data/users/${username}`));
@@ -422,15 +422,20 @@ export async function loadUserLevelAndLimits(username) {
       
       console.log(`User level: ${currentUserLevel}, Limits:`, currentUserLimits);
       return { level: currentUserLevel, limits: currentUserLimits };
+    } else {
+      // Jika user tidak memiliki level, set default free
+      currentUserLevel = 'free';
+      currentUserLimits = { moments: 5, transactions: 5, catatan: 5, impian: false };
+      return { level: 'free', limits: { moments: 5, transactions: 5, catatan: 5, impian: false } };
     }
   } catch(err) {
     console.error("Error loading user level:", err);
+    return { level: 'free', limits: { moments: 5, transactions: 5, catatan: 5, impian: false } };
   }
-  return { level: 'free', limits: { moments: 5, transactions: 5, catatan: 5, impian: false } };
 }
 
 async function getCurrentUserLimits(username) {
-  if (currentUserLimits) return currentUserLimits;
+  if (currentUserLimits && currentUserLevel) return currentUserLimits;
   const result = await loadUserLevelAndLimits(username);
   return result.limits;
 }
@@ -503,11 +508,16 @@ export async function getRemainingLimits(username) {
   };
 }
 
-export function renderLevelBadge() {
+// ============ RENDER LEVEL BADGE DI SIDEBAR ============
+export async function renderLevelBadge() {
   const currentUser = sessionStorage.getItem("progrowth_user");
   if (!currentUser) return;
   
-  loadUserLevelAndLimits(currentUser).then(({ level }) => {
+  try {
+    const userSnap = await get(ref(db, `data/users/${currentUser}`));
+    const userData = userSnap.val();
+    const level = userData?.level || 'free';
+    
     const levelBadge = document.getElementById('userLevelBadge');
     if (levelBadge) {
       let levelText = '';
@@ -519,7 +529,9 @@ export function renderLevelBadge() {
       }
       levelBadge.innerHTML = `<span class="badge ${levelClass}">${levelText}</span>`;
     }
-  });
+  } catch(err) {
+    console.error("Error rendering level badge:", err);
+  }
 }
 
 // ============ UTILITY FUNCTIONS ============
@@ -689,7 +701,7 @@ export function initClickAnimation() {
   });
 }
 
-// Expose functions ke window
+// ============ EXPORTS KE WINDOW ============
 window.triggerConfetti = triggerConfetti;
 window.triggerFloatingHearts = triggerFloatingHearts;
 window.triggerPixelParticles = triggerPixelParticles;
