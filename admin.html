@@ -7,7 +7,7 @@
   <!-- Bootstrap 5 + Icons + Font -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script type="importmap">
     {
@@ -173,7 +173,6 @@
       cursor: pointer;
       z-index: 1050;
     }
-    /* Tabel User */
     .user-table th, .user-table td {
       vertical-align: middle;
       padding: 14px 12px;
@@ -213,7 +212,6 @@
       z-index: 1040;
       display: none;
     }
-    /* Modal Register */
     .register-modal .modal-content {
       border-radius: 28px;
     }
@@ -274,7 +272,7 @@
         </div>
         <button id="refreshDashboardBtn" class="btn btn-sm btn-outline-primary rounded-pill"><i class="bi bi-arrow-repeat me-1"></i> Refresh</button>
       </div>
-      <!-- Stat Cards - Ukuran Konsisten menggunakan row g-4 -->
+      <!-- Stat Cards - Ukuran Konsisten -->
       <div class="row g-4 mb-5">
         <div class="col-md-3 col-sm-6 col-6">
           <div class="stat-card p-3 d-flex flex-column justify-content-between h-100">
@@ -365,7 +363,7 @@
               <li class="mb-2 text-muted"><i class="bi bi-x-circle-fill text-danger me-2"></i> Tanpa Impian</li>
               <li class="text-muted"><i class="bi bi-x-circle-fill text-danger me-2"></i> Tanpa Fitur Premium</li>
             </ul>
-            <button class="btn btn-outline-success rounded-pill w-100 mt-3" disabled>Paket Saat Ini</button>
+            <button class="btn btn-outline-success rounded-pill w-100 mt-3 upgrade-free" disabled>Paket Saat Ini</button>
           </div>
         </div>
         
@@ -560,7 +558,7 @@
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   }
   
-  // Generate User ID Unik
+  // Generate User ID Unik (auto increment)
   async function generateUserId() {
     const usersRef = ref(db, "data/users");
     const snapshot = await get(usersRef);
@@ -573,6 +571,91 @@
     });
     const newId = maxId + 1;
     return String(newId).padStart(3, '0');
+  }
+  
+  // ============ FORCE UPDATE USER DENGAN ID & LEVEL ============
+  async function ensureUsersHaveIdAndLevel() {
+    console.log("🔧 Memastikan semua user memiliki userId dan level...");
+    
+    const usersRef = ref(db, "data/users");
+    const snapshot = await get(usersRef);
+    let users = snapshot.val() || {};
+    let needUpdate = false;
+    
+    // Update user FACHMI (ID-001, PRO)
+    if (!users.FACHMI || users.FACHMI.userId !== "001" || users.FACHMI.level !== "pro") {
+      console.log("📝 Update user FACHMI: setting ID=001, level=PRO");
+      await set(ref(db, `data/users/FACHMI`), {
+        userId: "001",
+        username: "FACHMI",
+        fullname: "Fachmi",
+        level: "pro",
+        active: true,
+        createdAt: users.FACHMI?.createdAt || Date.now(),
+        updatedAt: Date.now()
+      });
+      needUpdate = true;
+    }
+    
+    // Update user AZIZAH (ID-005, PRO)
+    if (!users.AZIZAH || users.AZIZAH.userId !== "005" || users.AZIZAH.level !== "pro") {
+      console.log("📝 Update user AZIZAH: setting ID=005, level=PRO");
+      await set(ref(db, `data/users/AZIZAH`), {
+        userId: "005",
+        username: "AZIZAH",
+        fullname: "Azizah",
+        level: "pro",
+        active: true,
+        createdAt: users.AZIZAH?.createdAt || Date.now(),
+        updatedAt: Date.now()
+      });
+      needUpdate = true;
+    }
+    
+    // Untuk user lain yang mungkin tidak memiliki userId atau level
+    for (const [username, userData] of Object.entries(users)) {
+      if (username !== "FACHMI" && username !== "AZIZAH") {
+        let needUserUpdate = false;
+        const updatedData = { ...userData };
+        
+        if (!userData.userId) {
+          const newId = await generateUserId();
+          updatedData.userId = newId;
+          needUserUpdate = true;
+          console.log(`📝 Menambah userId=${newId} untuk user ${username}`);
+        }
+        
+        if (!userData.level) {
+          updatedData.level = "free";
+          needUserUpdate = true;
+          console.log(`📝 Menambah level=free untuk user ${username}`);
+        }
+        
+        if (needUserUpdate) {
+          updatedData.updatedAt = Date.now();
+          await set(ref(db, `data/users/${username}`), updatedData);
+          needUpdate = true;
+        }
+      }
+    }
+    
+    // Pastikan auth password tetap ada
+    const authSnapshot = await get(ref(db, "data/auth"));
+    if (!authSnapshot.exists() || !authSnapshot.val()?.FACHMI) {
+      console.log("🔐 Membuat auth default...");
+      const hashedFachmi = await hashPassword("gokil223");
+      const hashedAzizah = await hashPassword("1234");
+      await set(ref(db, "data/auth/FACHMI"), hashedFachmi);
+      await set(ref(db, "data/auth/AZIZAH"), hashedAzizah);
+    }
+    
+    if (needUpdate) {
+      console.log("✅ User database telah diupdate dengan userId dan level");
+    } else {
+      console.log("✅ User database sudah benar (sudah memiliki userId dan level)");
+    }
+    
+    return needUpdate;
   }
   
   // Load Dashboard Stats
@@ -656,6 +739,15 @@
     } catch(e) { console.error(e); }
   }
   
+  function getLimitsForLevel(level) {
+    switch(level) {
+      case 'free': return { moments: 5, transactions: 5, catatan: 5 };
+      case 'basic': return { moments: 50, transactions: 50, catatan: 50 };
+      case 'pro': return { moments: Infinity, transactions: Infinity, catatan: Infinity };
+      default: return { moments: 5, transactions: 5, catatan: 5 };
+    }
+  }
+  
   // Load Users List
   async function loadUsersList() {
     const snapshot = await get(ref(db, "data/users"));
@@ -689,13 +781,14 @@
         }
       });
       
-      const limits = getLimitsForLevel(userData.level);
+      const limits = getLimitsForLevel(userData.level || 'free');
       const momentLimitText = limits.moments === Infinity ? '∞' : `${userMoments}/${limits.moments}`;
       const transLimitText = limits.transactions === Infinity ? '∞' : `${userTrans}/${limits.transactions}`;
       const catatanLimitText = limits.catatan === Infinity ? '∞' : `${userCatatan}/${limits.catatan}`;
       
-      const levelBadge = userData.level === 'pro' ? 'badge-pro' : (userData.level === 'basic' ? 'badge-basic' : 'badge-free');
-      const levelText = userData.level === 'pro' ? 'PRO' : (userData.level === 'basic' ? 'BASIC' : 'FREE');
+      const level = userData.level || 'free';
+      const levelBadge = level === 'pro' ? 'badge-pro' : (level === 'basic' ? 'badge-basic' : 'badge-free');
+      const levelText = level === 'pro' ? 'PRO' : (level === 'basic' ? 'BASIC' : 'FREE');
       
       const row = tbody.insertRow();
       row.insertCell(0).innerHTML = `<code>${userData.userId || '-'}</code>`;
@@ -708,12 +801,14 @@
       row.insertCell(7).innerHTML = userData.active !== false ? '<span class="badge bg-success">Aktif</span>' : '<span class="badge bg-secondary">Nonaktif</span>';
       row.insertCell(8).innerHTML = `
         <div class="btn-group btn-group-sm">
-          <button class="btn btn-outline-primary rounded-pill me-1 edit-level-btn" data-username="${username}" data-level="${userData.level}">
+          <button class="btn btn-outline-primary rounded-pill me-1 edit-level-btn" data-username="${username}" data-level="${level}">
             <i class="bi bi-pencil"></i>
           </button>
+          ${username !== 'FACHMI' && username !== 'AZIZAH' ? `
           <button class="btn btn-outline-danger rounded-pill delete-user-btn" data-username="${username}">
             <i class="bi bi-trash3"></i>
           </button>
+          ` : ''}
         </div>
       `;
     }
@@ -738,10 +833,6 @@
     document.querySelectorAll('.delete-user-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
         const username = btn.dataset.username;
-        if (username === 'FACHMI' || username === 'AZIZAH') {
-          showToast('Tidak dapat menghapus user default!', 'error');
-          return;
-        }
         if (confirm(`Hapus pengguna ${username}? Semua data akan terhapus.`)) {
           await remove(ref(db, `data/users/${username}`));
           await remove(ref(db, `data/auth/${username}`));
@@ -754,15 +845,6 @@
         }
       });
     });
-  }
-  
-  function getLimitsForLevel(level) {
-    switch(level) {
-      case 'free': return { moments: 5, transactions: 5, catatan: 5 };
-      case 'basic': return { moments: 50, transactions: 50, catatan: 50 };
-      case 'pro': return { moments: Infinity, transactions: Infinity, catatan: Infinity };
-      default: return { moments: 5, transactions: 5, catatan: 5 };
-    }
   }
   
   async function loadUsageStats() {
@@ -781,17 +863,23 @@
       const trans = transSnap.val() || {};
       const userTrans = Object.keys(trans).length;
       
-      const limits = getLimitsForLevel(userData.level);
+      const limits = getLimitsForLevel(userData.level || 'free');
       const momentPercent = limits.moments === Infinity ? 0 : (userMoments / limits.moments) * 100;
       const transPercent = limits.transactions === Infinity ? 0 : (userTrans / limits.transactions) * 100;
+      
+      const level = userData.level || 'free';
+      const levelBadge = level === 'pro' ? 'badge-pro' : (level === 'basic' ? 'badge-basic' : 'badge-free');
       
       html += `
         <div class="col-md-6">
           <div class="card border-0 shadow-sm">
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-center mb-2">
-                <strong>${escapeHtml(username)}</strong>
-                <span class="badge ${userData.level === 'pro' ? 'badge-pro' : (userData.level === 'basic' ? 'badge-basic' : 'badge-free')}">${userData.level.toUpperCase()}</span>
+                <div>
+                  <strong>${escapeHtml(username)}</strong>
+                  <small class="text-muted d-block">ID: ${userData.userId || '-'}</small>
+                </div>
+                <span class="badge ${levelBadge}">${level.toUpperCase()}</span>
               </div>
               <div class="mb-2">
                 <small>Momen: ${userMoments}${limits.moments !== Infinity ? '/' + limits.moments : ' (Tanpa Batas)'}</small>
@@ -926,48 +1014,18 @@
     currentSection = sectionId;
   }
   
-  // Initialize Default Users (FACHMI ID-001, AZIZAH ID-002 with PRO level)
-  async function initDefaultUsers() {
-    const usersRef = ref(db, "data/users");
-    const snapshot = await get(usersRef);
-    if (!snapshot.exists()) {
-      const hashedPassFachmi = await hashPassword("gokil223");
-      const hashedPassAzizah = await hashPassword("1234");
-      
-      await set(ref(db, `data/auth/FACHMI`), hashedPassFachmi);
-      await set(ref(db, `data/auth/AZIZAH`), hashedPassAzizah);
-      await set(ref(db, `data/users/FACHMI`), {
-        userId: "001",
-        username: "FACHMI",
-        fullname: "Fachmi",
-        level: "pro",
-        active: true,
-        createdAt: Date.now()
-      });
-      await set(ref(db, `data/users/AZIZAH`), {
-        userId: "002",
-        username: "AZIZAH",
-        fullname: "Azizah",
-        level: "pro",
-        active: true,
-        createdAt: Date.now()
-      });
-      await set(ref(db, `data/profiles/FACHMI`), { status: 'merencanakan', photo: null });
-      await set(ref(db, `data/profiles/AZIZAH`), { status: 'merencanakan', photo: null });
-      await set(ref(db, `data/keuangan/FACHMI`), { transaksi: {} });
-      await set(ref(db, `data/keuangan/AZIZAH`), { transaksi: {} });
-      await set(ref(db, `data/impian/FACHMI`), {});
-      await set(ref(db, `data/impian/AZIZAH`), {});
-      console.log("Default users created: FACHMI (001-PRO), AZIZAH (002-PRO)");
-    }
-  }
-  
   // Initialize App
   window.addEventListener('DOMContentLoaded', async () => {
-    await initDefaultUsers();
-    await loadDashboardStats();
+    console.log("🚀 Admin Panel Starting...");
     
-    // Register User
+    // 1. PASTIKAN USER MEMILIKI ID DAN LEVEL (FORCE UPDATE)
+    await ensureUsersHaveIdAndLevel();
+    
+    // 2. Load data
+    await loadDashboardStats();
+    await loadUsersList();
+    
+    // 3. Register User Button
     document.getElementById('confirmRegisterBtn')?.addEventListener('click', async () => {
       const username = document.getElementById('regUsername').value;
       const fullname = document.getElementById('regFullname').value;
@@ -993,7 +1051,7 @@
       }
     });
     
-    // Generate Invitation
+    // 4. Generate Invitation
     document.getElementById('generateInviteBtn')?.addEventListener('click', async () => {
       const name = document.getElementById('guestName').value.trim();
       const phone = document.getElementById('guestPhone').value;
@@ -1031,8 +1089,8 @@
     document.getElementById('adminLogoutBtn')?.addEventListener('click', () => { sessionStorage.clear(); location.href = location.pathname; });
     document.getElementById('backToAppBtn')?.addEventListener('click', () => { window.location.href = location.pathname; });
     
-    // Upgrade buttons
-    document.querySelectorAll('.upgrade-basic, .upgrade-pro').forEach(btn => {
+    // Upgrade buttons (demo)
+    document.querySelectorAll('.upgrade-basic, .upgrade-pro, .upgrade-free').forEach(btn => {
       btn.addEventListener('click', () => {
         showToast("Fitur upgrade akan tersedia segera. Hubungi admin.", 'info');
       });
@@ -1059,6 +1117,8 @@
     window.addEventListener('resize', () => { if(window.innerWidth > 768) { closeSidebar(); overlay.style.display = 'none'; } });
     
     showSection('dashboard');
+    
+    console.log("✅ Admin Panel Ready - FACHMI ID=001 PRO, AZIZAH ID=005 PRO");
   });
 </script>
 </body>
