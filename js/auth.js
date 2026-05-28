@@ -1,6 +1,6 @@
-// js/auth.js - Tambahkan clearCache saat logout
+// js/auth.js - FULL CODE (Semua User Terdaftar Bisa Login)
 import { db, ref, get, update } from './firebase-config.js';
-import { showNotif, setCurrentUser, compressImage, escapeHtml, clearCache } from './utils.js';
+import { showNotif, setCurrentUser, compressImage, escapeHtml, clearCache, loadUserLevelAndLimits, renderLevelBadge } from './utils.js';
 import { renderBirthdayInProfile, stopBirthdayChecker } from './pengingat.js';
 
 let currentProfilePhoto = null;
@@ -86,7 +86,7 @@ function getCurrentSessionUser() {
 }
 
 function getDisplayName(username) {
-  return username === "FACHMI" ? "Fachmi" : "Azizah";
+  return username;
 }
 
 function getStatusText(status) {
@@ -140,7 +140,7 @@ export function updateProfileUI() {
     return;
   }
   
-  const displayName = getDisplayName(currentUser);
+  const displayName = currentUser;
   const statusText = getStatusText(currentStatus);
   
   console.log("Updating profile UI for:", displayName, "Status:", currentStatus);
@@ -188,7 +188,7 @@ export function updateProfileUI() {
   
   if (modalName) modalName.innerText = escapeHtml(displayName);
   if (modalEmail) {
-    const email = currentUser === "FACHMI" ? "fachmi@growthogether.com" : "azizah@growthogether.com";
+    const email = `${currentUser.toLowerCase()}@growthogether.com`;
     modalEmail.innerText = email;
   }
   
@@ -203,6 +203,22 @@ export function updateProfileUI() {
   
   const userGreet = document.getElementById("userGreet");
   if (userGreet) userGreet.innerText = escapeHtml(displayName);
+  
+  // Render level badge
+  if (typeof renderLevelBadge === 'function') {
+    renderLevelBadge();
+  }
+}
+
+// CEK APAKAH USER TERDAFTAR DI DATABASE
+async function isUserRegistered(username) {
+  try {
+    const userSnap = await get(ref(db, `data/users/${username}`));
+    return userSnap.exists();
+  } catch (err) {
+    console.error("Error checking user:", err);
+    return false;
+  }
 }
 
 export async function handleLogin() {
@@ -230,10 +246,12 @@ export async function handleLogin() {
   
   const usernameUpper = u.trim().toUpperCase();
   
-  if (usernameUpper !== "FACHMI" && usernameUpper !== "AZIZAH") {
-    if (errorSpan) errorSpan.innerText = "❌ Username tidak valid! (FACHMI atau AZIZAH)"; 
+  // CEK APAKAH USER TERDAFTAR DI DATABASE
+  const isRegistered = await isUserRegistered(usernameUpper);
+  if (!isRegistered) {
+    if (errorSpan) errorSpan.innerText = "❌ Username tidak terdaftar! Silakan hubungi admin untuk mendaftar."; 
     if (errorDiv) errorDiv.style.display = "block"; 
-    showNotif("Username tidak valid! Gunakan Fachmi atau Azizah", true); 
+    showNotif("Username tidak terdaftar! Silakan hubungi admin.", true); 
     shakeElement(document.getElementById("loginUser"));
     return;
   }
@@ -286,6 +304,14 @@ export async function handleLogin() {
       
       await loadProfileData(usernameUpper);
       
+      // Load user level and limits
+      if (typeof loadUserLevelAndLimits === 'function') {
+        await loadUserLevelAndLimits(usernameUpper);
+      }
+      if (typeof renderLevelBadge === 'function') {
+        renderLevelBadge();
+      }
+      
       if (loginBtn) {
         loginBtn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Berhasil!';
         loginBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
@@ -299,7 +325,7 @@ export async function handleLogin() {
         }
       }, 500);
       
-      showNotif(`Selamat datang, ${getDisplayName(usernameUpper)} 🎉`);
+      showNotif(`Selamat datang, ${usernameUpper} 🎉`);
     } else {
       if (loginBtn) {
         loginBtn.innerHTML = originalBtnText;
@@ -551,12 +577,10 @@ export function confirmLogout() {
 export function handleLogout() {
   console.log("Executing logout...");
   
-  // Hentikan birthday checker
   if (typeof stopBirthdayChecker === 'function') {
     stopBirthdayChecker();
   }
   
-  // BERSIHKAN SEMUA CACHE
   clearCache();
   console.log("All cache cleared on logout");
   
@@ -636,6 +660,12 @@ export async function initProfile() {
     console.log("Initializing profile for:", savedUser);
     document.body.classList.add('logged-in');
     await loadProfileData(savedUser);
+    if (typeof loadUserLevelAndLimits === 'function') {
+      await loadUserLevelAndLimits(savedUser);
+    }
+    if (typeof renderLevelBadge === 'function') {
+      renderLevelBadge();
+    }
   } else {
     resetProfileState();
     document.body.classList.remove('logged-in');
@@ -672,9 +702,8 @@ export function setupAppSession(u) {
     }, 100);
   }
   
-  const displayName = u === "FACHMI" ? "Fachmi" : "Azizah";
   const userGreet = document.getElementById("userGreet");
-  if (userGreet) userGreet.innerText = displayName;
+  if (userGreet) userGreet.innerText = u;
   
   setTimeout(() => {
     if (typeof forceRefreshProfile === 'function') forceRefreshProfile();
@@ -682,7 +711,6 @@ export function setupAppSession(u) {
     if (typeof window.renderDashboard === 'function') window.renderDashboard();
     if (typeof window.showPage === 'function') window.showPage('dashboard');
     
-    // Tambahkan filter ke halaman moment
     if (typeof window.addFilterToMomentPage === 'function') {
       setTimeout(() => window.addFilterToMomentPage(), 500);
     }
@@ -691,7 +719,7 @@ export function setupAppSession(u) {
   setTimeout(() => {
     if (typeof window.triggerConfetti === 'function') {
       window.triggerConfetti();
-      showNotif(`🎉 Selamat datang, ${displayName}!`, false, 'success');
+      showNotif(`🎉 Selamat datang, ${u}!`, false, 'success');
     }
   }, 500);
 }
