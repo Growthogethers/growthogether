@@ -891,3 +891,13 @@ window.updateSharedMoment = updateSharedMoment;
 window.deleteSharedMoment = deleteSharedMoment;
 window.updateSharedTransaction = updateSharedTransaction;
 window.deleteSharedTransaction = deleteSharedTransaction;
+
+// EXPORT untuk module (jika diperlukan)
+export { 
+  currentUser, masterData, privacyHidden, currentUserLevel, currentUserLimits, 
+  currentPartner, currentPairId, currentPairData,
+  loadUserPartnerAndPair, getSharedMoments, getSharedKeuangan, getSharedCatatan,
+  saveSharedMoments, saveSharedKeuangan, saveSharedCatatan,
+  addSharedTransaction, addSharedMoment, updateSharedMoment, deleteSharedMoment,
+  updateSharedTransaction, deleteSharedTransaction
+};
