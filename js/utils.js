@@ -1,4 +1,4 @@
-// js/utils.js - Lengkap dengan Enhanced XSS Protection & Limit Functions
+// js/utils.js - Lengkap dengan Pair System (Data per Pasangan)
 import { db, ref, get } from './firebase-config.js';
 
 export let currentUser = null;
@@ -8,11 +8,11 @@ export let currentUserLevel = null;
 export let currentUserLimits = null;
 export let currentPartner = null;
 export let currentPairId = null;
+export let currentPairData = null; // Data shared untuk pasangan
 
 // ============ CACHING SYSTEM ============
 let cacheData = {};
 let cacheExpiry = {};
-let pendingRequests = new Map();
 
 export function setCache(key, data, ttlMinutes = 5) {
   cacheData[key] = data;
@@ -67,93 +67,190 @@ export function clearCache(key) {
   console.log("Cache cleared:", key || "all");
 }
 
-// ============ LOAD PARTNER ============
-export async function loadUserPartner(username) {
+// ============ LOAD PAIR DATA ============
+export async function loadUserPartnerAndPair(username) {
   try {
-    const partnerSnap = await get(ref(db, `data/partners/${username}`));
-    const partner = partnerSnap.val();
-    currentPartner = partner;
+    // Ambil data user untuk mendapatkan pairId
+    const userSnap = await get(ref(db, `data/users/${username}`));
+    const userData = userSnap.val();
     
-    if (partner) {
-      const pair = [username, partner].sort();
-      currentPairId = `${pair[0]}_${pair[1]}`;
-      sessionStorage.setItem('progrowth_pairId', currentPairId);
+    if (userData && userData.pairId) {
+      currentPairId = userData.pairId;
+      console.log(`PairId for ${username}: ${currentPairId}`);
+      
+      // Ambil data pair untuk mendapatkan member
+      const pairSnap = await get(ref(db, `data/pairs/${currentPairId}`));
+      currentPairData = pairSnap.val() || { members: [], moments: {}, keuangan: { transaksi: {} }, catatan: {} };
+      
+      // Tentukan partner (member lain selain current user)
+      const members = currentPairData.members || [];
+      currentPartner = members.find(m => m !== username) || null;
+      
+      console.log(`Partner for ${username}: ${currentPartner}`);
+      return currentPartner;
     } else {
-      currentPairId = username;
-      sessionStorage.setItem('progrowth_pairId', currentPairId);
+      console.log(`User ${username} has no pair yet`);
+      currentPairId = null;
+      currentPartner = null;
+      currentPairData = null;
+      return null;
     }
-    
-    console.log(`Partner for ${username}: ${partner}, PairId: ${currentPairId}`);
-    return partner;
   } catch(err) {
-    console.error("Error loading partner:", err);
+    console.error("Error loading pair data:", err);
     return null;
   }
 }
 
-// ============ FILTER DATA BY USER/PARTNER ============
-export function filterMomentsByUser(moments) {
-  if (!moments) return {};
-  if (!currentUser) return {};
-  
-  const filtered = {};
-  Object.entries(moments).forEach(([id, moment]) => {
-    if (moment.author === currentUser || (currentPartner && moment.author === currentPartner)) {
-      filtered[id] = moment;
-    }
-  });
-  return filtered;
+// Get shared moments untuk pasangan
+export function getSharedMoments() {
+  if (!currentPairData) return {};
+  return currentPairData.moments || {};
 }
 
-export async function filterKeuanganByUser() {
-  if (!currentUser) return {};
-  
-  try {
-    const myFinanceSnap = await get(ref(db, `data/keuangan/${currentUser}`));
-    const myFinance = myFinanceSnap.val() || { transaksi: {} };
-    
-    return { [currentUser]: myFinance };
-  } catch(err) {
-    console.error("Error filtering keuangan:", err);
-    return { [currentUser]: { transaksi: {} } };
-  }
+// Get shared keuangan untuk pasangan
+export function getSharedKeuangan() {
+  if (!currentPairData) return { transaksi: {} };
+  return currentPairData.keuangan || { transaksi: {} };
 }
 
-export async function getCatatanByPair() {
-  if (!currentPairId) return null;
-  
-  try {
-    const catatanSnap = await get(ref(db, `data/catatan/pairs/${currentPairId}`));
-    return catatanSnap.val() || { kategori: {}, items: {} };
-  } catch(err) {
-    console.error("Error loading catatan:", err);
-    return { kategori: {}, items: {} };
-  }
+// Get shared catatan untuk pasangan
+export function getSharedCatatan() {
+  if (!currentPairData) return { kategori: {}, items: {} };
+  return currentPairData.catatan || { kategori: {}, items: {} };
 }
 
-export async function saveCatatanByPair(data) {
-  if (!currentPairId) return null;
-  
+// Save shared moments
+export async function saveSharedMoments(moments) {
+  if (!currentPairId) return false;
   try {
-    await set(ref(db, `data/catatan/pairs/${currentPairId}`), data);
+    await set(ref(db, `data/pairs/${currentPairId}/moments`), moments);
+    if (currentPairData) currentPairData.moments = moments;
     return true;
   } catch(err) {
-    console.error("Error saving catatan:", err);
+    console.error("Error saving shared moments:", err);
     return false;
   }
 }
 
-export function filterImpianByUser(impian) {
-  if (!impian) return {};
-  if (!currentUser) return {};
+// Save shared keuangan
+export async function saveSharedKeuangan(keuangan) {
+  if (!currentPairId) return false;
+  try {
+    await set(ref(db, `data/pairs/${currentPairId}/keuangan`), keuangan);
+    if (currentPairData) currentPairData.keuangan = keuangan;
+    return true;
+  } catch(err) {
+    console.error("Error saving shared keuangan:", err);
+    return false;
+  }
+}
+
+// Save shared catatan
+export async function saveSharedCatatan(catatan) {
+  if (!currentPairId) return false;
+  try {
+    await set(ref(db, `data/pairs/${currentPairId}/catatan`), catatan);
+    if (currentPairData) currentPairData.catatan = catatan;
+    return true;
+  } catch(err) {
+    console.error("Error saving shared catatan:", err);
+    return false;
+  }
+}
+
+// Add transaction to shared keuangan
+export async function addSharedTransaction(transaction) {
+  if (!currentPairId) return null;
   
-  const filtered = {};
-  Object.entries(impian).forEach(([id, dream]) => {
-    if (dream.userId === currentUser) {
-      filtered[id] = dream;
-    }
-  });
-  return filtered;
+  try {
+    const currentKeuangan = await getSharedKeuangan();
+    const transactions = currentKeuangan.transaksi || {};
+    const newId = Date.now().toString();
+    transactions[newId] = { ...transaction, id: newId, createdAt: Date.now(), createdBy: currentUser };
+    
+    await saveSharedKeuangan({ transaksi: transactions });
+    return { id: newId, ...transaction };
+  } catch(err) {
+    console.error("Error adding shared transaction:", err);
+    return null;
+  }
+}
+
+// Add moment to shared moments
+export async function addSharedMoment(moment) {
+  if (!currentPairId) return null;
+  
+  try {
+    const currentMoments = await getSharedMoments();
+    const newId = Date.now().toString();
+    currentMoments[newId] = { ...moment, id: newId, createdAt: Date.now(), createdBy: currentUser };
+    
+    await saveSharedMoments(currentMoments);
+    return { id: newId, ...moment };
+  } catch(err) {
+    console.error("Error adding shared moment:", err);
+    return null;
+  }
+}
+
+// Update shared moment
+export async function updateSharedMoment(momentId, momentData) {
+  if (!currentPairId) return false;
+  
+  try {
+    const currentMoments = await getSharedMoments();
+    currentMoments[momentId] = { ...currentMoments[momentId], ...momentData, updatedAt: Date.now() };
+    await saveSharedMoments(currentMoments);
+    return true;
+  } catch(err) {
+    console.error("Error updating shared moment:", err);
+    return false;
+  }
+}
+
+// Delete shared moment
+export async function deleteSharedMoment(momentId) {
+  if (!currentPairId) return false;
+  
+  try {
+    const currentMoments = await getSharedMoments();
+    delete currentMoments[momentId];
+    await saveSharedMoments(currentMoments);
+    return true;
+  } catch(err) {
+    console.error("Error deleting shared moment:", err);
+    return false;
+  }
+}
+
+// Update shared transaction
+export async function updateSharedTransaction(transactionId, transactionData) {
+  if (!currentPairId) return false;
+  
+  try {
+    const currentKeuangan = await getSharedKeuangan();
+    currentKeuangan.transaksi[transactionId] = { ...currentKeuangan.transaksi[transactionId], ...transactionData, updatedAt: Date.now() };
+    await saveSharedKeuangan(currentKeuangan);
+    return true;
+  } catch(err) {
+    console.error("Error updating shared transaction:", err);
+    return false;
+  }
+}
+
+// Delete shared transaction
+export async function deleteSharedTransaction(transactionId) {
+  if (!currentPairId) return false;
+  
+  try {
+    const currentKeuangan = await getSharedKeuangan();
+    delete currentKeuangan.transaksi[transactionId];
+    await saveSharedKeuangan(currentKeuangan);
+    return true;
+  } catch(err) {
+    console.error("Error deleting shared transaction:", err);
+    return false;
+  }
 }
 
 // ============ LOADING INDICATOR ============
@@ -212,21 +309,6 @@ export function hideLoading() {
 // ============ TOAST NOTIFICATION ============
 let toastQueue = [];
 let isToastShowing = false;
-let originalToastBottom = '80px';
-
-function initToastKeyboardFix() {
-  document.addEventListener('focusin', (e) => {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
-      const toast = document.getElementById('customToastContainer');
-      if (toast) toast.style.bottom = '20px';
-    }
-  });
-  
-  document.addEventListener('focusout', () => {
-    const toast = document.getElementById('customToastContainer');
-    if (toast) toast.style.bottom = originalToastBottom;
-  });
-}
 
 export function showNotif(msg, isErr = false, type = 'success') {
   let toastContainer = document.getElementById('customToastContainer');
@@ -243,7 +325,6 @@ export function showNotif(msg, isErr = false, type = 'success') {
       pointer-events: none;
     `;
     document.body.appendChild(toastContainer);
-    initToastKeyboardFix();
   }
   
   if (isToastShowing) {
@@ -538,12 +619,11 @@ export async function canAddMoment(username) {
     return false;
   }
   
-  const momentsSnap = await get(ref(db, "data/moments"));
-  const moments = momentsSnap.val() || {};
-  const userMoments = Object.values(moments).filter(m => m.author === username).length;
+  const moments = await getSharedMoments();
+  const momentsCount = Object.keys(moments).length;
   
-  if (userMoments >= limits.moments) {
-    showNotif(`⚠️ Limit momen Anda ${userMoments}/${limits.moments}. Upgrade ke Basic atau Pro untuk menambah lebih banyak!`, true, 'warning');
+  if (momentsCount >= limits.moments) {
+    showNotif(`⚠️ Limit momen pasangan Anda ${momentsCount}/${limits.moments}. Upgrade ke Basic atau Pro untuk menambah lebih banyak!`, true, 'warning');
     return false;
   }
   return true;
@@ -553,12 +633,12 @@ export async function canAddTransaction(username) {
   const limits = await getCurrentUserLimits(username);
   if (limits.transactions === Infinity) return true;
   
-  const transSnap = await get(ref(db, `data/keuangan/${username}/transaksi`));
-  const trans = transSnap.val() || {};
-  const userTrans = Object.keys(trans).length;
+  const keuangan = await getSharedKeuangan();
+  const transaksi = keuangan.transaksi || {};
+  const transCount = Object.keys(transaksi).length;
   
-  if (userTrans >= limits.transactions) {
-    showNotif(`⚠️ Limit transaksi Anda ${userTrans}/${limits.transactions}. Upgrade ke Basic atau Pro untuk menambah lebih banyak!`, true, 'warning');
+  if (transCount >= limits.transactions) {
+    showNotif(`⚠️ Limit transaksi pasangan Anda ${transCount}/${limits.transactions}. Upgrade ke Basic atau Pro untuk menambah lebih banyak!`, true, 'warning');
     return false;
   }
   return true;
@@ -569,17 +649,17 @@ export async function canAddCatatan() {
   const limits = await getCurrentUserLimits(username);
   if (limits.catatan === Infinity) return true;
   
-  const catatanSnap = await get(ref(db, `data/catatan/pairs/${currentPairId}/items`));
-  const catatan = catatanSnap.val() || {};
+  const catatan = await getSharedCatatan();
+  const items = catatan.items || {};
   let totalItems = 0;
-  Object.values(catatan).forEach(katItems => {
+  Object.values(items).forEach(katItems => {
     if (katItems && typeof katItems === 'object') {
       totalItems += Object.keys(katItems).length;
     }
   });
   
   if (totalItems >= limits.catatan) {
-    showNotif(`⚠️ Limit catatan Anda ${totalItems}/${limits.catatan}. Upgrade ke Basic atau Pro untuk menambah lebih banyak!`, true, 'warning');
+    showNotif(`⚠️ Limit catatan pasangan Anda ${totalItems}/${limits.catatan}. Upgrade ke Basic atau Pro untuk menambah lebih banyak!`, true, 'warning');
     return false;
   }
   return true;
@@ -587,18 +667,16 @@ export async function canAddCatatan() {
 
 export async function getRemainingLimits(username) {
   const limits = await getCurrentUserLimits(username);
-  const momentsSnap = await get(ref(db, "data/moments"));
-  const moments = momentsSnap.val() || {};
-  const userMoments = Object.values(moments).filter(m => m.author === username).length;
+  const moments = await getSharedMoments();
+  const momentsCount = Object.keys(moments).length;
   
-  const transSnap = await get(ref(db, `data/keuangan/${username}/transaksi`));
-  const trans = transSnap.val() || {};
-  const userTrans = Object.keys(trans).length;
+  const keuangan = await getSharedKeuangan();
+  const transCount = Object.keys(keuangan.transaksi || {}).length;
   
   return {
     level: currentUserLevel,
-    moments: { used: userMoments, limit: limits.moments, remaining: limits.moments === Infinity ? Infinity : limits.moments - userMoments },
-    transactions: { used: userTrans, limit: limits.transactions, remaining: limits.transactions === Infinity ? Infinity : limits.transactions - userTrans }
+    moments: { used: momentsCount, limit: limits.moments, remaining: limits.moments === Infinity ? Infinity : limits.moments - momentsCount },
+    transactions: { used: transCount, limit: limits.transactions, remaining: limits.transactions === Infinity ? Infinity : limits.transactions - transCount }
   };
 }
 
@@ -719,23 +797,6 @@ export function compressImage(file, maxSizeMB = 2) {
   });
 }
 
-// ============ BATCH FIREBASE GET ============
-export async function batchGet(refs, timeout = 10000) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
-  
-  try {
-    const promises = refs.map(ref => get(ref));
-    const results = await Promise.all(promises);
-    clearTimeout(timeoutId);
-    return results;
-  } catch (error) {
-    clearTimeout(timeoutId);
-    console.error("Batch get error:", error);
-    return null;
-  }
-}
-
 // ============ ANIMASI ============
 export function triggerConfetti() {
   const colors = ['#6366f1', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
@@ -817,8 +878,16 @@ window.canAddCatatan = canAddCatatan;
 window.getRemainingLimits = getRemainingLimits;
 window.renderLevelBadge = renderLevelBadge;
 window.loadUserLevelAndLimits = loadUserLevelAndLimits;
-window.loadUserPartner = loadUserPartner;
-window.filterMomentsByUser = filterMomentsByUser;
-window.filterKeuanganByUser = filterKeuanganByUser;
-window.getCatatanByPair = getCatatanByPair;
-window.saveCatatanByPair = saveCatatanByPair;
+window.loadUserPartnerAndPair = loadUserPartnerAndPair;
+window.getSharedMoments = getSharedMoments;
+window.getSharedKeuangan = getSharedKeuangan;
+window.getSharedCatatan = getSharedCatatan;
+window.saveSharedMoments = saveSharedMoments;
+window.saveSharedKeuangan = saveSharedKeuangan;
+window.saveSharedCatatan = saveSharedCatatan;
+window.addSharedTransaction = addSharedTransaction;
+window.addSharedMoment = addSharedMoment;
+window.updateSharedMoment = updateSharedMoment;
+window.deleteSharedMoment = deleteSharedMoment;
+window.updateSharedTransaction = updateSharedTransaction;
+window.deleteSharedTransaction = deleteSharedTransaction;
