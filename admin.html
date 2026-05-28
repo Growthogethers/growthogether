@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
-  <title>Admin Login - GrowthTogether</title>
-  <!-- Bootstrap 5 + Icons + Font -->
+  <title>Admin Panel - GrowthTogether</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
@@ -19,13 +18,8 @@
   </script>
   <style>
     * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: #faf5ff;
-      transition: background 0.2s;
-    }
-    body.dark {
-      background: #1a1025;
-    }
+    body { background: #faf5ff; transition: background 0.2s; }
+    body.dark { background: #1a1025; }
     
     /* ============ LOGIN ADMIN STYLES ============ */
     .admin-login-container {
@@ -51,9 +45,7 @@
       box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
       text-align: center;
     }
-    body.dark .admin-login-card {
-      background: #2d1a3a;
-    }
+    body.dark .admin-login-card { background: #2d1a3a; }
     .admin-login-logo {
       width: 70px;
       height: 70px;
@@ -64,10 +56,7 @@
       justify-content: center;
       margin-bottom: 1rem;
     }
-    .admin-login-logo i {
-      font-size: 34px;
-      color: white;
-    }
+    .admin-login-logo i { font-size: 34px; color: white; }
     .admin-login-title {
       font-size: 1.5rem;
       font-weight: 700;
@@ -82,9 +71,7 @@
       font-size: 0.85rem;
       margin-bottom: 1.5rem;
     }
-    body.dark .admin-login-sub {
-      color: #d8b4fe;
-    }
+    body.dark .admin-login-sub { color: #d8b4fe; }
     .admin-login-input {
       width: 100%;
       border: 1.5px solid #e9d5ff;
@@ -133,17 +120,11 @@
     }
     
     /* Hide main content initially */
-    .admin-wrapper {
-      display: none;
-    }
-    body.logged-in .admin-wrapper {
-      display: flex;
-    }
-    body.logged-in .admin-login-container {
-      display: none;
-    }
+    .admin-wrapper { display: none; }
+    body.logged-in .admin-wrapper { display: flex; }
+    body.logged-in .admin-login-container { display: none; }
     
-    /* SIDEBAR ADMIN */
+    /* ============ SIDEBAR ADMIN ============ */
     .admin-wrapper {
       min-height: 100vh;
     }
@@ -204,7 +185,8 @@
       padding: 1.8rem 2rem;
       transition: margin-left 0.3s;
     }
-    /* Cards - Ukuran Konsisten */
+    
+    /* ============ CARDS - UKURAN KONSISTEN ============ */
     .stat-card {
       background: white;
       border-radius: 20px;
@@ -225,6 +207,8 @@
       align-items: center;
       justify-content: center;
     }
+    
+    /* Subscription Card */
     .subscription-card {
       background: white;
       border-radius: 20px;
@@ -242,11 +226,7 @@
       border: none;
     }
     .subscription-card.pro .text-muted { color: #d8b4fe !important; }
-    .subscription-card.pro .btn-outline-primary { 
-      background: rgba(255,255,255,0.2);
-      border-color: white;
-      color: white;
-    }
+    
     .btn-gradient {
       background: linear-gradient(135deg, #7009b4, #4000C6);
       border: none;
@@ -257,6 +237,7 @@
       transition: all 0.2s;
     }
     .btn-gradient:active { transform: scale(0.96); }
+    
     .invite-card {
       background: white;
       border-radius: 24px;
@@ -271,6 +252,7 @@
       word-break: break-all;
     }
     body.dark .generated-link { background: #1e1028; color: #d8b4fe; }
+    
     .dark-mode-fab {
       position: fixed;
       bottom: 20px;
@@ -288,6 +270,8 @@
       cursor: pointer;
       z-index: 1050;
     }
+    
+    /* Table Styles */
     .user-table th, .user-table td {
       vertical-align: middle;
       padding: 14px 12px;
@@ -295,6 +279,8 @@
     .badge-pro { background: linear-gradient(135deg, #7009b4, #4000C6); color: white; }
     .badge-basic { background: #3b82f6; color: white; }
     .badge-free { background: #10b981; color: white; }
+    
+    /* Mobile Responsive */
     @media (max-width: 768px) {
       .admin-sidebar {
         left: -280px;
@@ -330,22 +316,12 @@
     .register-modal .modal-content {
       border-radius: 28px;
     }
-    .admin-badge {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: rgba(112,9,180,0.9);
-      color: white;
-      padding: 6px 14px;
-      border-radius: 30px;
-      font-size: 12px;
-      font-weight: 500;
-      z-index: 1050;
-      backdrop-filter: blur(4px);
-    }
+    .user-row { cursor: pointer; transition: background 0.2s; }
+    .user-row:hover { background: rgba(112,9,180,0.05); }
   </style>
 </head>
 <body>
+
 <!-- LOGIN ADMIN SCREEN -->
 <div class="admin-login-container" id="adminLoginContainer">
   <div class="admin-login-card">
@@ -379,7 +355,7 @@
   <!-- Sidebar Admin -->
   <div class="admin-sidebar" id="adminSidebar">
     <div class="sidebar-header">
-      <div class="logo-icon"><i class="bi bi-arrow-through-heart-fill"></i></div>
+      <div class="logo-icon mx-auto"><i class="bi bi-arrow-through-heart-fill"></i></div>
       <h5 class="fw-bold mt-2 mb-0">growthogether</h5>
       <small class="text-muted">Admin Panel</small>
     </div>
@@ -397,7 +373,7 @@
         <i class="bi bi-envelope-heart-fill"></i> <span>Kelola Undangan</span>
       </a>
       <a class="nav-link" data-section="invite-list">
-        <i class="bi bi-people-fill"></i> <span>Daftar Tamu Undangan</span>
+        <i class="bi bi-people-fill"></i> <span>Daftar Tamu</span>
       </a>
     </nav>
     <div class="mt-auto pt-4">
@@ -422,6 +398,8 @@
         </div>
         <button id="refreshDashboardBtn" class="btn btn-sm btn-outline-primary rounded-pill"><i class="bi bi-arrow-repeat me-1"></i> Refresh</button>
       </div>
+      
+      <!-- Stat Cards - Ukuran Konsisten -->
       <div class="row g-4 mb-5">
         <div class="col-md-3 col-sm-6 col-6">
           <div class="stat-card p-3 d-flex flex-column justify-content-between h-100">
@@ -456,6 +434,8 @@
           </div>
         </div>
       </div>
+      
+      <!-- Grafik -->
       <div class="card border-0 shadow-sm mt-2">
         <div class="card-body">
           <h6 class="fw-bold"><i class="bi bi-graph-up me-2"></i>Trend Keuangan Gabungan</h6>
@@ -472,12 +452,13 @@
           <i class="bi bi-person-plus-fill me-2"></i>Daftarkan Pengguna Baru
         </button>
       </div>
+      
       <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
           <div class="table-responsive">
             <table class="table table-hover align-middle mb-0 user-table">
               <thead class="bg-light">
-                <tr><th>ID User</th><th>Username</th><th>Nama</th><th>Level</th><th>Limit Momen</th><th>Limit Keuangan</th><th>Limit Catatan</th><th>Status</th><th>Aksi</th></tr>
+                <tr><th>ID User</th><th>Username</th><th>Nama</th><th>Level</th><th>Limit Momen</th><th>Limit Keuangan</th><th>Status</th><th>Aksi</th></tr>
               </thead>
               <tbody id="usersTableBody"></tbody>
             </table>
@@ -491,10 +472,14 @@
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="fw-bold"><i class="bi bi-tags-fill text-success me-2"></i>Penawaran & Paket Berlangganan</h4>
       </div>
+      
       <div class="row g-4">
+        <!-- Paket Free -->
         <div class="col-md-4">
           <div class="subscription-card p-4 text-center h-100">
-            <div class="mb-3"><span class="badge bg-success rounded-pill px-3 py-2">GRATIS</span></div>
+            <div class="mb-3">
+              <span class="badge bg-success rounded-pill px-3 py-2">GRATIS</span>
+            </div>
             <h2 class="fw-bold mb-0">Rp 0</h2>
             <p class="text-muted small">/selamanya</p>
             <hr>
@@ -503,26 +488,38 @@
               <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> 5 Transaksi Keuangan</li>
               <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> 5 Item Catatan</li>
               <li class="mb-2 text-muted"><i class="bi bi-x-circle-fill text-danger me-2"></i> Tanpa Impian</li>
+              <li class="text-muted"><i class="bi bi-x-circle-fill text-danger me-2"></i> Tanpa Fitur Premium</li>
             </ul>
+            <button class="btn btn-outline-success rounded-pill w-100 mt-3 upgrade-free" disabled>Paket Saat Ini</button>
           </div>
         </div>
+        
+        <!-- Paket Basic -->
         <div class="col-md-4">
           <div class="subscription-card p-4 text-center h-100">
-            <div class="mb-3"><span class="badge bg-primary rounded-pill px-3 py-2">BASIC</span></div>
+            <div class="mb-3">
+              <span class="badge bg-primary rounded-pill px-3 py-2">BASIC</span>
+            </div>
             <h2 class="fw-bold mb-0">Rp 49.000</h2>
             <p class="text-muted small">/bulan</p>
             <hr>
             <ul class="list-unstyled text-start mt-3">
-              <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> 50 Momen</li>
-              <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> 50 Transaksi</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> 50 Momen (Upload Foto)</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> 50 Transaksi Keuangan</li>
               <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> 50 Item Catatan</li>
-              <li><i class="bi bi-check-circle-fill text-primary me-2"></i> Impian & Target</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> Impian & Target</li>
+              <li><i class="bi bi-check-circle-fill text-primary me-2"></i> Ekspor Data CSV</li>
             </ul>
+            <button class="btn btn-primary rounded-pill w-100 mt-3 upgrade-basic">Upgrade ke Basic</button>
           </div>
         </div>
+        
+        <!-- Paket Pro -->
         <div class="col-md-4">
           <div class="subscription-card pro p-4 text-center h-100">
-            <div class="mb-3"><span class="badge bg-light text-dark rounded-pill px-3 py-2">PRO</span></div>
+            <div class="mb-3">
+              <span class="badge bg-light text-dark rounded-pill px-3 py-2">PRO</span>
+            </div>
             <h2 class="fw-bold mb-0">Rp 99.000</h2>
             <p class="small opacity-75">/bulan</p>
             <hr class="border-light">
@@ -530,11 +527,15 @@
               <li class="mb-2"><i class="bi bi-infinity-fill me-2"></i> Tanpa Batas Momen</li>
               <li class="mb-2"><i class="bi bi-infinity-fill me-2"></i> Tanpa Batas Keuangan</li>
               <li class="mb-2"><i class="bi bi-infinity-fill me-2"></i> Tanpa Batas Catatan</li>
-              <li><i class="bi bi-check-circle-fill me-2"></i> Semua Fitur Premium</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill me-2"></i> Semua Fitur Premium</li>
+              <li><i class="bi bi-check-circle-fill me-2"></i> Prioritas Dukungan</li>
             </ul>
+            <button class="btn btn-light rounded-pill w-100 mt-3 upgrade-pro" style="color:#7009b4; font-weight:600;">Upgrade ke Pro</button>
           </div>
         </div>
       </div>
+      
+      <!-- Informasi Limit Pengguna -->
       <div class="card border-0 shadow-sm mt-4">
         <div class="card-body">
           <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-2"></i>Status Penggunaan Saat Ini</h6>
@@ -562,7 +563,7 @@
             </div>
             <div class="mb-3">
               <label class="form-label fw-semibold">Catatan Khusus</label>
-              <textarea id="guestNote" rows="2" class="form-control rounded-3" placeholder="Tambahan pesan..."></textarea>
+              <textarea id="guestNote" rows="2" class="form-control rounded-3" placeholder="Tambahan pesan untuk pasangan..."></textarea>
             </div>
             <button class="btn btn-gradient w-100 rounded-pill" id="generateInviteBtn"><i class="bi bi-link-45deg me-2"></i> Generate Link</button>
             <div id="generatedLinkContainer" class="mt-3" style="display: none;">
@@ -640,7 +641,8 @@
           </select>
         </div>
         <div class="alert alert-info alert-sm py-2 mb-0">
-          <i class="bi bi-info-circle me-1"></i> Setiap pengguna akan mendapatkan ID unik otomatis
+          <i class="bi bi-info-circle me-1"></i>
+          Setiap pengguna akan mendapatkan ID unik otomatis dan bisa login ke aplikasi GrowthTogether
         </div>
       </div>
       <div class="modal-footer border-0 pb-4">
@@ -670,6 +672,7 @@
   let adminChart = null;
   let currentSection = 'dashboard';
   let currentAdminUser = null;
+  let isLoadingUsers = false;
   
   // Helper Functions
   function formatRp(val) { return `Rp ${(val || 0).toLocaleString('id-ID')}`; }
@@ -684,7 +687,7 @@
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   }
   
-  // Generate User ID Unik
+  // Generate User ID Unik (auto increment)
   async function generateUserId() {
     const usersRef = ref(db, "data/users");
     const snapshot = await get(usersRef);
@@ -727,20 +730,22 @@
       const storedHash = authSnap.val();
       
       if (!storedHash) {
-        throw new Error("User tidak ditemukan");
+        errorText.innerText = "User tidak ditemukan!";
+        errorDiv.style.display = 'block';
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i> Login sebagai Admin';
+        return;
       }
       
       const inputHash = await hashPassword(password);
       
       if (inputHash === storedHash) {
-        // Login berhasil
         currentAdminUser = username;
         sessionStorage.setItem('admin_logged_in', 'true');
         sessionStorage.setItem('admin_user', username);
         
         document.body.classList.add('logged-in');
         
-        // Inisialisasi data setelah login
         await ensureUsersHaveIdAndLevel();
         await loadDashboardStats();
         await loadUsersList();
@@ -777,7 +782,6 @@
     if (isLoggedIn && (savedUser === 'FACHMI' || savedUser === 'AZIZAH')) {
       currentAdminUser = savedUser;
       document.body.classList.add('logged-in');
-      // Load data setelah login
       setTimeout(async () => {
         await ensureUsersHaveIdAndLevel();
         await loadDashboardStats();
@@ -788,53 +792,45 @@
     return false;
   }
   
-  // ============ FORCE UPDATE USER ============
+  // ============ FORCE UPDATE USER DENGAN ID & LEVEL ============
   async function ensureUsersHaveIdAndLevel() {
     console.log("🔧 Memastikan semua user memiliki userId dan level...");
     
-    const usersRef = ref(db, "data/users");
-    const snapshot = await get(usersRef);
-    let users = snapshot.val() || {};
-    
     // Update FACHMI (ID-001, PRO)
-    if (!users.FACHMI || users.FACHMI.userId !== "001" || users.FACHMI.level !== "pro") {
-      await set(ref(db, `data/users/FACHMI`), {
-        userId: "001",
-        username: "FACHMI",
-        fullname: "Fachmi",
-        level: "pro",
-        active: true,
-        createdAt: users.FACHMI?.createdAt || Date.now(),
-        updatedAt: Date.now()
-      });
-      console.log("✅ FACHMI updated: ID=001, PRO");
-    }
+    await set(ref(db, `data/users/FACHMI`), {
+      userId: "001",
+      username: "FACHMI",
+      fullname: "Fachmi",
+      level: "pro",
+      active: true,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    });
     
     // Update AZIZAH (ID-005, PRO)
-    if (!users.AZIZAH || users.AZIZAH.userId !== "005" || users.AZIZAH.level !== "pro") {
-      await set(ref(db, `data/users/AZIZAH`), {
-        userId: "005",
-        username: "AZIZAH",
-        fullname: "Azizah",
-        level: "pro",
-        active: true,
-        createdAt: users.AZIZAH?.createdAt || Date.now(),
-        updatedAt: Date.now()
-      });
-      console.log("✅ AZIZAH updated: ID=005, PRO");
-    }
+    await set(ref(db, `data/users/AZIZAH`), {
+      userId: "005",
+      username: "AZIZAH",
+      fullname: "Azizah",
+      level: "pro",
+      active: true,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    });
     
     // Pastikan auth ada
     const authSnap = await get(ref(db, "data/auth"));
-    if (!authSnap.exists() || !authSnap.val()?.FACHMI) {
+    if (!authSnap.val()?.FACHMI) {
       const hashedFachmi = await hashPassword("gokil223");
       const hashedAzizah = await hashPassword("1234");
       await set(ref(db, "data/auth/FACHMI"), hashedFachmi);
       await set(ref(db, "data/auth/AZIZAH"), hashedAzizah);
     }
+    
+    console.log("✅ Users updated: FACHMI (001-PRO), AZIZAH (005-PRO)");
   }
   
-  // Load Dashboard Stats
+  // ============ DASHBOARD STATS ============
   async function loadDashboardStats() {
     try {
       const snapshot = await get(ref(db, "data/"));
@@ -854,8 +850,9 @@
       const totalUsers = Object.keys(users).length;
       
       let totalBalance = 0;
-      for (const [username] of Object.entries(users)) {
-        const transSnap = await get(ref(db, `data/keuangan/${username}/transaksi`));
+      const userList = Object.values(users);
+      for (const user of userList) {
+        const transSnap = await get(ref(db, `data/keuangan/${user.username}/transaksi`));
         const trans = transSnap.val() || {};
         let pemasukan = 0, pengeluaran = 0;
         Object.values(trans).forEach(t => {
@@ -872,10 +869,10 @@
       
       // Update Chart
       const allTrans = [];
-      for (const [username] of Object.entries(users)) {
-        const transSnap = await get(ref(db, `data/keuangan/${username}/transaksi`));
+      for (const user of userList) {
+        const transSnap = await get(ref(db, `data/keuangan/${user.username}/transaksi`));
         const trans = transSnap.val() || {};
-        Object.values(trans).forEach(t => allTrans.push({ ...t }));
+        Object.values(trans).forEach(t => allTrans.push({ ...t, user: user.username }));
       }
       const last7Days = [];
       const today = new Date();
@@ -905,8 +902,8 @@
         data: {
           labels: last7Days.map(d => d.slice(5)),
           datasets: [
-            { label: 'Pemasukan', data: pemasukan7d, borderColor: '#10b981', fill: true, tension: 0.3 },
-            { label: 'Pengeluaran', data: pengeluaran7d, borderColor: '#ef4444', fill: true, tension: 0.3 }
+            { label: 'Pemasukan', data: pemasukan7d, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.3 },
+            { label: 'Pengeluaran', data: pengeluaran7d, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.05)', fill: true, tension: 0.3 }
           ]
         },
         options: { responsive: true, maintainAspectRatio: true, plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: Rp ${ctx.raw.toLocaleString('id-ID')}` } } } }
@@ -916,97 +913,119 @@
   
   function getLimitsForLevel(level) {
     switch(level) {
-      case 'free': return { moments: 5, transactions: 5, catatan: 5 };
-      case 'basic': return { moments: 50, transactions: 50, catatan: 50 };
-      case 'pro': return { moments: Infinity, transactions: Infinity, catatan: Infinity };
-      default: return { moments: 5, transactions: 5, catatan: 5 };
+      case 'free': return { moments: 5, transactions: 5 };
+      case 'basic': return { moments: 50, transactions: 50 };
+      case 'pro': return { moments: Infinity, transactions: Infinity };
+      default: return { moments: 5, transactions: 5 };
     }
   }
   
+  // ============ LOAD USERS (TANPA DOUBLE) ============
   async function loadUsersList() {
-    const snapshot = await get(ref(db, "data/users"));
-    const users = snapshot.val() || {};
-    const tbody = document.getElementById('usersTableBody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
+    if (isLoadingUsers) return;
+    isLoadingUsers = true;
     
-    for (let [username, userData] of Object.entries(users)) {
-      const momentsSnap = await get(ref(db, `data/moments`));
-      const moments = momentsSnap.val() || {};
-      const userMoments = Object.values(moments).filter(m => m.author === username).length;
+    try {
+      const snapshot = await get(ref(db, "data/users"));
+      const users = snapshot.val() || {};
+      const tbody = document.getElementById('usersTableBody');
+      if (!tbody) return;
       
-      const transSnap = await get(ref(db, `data/keuangan/${username}/transaksi`));
-      const trans = transSnap.val() || {};
-      const userTrans = Object.keys(trans).length;
+      // Clear dengan aman
+      while (tbody.firstChild) {
+        tbody.removeChild(tbody.firstChild);
+      }
       
-      const catatanItems = await get(ref(db, `data/catatan/bersama/items`));
-      const catatan = catatanItems.val() || {};
-      let userCatatan = 0;
-      Object.values(catatan).forEach(katItems => {
-        if (katItems && typeof katItems === 'object') {
-          userCatatan += Object.keys(katItems).length;
-        }
+      const entries = Object.entries(users);
+      if (entries.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Belum ada pengguna terdaftar</td></tr>';
+        return;
+      }
+      
+      for (let [username, userData] of entries) {
+        // Hitung penggunaan
+        const momentsSnap = await get(ref(db, "data/moments"));
+        const moments = momentsSnap.val() || {};
+        const userMoments = Object.values(moments).filter(m => m.author === username).length;
+        
+        const transSnap = await get(ref(db, `data/keuangan/${username}/transaksi`));
+        const trans = transSnap.val() || {};
+        const userTrans = Object.keys(trans).length;
+        
+        const limits = getLimitsForLevel(userData.level || 'free');
+        const level = userData.level || 'free';
+        const levelBadge = level === 'pro' ? 'badge-pro' : (level === 'basic' ? 'badge-basic' : 'badge-free');
+        const levelText = level === 'pro' ? 'PRO' : (level === 'basic' ? 'BASIC' : 'FREE');
+        
+        const row = tbody.insertRow();
+        row.className = 'user-row';
+        row.setAttribute('data-username', username);
+        
+        row.insertCell(0).innerHTML = `<code>${userData.userId || '-'}</code>`;
+        row.insertCell(1).innerHTML = `<strong>${escapeHtml(username)}</strong>`;
+        row.insertCell(2).innerHTML = escapeHtml(userData.fullname || '-');
+        row.insertCell(3).innerHTML = `<span class="badge ${levelBadge}">${levelText}</span>`;
+        row.insertCell(4).innerHTML = limits.moments === Infinity ? '∞' : `${userMoments}/${limits.moments}`;
+        row.insertCell(5).innerHTML = limits.transactions === Infinity ? '∞' : `${userTrans}/${limits.transactions}`;
+        row.insertCell(6).innerHTML = userData.active !== false ? '<span class="badge bg-success">Aktif</span>' : '<span class="badge bg-secondary">Nonaktif</span>';
+        row.insertCell(7).innerHTML = `
+          <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-primary rounded-pill me-1 edit-level-btn" data-username="${username}" data-level="${level}">
+              <i class="bi bi-pencil"></i>
+            </button>
+            ${username !== 'FACHMI' && username !== 'AZIZAH' ? `
+            <button class="btn btn-outline-danger rounded-pill delete-user-btn" data-username="${username}">
+              <i class="bi bi-trash3"></i>
+            </button>
+            ` : '<span class="text-muted small">(Admin)</span>'}
+          </div>
+        `;
+      }
+      
+      // Event listeners untuk edit level
+      document.querySelectorAll('.edit-level-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const username = btn.dataset.username;
+          const currentLevel = btn.dataset.level;
+          const newLevel = prompt(`Ubah level untuk ${username}\nLevel saat ini: ${currentLevel.toUpperCase()}\nMasukkan level baru (free/basic/pro):`, currentLevel);
+          if (newLevel && ['free', 'basic', 'pro'].includes(newLevel.toLowerCase())) {
+            await update(ref(db, `data/users/${username}/level`), newLevel.toLowerCase());
+            showToast(`Level ${username} diubah ke ${newLevel.toUpperCase()}`, 'success');
+            loadUsersList();
+            loadUsageStats();
+          } else if (newLevel) {
+            showToast('Level tidak valid! Gunakan: free, basic, atau pro', 'error');
+          }
+        });
       });
       
-      const limits = getLimitsForLevel(userData.level || 'free');
-      const level = userData.level || 'free';
-      const levelBadge = level === 'pro' ? 'badge-pro' : (level === 'basic' ? 'badge-basic' : 'badge-free');
-      const levelText = level === 'pro' ? 'PRO' : (level === 'basic' ? 'BASIC' : 'FREE');
+      // Event listeners untuk hapus user
+      document.querySelectorAll('.delete-user-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const username = btn.dataset.username;
+          if (confirm(`Hapus pengguna ${username}? Semua data akan terhapus.`)) {
+            await remove(ref(db, `data/users/${username}`));
+            await remove(ref(db, `data/auth/${username}`));
+            await remove(ref(db, `data/keuangan/${username}`));
+            await remove(ref(db, `data/impian/${username}`));
+            await remove(ref(db, `data/profiles/${username}`));
+            showToast(`Pengguna ${username} dihapus`, 'warning');
+            loadUsersList();
+            loadDashboardStats();
+          }
+        });
+      });
       
-      const row = tbody.insertRow();
-      row.insertCell(0).innerHTML = `<code>${userData.userId || '-'}</code>`;
-      row.insertCell(1).innerHTML = `<strong>${escapeHtml(username)}</strong>`;
-      row.insertCell(2).innerHTML = escapeHtml(userData.fullname || '-');
-      row.insertCell(3).innerHTML = `<span class="badge ${levelBadge}">${levelText}</span>`;
-      row.insertCell(4).innerHTML = limits.moments === Infinity ? '∞' : `${userMoments}/${limits.moments}`;
-      row.insertCell(5).innerHTML = limits.transactions === Infinity ? '∞' : `${userTrans}/${limits.transactions}`;
-      row.insertCell(6).innerHTML = limits.catatan === Infinity ? '∞' : `${userCatatan}/${limits.catatan}`;
-      row.insertCell(7).innerHTML = userData.active !== false ? '<span class="badge bg-success">Aktif</span>' : '<span class="badge bg-secondary">Nonaktif</span>';
-      row.insertCell(8).innerHTML = `
-        <div class="btn-group btn-group-sm">
-          <button class="btn btn-outline-primary rounded-pill me-1 edit-level-btn" data-username="${username}" data-level="${level}">
-            <i class="bi bi-pencil"></i>
-          </button>
-          ${username !== 'FACHMI' && username !== 'AZIZAH' ? `
-          <button class="btn btn-outline-danger rounded-pill delete-user-btn" data-username="${username}">
-            <i class="bi bi-trash3"></i>
-          </button>
-          ` : ''}
-        </div>
-      `;
+    } catch(err) {
+      console.error("Error loading users:", err);
+    } finally {
+      isLoadingUsers = false;
     }
-    
-    document.querySelectorAll('.edit-level-btn').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const username = btn.dataset.username;
-        const currentLevel = btn.dataset.level;
-        const newLevel = prompt(`Ubah level untuk ${username}\nLevel saat ini: ${currentLevel.toUpperCase()}\nMasukkan level baru (free/basic/pro):`, currentLevel);
-        if (newLevel && ['free', 'basic', 'pro'].includes(newLevel.toLowerCase())) {
-          await update(ref(db, `data/users/${username}/level`), newLevel.toLowerCase());
-          showToast(`Level ${username} diubah ke ${newLevel.toUpperCase()}`, 'success');
-          loadUsersList();
-          loadUsageStats();
-        }
-      });
-    });
-    
-    document.querySelectorAll('.delete-user-btn').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const username = btn.dataset.username;
-        if (confirm(`Hapus pengguna ${username}? Semua data akan terhapus.`)) {
-          await remove(ref(db, `data/users/${username}`));
-          await remove(ref(db, `data/auth/${username}`));
-          await remove(ref(db, `data/keuangan/${username}`));
-          await remove(ref(db, `data/impian/${username}`));
-          await remove(ref(db, `data/profiles/${username}`));
-          showToast(`Pengguna ${username} dihapus`, 'warning');
-          loadUsersList();
-          loadDashboardStats();
-        }
-      });
-    });
   }
   
+  // ============ LOAD USAGE STATS ============
   async function loadUsageStats() {
     const snapshot = await get(ref(db, "data/users"));
     const users = snapshot.val() || {};
@@ -1015,7 +1034,7 @@
     
     let html = '';
     for (let [username, userData] of Object.entries(users)) {
-      const momentsSnap = await get(ref(db, `data/moments`));
+      const momentsSnap = await get(ref(db, "data/moments"));
       const moments = momentsSnap.val() || {};
       const userMoments = Object.values(moments).filter(m => m.author === username).length;
       
@@ -1026,6 +1045,8 @@
       const limits = getLimitsForLevel(userData.level || 'free');
       const level = userData.level || 'free';
       const levelBadge = level === 'pro' ? 'badge-pro' : (level === 'basic' ? 'badge-basic' : 'badge-free');
+      const momentPercent = limits.moments === Infinity ? 0 : (userMoments / limits.moments) * 100;
+      const transPercent = limits.transactions === Infinity ? 0 : (userTrans / limits.transactions) * 100;
       
       html += `
         <div class="col-md-6">
@@ -1040,11 +1061,11 @@
               </div>
               <div class="mb-2">
                 <small>Momen: ${userMoments}${limits.moments !== Infinity ? '/' + limits.moments : ' (∞)'}</small>
-                ${limits.moments !== Infinity ? `<div class="progress" style="height: 4px;"><div class="progress-bar bg-danger" style="width: ${Math.min(100, (userMoments / limits.moments) * 100)}%"></div></div>` : '<div class="progress" style="height: 4px;"><div class="progress-bar bg-success" style="width: 100%"></div></div>'}
+                ${limits.moments !== Infinity ? `<div class="progress" style="height: 4px;"><div class="progress-bar bg-danger" style="width: ${Math.min(100, momentPercent)}%"></div></div>` : '<div class="progress" style="height: 4px;"><div class="progress-bar bg-success" style="width: 100%"></div></div>'}
               </div>
               <div>
                 <small>Keuangan: ${userTrans}${limits.transactions !== Infinity ? '/' + limits.transactions : ' (∞)'}</small>
-                ${limits.transactions !== Infinity ? `<div class="progress" style="height: 4px;"><div class="progress-bar bg-warning" style="width: ${Math.min(100, (userTrans / limits.transactions) * 100)}%"></div></div>` : '<div class="progress" style="height: 4px;"><div class="progress-bar bg-success" style="width: 100%"></div></div>'}
+                ${limits.transactions !== Infinity ? `<div class="progress" style="height: 4px;"><div class="progress-bar bg-warning" style="width: ${Math.min(100, transPercent)}%"></div></div>` : '<div class="progress" style="height: 4px;"><div class="progress-bar bg-success" style="width: 100%"></div></div>'}
               </div>
             </div>
           </div>
@@ -1054,6 +1075,7 @@
     statsContainer.innerHTML = html || '<div class="col-12 text-center text-muted">Belum ada data pengguna</div>';
   }
   
+  // ============ REGISTER NEW USER ============
   async function registerNewUser(username, fullname, password, level) {
     const usersRef = ref(db, "data/users");
     const snapshot = await get(usersRef);
@@ -1067,7 +1089,10 @@
     const userId = await generateUserId();
     const hashedPassword = await hashPassword(password);
     
+    // Buat auth
     await set(ref(db, `data/auth/${usernameUpper}`), hashedPassword);
+    
+    // Buat user
     await set(ref(db, `data/users/${usernameUpper}`), {
       userId: userId,
       username: usernameUpper,
@@ -1076,13 +1101,23 @@
       active: true,
       createdAt: Date.now()
     });
-    await set(ref(db, `data/profiles/${usernameUpper}`), { status: 'merencanakan', photo: null });
+    
+    // Buat profile
+    await set(ref(db, `data/profiles/${usernameUpper}`), {
+      status: 'merencanakan',
+      photo: null
+    });
+    
+    // Buat keuangan empty
     await set(ref(db, `data/keuangan/${usernameUpper}`), { transaksi: {} });
+    
+    // Buat impian empty
     await set(ref(db, `data/impian/${usernameUpper}`), {});
     
     return { username: usernameUpper, userId };
   }
   
+  // ============ INVITATIONS ============
   async function loadInvitations() {
     const snap = await get(ref(db, "data/invitations"));
     const invites = snap.val() || {};
@@ -1100,9 +1135,8 @@
       const row = tbody.insertRow();
       row.insertCell(0).innerHTML = `<strong>${escapeHtml(inv.guestName || 'Tanpa Nama')}</strong>`;
       row.insertCell(1).innerHTML = inv.phone || '-';
-      const linkCell = row.insertCell(2);
       const fullLink = `${window.location.origin}${window.location.pathname}?invite=${id}`;
-      linkCell.innerHTML = `<span class="small">${fullLink.substring(0,40)}...</span> <button class="btn btn-sm btn-link copyInvLink" data-link="${fullLink}"><i class="bi bi-copy"></i></button>`;
+      row.insertCell(2).innerHTML = `<span class="small text-truncate d-inline-block" style="max-width:180px;">${fullLink.substring(0,40)}...</span> <button class="btn btn-sm btn-link copyInvLink" data-link="${fullLink}"><i class="bi bi-copy"></i></button>`;
       row.insertCell(3).innerHTML = inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('id') : '-';
       row.insertCell(4).innerHTML = `<button class="btn btn-sm btn-outline-danger rounded-pill deleteInvBtn" data-id="${id}"><i class="bi bi-trash3"></i> Hapus</button>`;
     }
@@ -1125,13 +1159,14 @@
     if (!guestName.trim()) throw new Error("Nama tamu wajib diisi");
     const id = Date.now().toString() + Math.random().toString(36).substring(2,6);
     const baseUrl = window.location.origin + window.location.pathname;
-    await set(ref(db, `data/invitations/${id}`), {
+    const inviteData = {
       guestName: guestName.trim(),
       phone: phone || '',
       note: note || '',
       createdAt: Date.now(),
       linkId: id
-    });
+    };
+    await set(ref(db, `data/invitations/${id}`), inviteData);
     return `${baseUrl}?invite=${id}`;
   }
   
@@ -1162,7 +1197,7 @@
     currentSection = sectionId;
   }
   
-  // Initialize
+  // ============ INITIALIZATION ============
   window.addEventListener('DOMContentLoaded', async () => {
     // Check if already logged in
     if (!checkAdminSession()) {
@@ -1175,9 +1210,11 @@
     
     // Logout button
     document.getElementById('adminLogoutBtn')?.addEventListener('click', handleAdminLogout);
-    document.getElementById('backToAppBtn')?.addEventListener('click', () => { window.location.href = window.location.pathname.replace('admin.html', 'index.html'); });
+    document.getElementById('backToAppBtn')?.addEventListener('click', () => { 
+      window.location.href = window.location.pathname.replace('admin.html', 'index.html'); 
+    });
     
-    // Register User
+    // Register User Button
     document.getElementById('confirmRegisterBtn')?.addEventListener('click', async () => {
       const username = document.getElementById('regUsername').value;
       const fullname = document.getElementById('regFullname').value;
@@ -1240,6 +1277,13 @@
         const sec = link.dataset.section; 
         if(sec) showSection(sec); 
         if(window.innerWidth <= 768) closeSidebar(); 
+      });
+    });
+    
+    // Upgrade buttons (demo)
+    document.querySelectorAll('.upgrade-basic, .upgrade-pro, .upgrade-free').forEach(btn => {
+      btn.addEventListener('click', () => {
+        showToast("Fitur upgrade akan tersedia segera. Hubungi admin.", 'info');
       });
     });
     
