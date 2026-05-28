@@ -1,4 +1,4 @@
-// js/app.js - Main Application
+// js/app.js - Main Application (PERBAIKAN LENGKAP)
 import { db, ref, onValue, set } from './firebase-config.js';
 import { 
   masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser, 
@@ -40,7 +40,6 @@ import {
 import { initKeuangan, setKeuanganLimitsChecker } from './keuangan.js';
 import { initCatatan } from './catatan.js';
 import { initImpian } from './impian.js';
-import { initPengingat, renderBirthdayInProfile, stopBirthdayChecker } from './pengingat.js';
 
 let firebaseListener = null;
 let currentPage = 'dashboard';
@@ -87,34 +86,37 @@ export function registerListener(listener) {
 
 // ============ LOADING SCREEN ============
 function showInitialLoading() {
-  const loader = document.createElement('div');
-  loader.id = 'initialLoader';
-  loader.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #7009b4 0%, #4000C6 100%);
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    transition: opacity 0.5s;
-  `;
-  loader.innerHTML = `
-    <div class="text-center text-white">
-      <i class="bi bi-arrow-through-heart-fill fs-1 mb-3 floating-icon" style="animation: pulse 2s ease-in-out infinite; display: inline-block;"></i>
-      <h3 class="fw-bold">growthogether</h3>
-      <p class="mb-3">jalan bareng, mimpi nyata</p>
-      <div class="spinner-border text-white" role="status" style="width: 44px; height: 44px;">
-        <span class="visually-hidden">Loading...</span>
+  let loader = document.getElementById('initialLoader');
+  if (!loader) {
+    loader = document.createElement('div');
+    loader.id = 'initialLoader';
+    loader.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #7009b4 0%, #4000C6 100%);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      transition: opacity 0.5s;
+    `;
+    loader.innerHTML = `
+      <div class="text-center text-white">
+        <i class="bi bi-arrow-through-heart-fill fs-1 mb-3" style="animation: pulse 2s ease-in-out infinite; display: inline-block;"></i>
+        <h3 class="fw-bold">growthogether</h3>
+        <p class="mb-3">jalan bareng, mimpi nyata</p>
+        <div class="spinner-border text-white" role="status" style="width: 44px; height: 44px;">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 small opacity-75">Mempersiapkan aplikasi...</p>
       </div>
-      <p class="mt-3 small opacity-75">Mempersiapkan aplikasi...</p>
-    </div>
-  `;
-  document.body.appendChild(loader);
+    `;
+    document.body.appendChild(loader);
+  }
 }
 
 function hideInitialLoading() {
@@ -130,107 +132,109 @@ async function loadComponents() {
   try {
     console.log("Loading components...");
     
+    // Gunakan fetch dengan timeout untuk menghindari hanging
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
     const [sidebarHtml, modalsHtml, contentHtml, loginHtml] = await Promise.all([
-      fetch('components/sidebar.html').then(r => r.text()),
-      fetch('components/modals.html').then(r => r.text()),
-      fetch('components/content.html').then(r => r.text()),
-      fetch('components/login.html').then(r => r.text())
+      fetch('components/sidebar.html', { signal: controller.signal }).then(r => r.text()),
+      fetch('components/modals.html', { signal: controller.signal }).then(r => r.text()),
+      fetch('components/content.html', { signal: controller.signal }).then(r => r.text()),
+      fetch('components/login.html', { signal: controller.signal }).then(r => r.text())
     ]);
     
-    document.getElementById('sidebar-container').innerHTML = sidebarHtml;
-    document.getElementById('modals-container').innerHTML = modalsHtml;
-    document.getElementById('app-content').innerHTML = contentHtml;
-    document.getElementById('login-screen').innerHTML = loginHtml;
+    clearTimeout(timeoutId);
+    
+    const sidebarContainer = document.getElementById('sidebar-container');
+    const modalsContainer = document.getElementById('modals-container');
+    const appContent = document.getElementById('app-content');
+    const loginScreen = document.getElementById('login-screen');
+    
+    if (sidebarContainer) sidebarContainer.innerHTML = sidebarHtml;
+    if (modalsContainer) modalsContainer.innerHTML = modalsHtml;
+    if (appContent) appContent.innerHTML = contentHtml;
+    if (loginScreen) loginScreen.innerHTML = loginHtml;
     
     console.log("Components loaded successfully");
+    
+    // Tunggu sedikit agar DOM terupdate
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     attachEventListeners();
     initDarkMode();
     initHamburgerMenu();
     handleResize();
     
+    return true;
+    
   } catch (error) {
     console.error('Error loading components:', error);
-    showNotif("❌ Gagal memuat aplikasi", true, 'error');
+    // Tampilkan pesan error di layar
+    const loader = document.getElementById('initialLoader');
+    if (loader) {
+      loader.innerHTML = `
+        <div class="text-center text-white">
+          <i class="bi bi-exclamation-triangle-fill fs-1 mb-3"></i>
+          <h3 class="fw-bold">Gagal Memuat Aplikasi</h3>
+          <p class="mb-3">${error.message}</p>
+          <button class="btn btn-light rounded-pill" onclick="location.reload()">
+            <i class="bi bi-arrow-repeat me-2"></i>Coba Lagi
+          </button>
+        </div>
+      `;
+    }
+    return false;
   }
 }
 
 // ============ HAMBURGER MENU FUNCTIONS ============
 function initHamburgerMenu() {
-  const hamburgerBtn = document.getElementById('hamburgerMenuBtn');
-  const sidebar = document.getElementById('app-sidebar');
-  const closeBtn = document.getElementById('sidebarCloseBtn');
-  const overlay = document.getElementById('sidebarOverlay');
-  
-  if (!hamburgerBtn || !sidebar) {
-    console.log("Hamburger menu elements not found, will retry later");
-    setTimeout(() => {
-      const retryBtn = document.getElementById('hamburgerMenuBtn');
-      const retrySidebar = document.getElementById('app-sidebar');
-      if (retryBtn && retrySidebar) {
-        initHamburgerMenu();
-      }
-    }, 500);
-    return;
-  }
-  
-  function openSidebar() {
-    sidebar.classList.add('open');
-    if (overlay) overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    console.log("Sidebar opened");
-  }
-  
-  function closeSidebar() {
-    sidebar.classList.remove('open');
-    if (overlay) overlay.classList.remove('active');
-    document.body.style.overflow = '';
-    console.log("Sidebar closed");
-  }
-  
-  hamburgerBtn.removeEventListener('click', openSidebar);
-  hamburgerBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    openSidebar();
-  });
-  
-  if (closeBtn) {
-    closeBtn.removeEventListener('click', closeSidebar);
-    closeBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      closeSidebar();
-    });
-  }
-  
-  if (overlay) {
-    overlay.removeEventListener('click', closeSidebar);
-    overlay.addEventListener('click', (e) => {
-      e.preventDefault();
-      closeSidebar();
-    });
-  }
-  
-  const navLinks = document.querySelectorAll('.sidebar .nav-link, #app-sidebar .nav-link');
-  navLinks.forEach(link => {
-    link.removeEventListener('click', closeSidebar);
-    link.addEventListener('click', () => {
-      if (window.innerWidth <= 768) {
-        closeSidebar();
-      }
-    });
-  });
-  
-  window.removeEventListener('resize', closeSidebar);
-  window.addEventListener('resize', () => {
-    if (window.innerWidth > 768) {
-      closeSidebar();
+  // Tunggu hingga sidebar benar-benar ada di DOM
+  setTimeout(() => {
+    const hamburgerBtn = document.getElementById('hamburgerMenuBtn');
+    const sidebar = document.getElementById('app-sidebar');
+    const closeBtn = document.getElementById('sidebarCloseBtn');
+    const overlay = document.getElementById('sidebarOverlay');
+    
+    if (!hamburgerBtn || !sidebar) {
+      console.log("Hamburger menu elements not found, retrying...");
+      setTimeout(initHamburgerMenu, 500);
+      return;
+    }
+    
+    function openSidebar() {
+      sidebar.classList.add('open');
+      if (overlay) overlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closeSidebar() {
+      sidebar.classList.remove('open');
       if (overlay) overlay.classList.remove('active');
       document.body.style.overflow = '';
     }
-  });
-  
-  console.log("Hamburger menu initialized");
+    
+    hamburgerBtn.onclick = (e) => {
+      e.preventDefault();
+      openSidebar();
+    };
+    
+    if (closeBtn) closeBtn.onclick = (e) => {
+      e.preventDefault();
+      closeSidebar();
+    };
+    
+    if (overlay) overlay.onclick = () => closeSidebar();
+    
+    window.onresize = () => {
+      if (window.innerWidth > 768) {
+        closeSidebar();
+        if (overlay) overlay.classList.remove('active');
+      }
+    };
+    
+    console.log("Hamburger menu initialized");
+  }, 200);
 }
 
 // ============ DARK MODE ============
@@ -249,47 +253,26 @@ function initDarkMode() {
   const savedMode = localStorage.getItem("darkMode");
   const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   
-  let isDark = false;
-  if (savedMode === "enabled") {
-    isDark = true;
-  } else if (savedMode === "disabled") {
-    isDark = false;
-  } else {
-    isDark = systemDark;
+  let isDark = savedMode === "enabled" || (savedMode !== "disabled" && systemDark);
+  
+  function applyDarkMode(isDark) {
+    if (isDark) {
+      document.body.classList.add("dark");
+      darkFab.innerHTML = '<i class="bi bi-brightness-high-fill fs-5"></i>';
+    } else {
+      document.body.classList.remove("dark");
+      darkFab.innerHTML = '<i class="bi bi-moon-stars fs-5"></i>';
+    }
   }
   
-  applyDarkMode(isDark, darkFab);
+  applyDarkMode(isDark);
   
-  darkFab.onclick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const isCurrentlyDark = document.body.classList.contains("dark");
-    const newDarkState = !isCurrentlyDark;
-    
-    applyDarkMode(newDarkState, darkFab);
+  darkFab.onclick = () => {
+    const newDarkState = !document.body.classList.contains("dark");
+    applyDarkMode(newDarkState);
     localStorage.setItem("darkMode", newDarkState ? "enabled" : "disabled");
-    
     showNotif(newDarkState ? "🌙 Mode Gelap Aktif" : "☀️ Mode Terang Aktif", false, 'info');
   };
-  
-  console.log("Dark mode initialized, isDark:", isDark);
-}
-
-function applyDarkMode(isDark, darkFab) {
-  if (isDark) {
-    document.body.classList.add("dark");
-    if (darkFab) darkFab.innerHTML = '<i class="bi bi-brightness-high-fill fs-5"></i>';
-  } else {
-    document.body.classList.remove("dark");
-    if (darkFab) darkFab.innerHTML = '<i class="bi bi-moon-stars fs-5"></i>';
-  }
-  
-  document.documentElement.style.setProperty('--bg-body', isDark ? '#1a1025' : '#faf5ff');
-  document.documentElement.style.setProperty('--card-bg', isDark ? '#2d1a3a' : '#ffffff');
-  document.documentElement.style.setProperty('--text-primary', isDark ? '#e9d5ff' : '#4c1d95');
-  document.documentElement.style.setProperty('--text-muted', isDark ? '#d8b4fe' : '#6b21a5');
-  document.documentElement.style.setProperty('--border-light', isDark ? '#4c1d6e' : '#e9d5ff');
 }
 
 // ============ HANDLE RESIZE ============
@@ -300,20 +283,13 @@ function handleResize() {
   
   if (window.innerWidth > 768) {
     if (appContent) appContent.style.marginLeft = "280px";
-    if (sidebar) {
-      sidebar.style.display = "flex";
-      sidebar.classList.remove('open');
-    }
+    if (sidebar) sidebar.classList.remove('open');
     if (hamburgerBtn) hamburgerBtn.style.display = "none";
-    
     const overlay = document.getElementById('sidebarOverlay');
     if (overlay) overlay.classList.remove('active');
     document.body.style.overflow = '';
   } else {
     if (appContent) appContent.style.marginLeft = "0";
-    if (sidebar) {
-      sidebar.style.display = "flex";
-    }
     if (hamburgerBtn) hamburgerBtn.style.display = "flex";
   }
 }
@@ -328,101 +304,77 @@ function initOfflineIndicator() {
     <i class="bi bi-wifi-off me-2"></i>
     Offline - Perubahan tidak akan tersimpan sampai koneksi kembali
   `;
+  offlineIndicator.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    text-align: center;
+    padding: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    z-index: 10001;
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+  `;
   document.body.appendChild(offlineIndicator);
   
   window.addEventListener('online', () => {
-    if (offlineIndicator) {
-      offlineIndicator.style.transform = 'translateY(-100%)';
-    }
+    if (offlineIndicator) offlineIndicator.style.transform = 'translateY(-100%)';
     showNotif('📡 Koneksi kembali online!', false, 'success');
     clearCache();
   });
   
   window.addEventListener('offline', () => {
-    if (offlineIndicator) {
-      offlineIndicator.style.transform = 'translateY(0)';
-    }
+    if (offlineIndicator) offlineIndicator.style.transform = 'translateY(0)';
     showNotif('⚠️ Koneksi terputus. Perubahan tidak akan tersimpan.', true, 'error');
   });
-}
-
-// ============ TOAST CONTAINER ============
-function injectToastContainer() {
-  if (!document.getElementById('customToastContainer')) {
-    const toastContainer = document.createElement('div');
-    toastContainer.id = 'customToastContainer';
-    toastContainer.style.cssText = `
-      position: fixed;
-      bottom: 80px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 9999;
-      pointer-events: none;
-    `;
-    document.body.appendChild(toastContainer);
-  }
 }
 
 // ============ ATTACH EVENT LISTENERS ============
 function attachEventListeners() {
   console.log("Attaching event listeners...");
   
+  // Profile trigger
   const profileTrigger = document.getElementById('profileTrigger');
   if (profileTrigger) {
-    profileTrigger.removeEventListener('click', profileTrigger._profileListener);
-    profileTrigger._profileListener = (e) => {
+    profileTrigger.onclick = (e) => {
       e.preventDefault();
       e.stopPropagation();
-      if (typeof openProfileModal === 'function') {
-        openProfileModal();
-      }
+      if (typeof openProfileModal === 'function') openProfileModal();
     };
-    profileTrigger.addEventListener('click', profileTrigger._profileListener);
   }
   
+  // Logout button
   const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
   if (sidebarLogoutBtn) {
-    sidebarLogoutBtn.removeEventListener('click', sidebarLogoutBtn._sidebarLogoutListener);
-    sidebarLogoutBtn._sidebarLogoutListener = (e) => {
+    sidebarLogoutBtn.onclick = (e) => {
       e.preventDefault();
-      e.stopPropagation();
       confirmLogout();
     };
-    sidebarLogoutBtn.addEventListener('click', sidebarLogoutBtn._sidebarLogoutListener);
   }
   
+  // Privacy toggle
   document.querySelectorAll("#privacyToggleDash").forEach(btn => {
-    if (btn) {
-      btn.removeEventListener('click', btn._privacyListener);
-      btn._privacyListener = () => {
-        togglePrivacy();
-        if (window.renderDashboard) window.renderDashboard();
-      };
-      btn.addEventListener('click', btn._privacyListener);
-    }
+    btn.onclick = () => {
+      togglePrivacy();
+      if (window.renderDashboard) window.renderDashboard();
+    };
   });
   
+  // Navigation
   const throttledShowPage = throttle((page) => {
     showPage(page);
   }, 300);
   
   document.querySelectorAll(".nav-link").forEach(el => {
-    el.removeEventListener('click', el._navListener);
-    el._navListener = (e) => {
+    el.onclick = (e) => {
       const page = el.getAttribute("data-page");
-      if (page) {
-        throttledShowPage(page);
-      }
+      if (page) throttledShowPage(page);
     };
-    el.addEventListener('click', el._navListener);
   });
-  
-  window.addEventListener('online', () => { 
-    showNotif("📡 Koneksi kembali online", false, 'success');
-    clearCache();
-  });
-  window.addEventListener('offline', () => { showNotif("⚠️ Koneksi terputus", true, 'error'); });
-  window.addEventListener('resize', () => { handleResize(); });
 }
 
 // ============ SHOW PAGE ============
@@ -470,7 +422,7 @@ async function setupAppSession(u) {
   await loadUserLevelAndLimits(u);
   renderLevelBadge();
   
-  // Set limits checker ke moment.js dan keuangan.js
+  // Set limits checker
   if (typeof setLimitsChecker === 'function') {
     setLimitsChecker(canAddMoment);
   }
@@ -487,7 +439,9 @@ async function setupAppSession(u) {
     loginScreen.style.transition = 'all 0.3s ease-out';
     loginScreen.style.opacity = '0';
     loginScreen.style.transform = 'scale(0.95)';
-    setTimeout(() => { loginScreen.style.display = "none"; }, 300);
+    setTimeout(() => { 
+      if (loginScreen) loginScreen.style.display = "none"; 
+    }, 300);
   }
   
   handleResize();
@@ -498,8 +452,9 @@ async function setupAppSession(u) {
     setTimeout(() => { if (appContent) appContent.style.opacity = '1'; }, 100);
   }
   
-  const displayName = u === "FACHMI" ? "Fachmi" : "Azizah";
+  if (hamburgerBtn) hamburgerBtn.style.display = window.innerWidth <= 768 ? "flex" : "none";
   
+  const displayName = u === "FACHMI" ? "Fachmi" : "Azizah";
   const userGreet = document.getElementById("userGreet");
   if (userGreet) userGreet.innerText = displayName;
   
@@ -512,10 +467,8 @@ async function setupAppSession(u) {
   showPage('dashboard');
   
   setTimeout(() => {
-    if (typeof triggerConfetti === 'function') {
-      triggerConfetti();
-      showNotif(`🎉 Selamat datang, ${displayName}!`, false, 'success');
-    }
+    triggerConfetti();
+    showNotif(`🎉 Selamat datang, ${displayName}!`, false, 'success');
   }, 500);
 }
 
@@ -526,10 +479,6 @@ function checkAuth() {
   if (savedUser && validateSession && validateSession()) {
     setCurrentUser(savedUser);
     setupAppSession(savedUser);
-  } else if (savedUser) {
-    console.log("Invalid session, forcing logout");
-    sessionStorage.clear();
-    location.reload();
   }
 }
 
@@ -537,67 +486,78 @@ function checkAuth() {
 function initFirebaseListener() {
   cleanupAllListeners();
   
-  if (!appInitialized) {
-    console.log("Initializing Firebase listener...");
-    firebaseListener = onValue(ref(db, "data/"), (snapshot) => {
-      const data = snapshot.val() || { 
-        dreams: {}, plans: {}, finances: {}, settings: {}, 
-        moments: {}, vendors: {}, profiles: {}, keuangan: {},
-        catatan: {}, impian: {}
-      };
-      setMasterData(data);
-      
-      if (!data.auth) {
-        set(ref(db, "data/auth"), { FACHMI: "gokil223", AZIZAH: "1234" })
-          .catch(err => console.error("Error creating default auth:", err));
+  console.log("Initializing Firebase listener...");
+  firebaseListener = onValue(ref(db, "data/"), (snapshot) => {
+    const data = snapshot.val() || { 
+      dreams: {}, plans: {}, finances: {}, settings: {}, 
+      moments: {}, vendors: {}, profiles: {}, keuangan: {},
+      catatan: {}, impian: {}
+    };
+    setMasterData(data);
+    
+    const loggedUser = sessionStorage.getItem("progrowth_user");
+    if (loggedUser && validateSession && validateSession()) {
+      if (currentPage === "dashboard" && typeof renderDashboard === 'function') renderDashboard();
+      else if (currentPage === "moment" && typeof renderCalendar === 'function') { 
+        renderCalendar(); 
+        if (typeof renderMomentsList === 'function') renderMomentsList(); 
       }
-      
-      const loggedUser = sessionStorage.getItem("progrowth_user");
-      if (loggedUser && appInitialized && validateSession && validateSession()) {
-        if (currentPage === "dashboard" && typeof renderDashboard === 'function') renderDashboard();
-        else if (currentPage === "moment" && typeof renderCalendar === 'function') { 
-          renderCalendar(); 
-          if (typeof renderMomentsList === 'function') renderMomentsList(); 
-        }
-        else if (currentPage === "keuangan" && typeof initKeuangan === 'function') initKeuangan();
-        else if (currentPage === "catatan" && typeof initCatatan === 'function') initCatatan();
-        else if (currentPage === "impian" && typeof initImpian === 'function') initImpian();
-      }
-      
-      console.log("Firebase data synced");
-    }, (error) => {
-      console.error("Firebase listener error:", error);
-      showNotif("⚠️ Gagal terhubung ke server", true, 'error');
-    });
+      else if (currentPage === "keuangan" && typeof initKeuangan === 'function') initKeuangan();
+      else if (currentPage === "catatan" && typeof initCatatan === 'function') initCatatan();
+      else if (currentPage === "impian" && typeof initImpian === 'function') initImpian();
+    }
+    
+    console.log("Firebase data synced");
+  }, (error) => {
+    console.error("Firebase listener error:", error);
+    showNotif("⚠️ Gagal terhubung ke server", true, 'error');
+  });
+}
+
+// ============ TOAST CONTAINER ============
+function injectToastContainer() {
+  if (!document.getElementById('customToastContainer')) {
+    const toastContainer = document.createElement('div');
+    toastContainer.id = 'customToastContainer';
+    toastContainer.style.cssText = `
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      pointer-events: none;
+    `;
+    document.body.appendChild(toastContainer);
   }
 }
 
 // ============ INIT APP ============
 async function init() {
   console.log("🚀 Initializing Growthogether App...");
-  showInitialLoading();
   
+  showInitialLoading();
   injectToastContainer();
   initOfflineIndicator();
-  await loadComponents();
-  checkAuth();
-  initFirebaseListener();
-  initPengingat(); // Initialize birthday reminder
   
-  if (typeof initClickAnimation === 'function') {
-    initClickAnimation();
+  const componentsLoaded = await loadComponents();
+  
+  if (!componentsLoaded) {
+    return;
   }
   
+  checkAuth();
+  initFirebaseListener();
+  initClickAnimation();
   appInitialized = true;
   
   setTimeout(() => {
     hideInitialLoading();
-  }, 1000);
+  }, 1500);
   
   console.log("✅ App initialized successfully");
 }
 
-// ============ EXPORTS KE WINDOW ============
+// ============ EXPORTS ============
 window.setupAppSession = setupAppSession;
 window.showPage = showPage;
 window.renderDashboard = renderDashboard;
@@ -626,11 +586,6 @@ window.registerListener = registerListener;
 window.initHamburgerMenu = initHamburgerMenu;
 window.handleResize = handleResize;
 window.renderLevelBadge = renderLevelBadge;
-window.renderBirthdayInProfile = renderBirthdayInProfile;
-window.initPengingat = initPengingat;
-window.stopBirthdayChecker = stopBirthdayChecker;
-
-// Register logout handler
 window.handleLogout = handleLogout;
 
 document.addEventListener("DOMContentLoaded", init);
