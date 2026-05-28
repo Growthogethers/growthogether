@@ -1,4 +1,4 @@
-// js/utils.js - Lengkap dengan Pair System (Data per Pasangan) - FINAL FIXED
+// js/utils.js - Kompatibel dengan struktur partners dari admin panel
 import { db, ref, get, set, push, remove, update } from './firebase-config.js';
 
 export let currentUser = null;
@@ -67,26 +67,68 @@ export function clearCache(key) {
   console.log("Cache cleared:", key || "all");
 }
 
-// ============ LOAD PAIR DATA ============
+// ============ LOAD PARTNER FROM EXISTING STRUCTURE ============
 export async function loadUserPartnerAndPair(username) {
   try {
-    const userSnap = await get(ref(db, `data/users/${username}`));
-    const userData = userSnap.val();
+    console.log(`Loading partner for user: ${username}`);
     
-    if (userData && userData.pairId) {
-      currentPairId = userData.pairId;
-      console.log(`PairId for ${username}: ${currentPairId}`);
+    // Cek dari node partners (struktur dari admin panel)
+    const partnerSnap = await get(ref(db, `data/partners/${username}`));
+    let partner = partnerSnap.val();
+    
+    if (partner) {
+      currentPartner = partner;
+      console.log(`Partner found via partners node: ${currentPartner}`);
       
+      // Buat pairId dari username dan partner (diurutkan)
+      const pair = [username, partner].sort();
+      currentPairId = `${pair[0]}_${pair[1]}`;
+      sessionStorage.setItem('progrowth_pairId', currentPairId);
+      
+      // Cek atau buat data pair di nodes pairs
       const pairSnap = await get(ref(db, `data/pairs/${currentPairId}`));
-      currentPairData = pairSnap.val() || { members: [], moments: {}, keuangan: { transaksi: {} }, catatan: {} };
+      if (!pairSnap.exists()) {
+        // Buat data pair baru jika belum ada
+        await set(ref(db, `data/pairs/${currentPairId}`), {
+          members: [username, partner],
+          moments: {},
+          keuangan: { transaksi: {} },
+          catatan: { kategori: {}, items: {} },
+          createdAt: Date.now()
+        });
+        console.log(`Created new pair data for: ${currentPairId}`);
+      }
       
-      const members = currentPairData.members || [];
-      currentPartner = members.find(m => m !== username) || null;
+      currentPairData = pairSnap.val() || { members: [username, partner], moments: {}, keuangan: { transaksi: {} }, catatan: {} };
       
-      console.log(`Partner for ${username}: ${currentPartner}`);
+      // Update user dengan pairId jika belum ada
+      const userSnap = await get(ref(db, `data/users/${username}`));
+      const userData = userSnap.val();
+      if (userData && !userData.pairId) {
+        await update(ref(db, `data/users/${username}`), { pairId: currentPairId });
+        console.log(`Updated user ${username} with pairId: ${currentPairId}`);
+      }
+      
       return currentPartner;
     } else {
-      console.log(`User ${username} has no pair yet`);
+      // Cek dari node users (alternatif)
+      const userSnap = await get(ref(db, `data/users/${username}`));
+      const userData = userSnap.val();
+      
+      if (userData && userData.pairId) {
+        currentPairId = userData.pairId;
+        console.log(`PairId from user data: ${currentPairId}`);
+        
+        const pairSnap = await get(ref(db, `data/pairs/${currentPairId}`));
+        currentPairData = pairSnap.val() || { members: [], moments: {}, keuangan: { transaksi: {} }, catatan: {} };
+        
+        const members = currentPairData.members || [];
+        currentPartner = members.find(m => m !== username) || null;
+        console.log(`Partner from pair data: ${currentPartner}`);
+        return currentPartner;
+      }
+      
+      console.log(`User ${username} has no partner yet`);
       currentPairId = null;
       currentPartner = null;
       currentPairData = null;
