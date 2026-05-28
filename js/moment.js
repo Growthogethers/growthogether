@@ -528,6 +528,7 @@ export function addFilterToMomentPage() {
 }
 
 // Exports
+// Di akhir file moment.js, pastikan semua fungsi yang diperlukan tersedia
 window.renderCalendar = renderCalendar;
 window.renderMomentsList = renderMomentsList;
 window.selectMomentDate = selectMomentDate;
