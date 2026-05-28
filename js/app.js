@@ -1,12 +1,11 @@
-// js/app.js - Main Application (PERBAIKAN LENGKAP dengan Partner System)
-import { db, ref, onValue, set } from './firebase-config.js';
+// js/app.js - Main Application dengan Pair System (FIXED)
+import { db, ref, onValue } from './firebase-config.js';
 import { 
   masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser, 
   showLoading, hideLoading, getCache, setCache, clearCache, throttle,
   triggerConfetti, initClickAnimation, escapeHtml,
-  loadUserLevelAndLimits, renderLevelBadge, canAddMoment, canAddTransaction, canAddCatatan, getRemainingLimits,
-  loadUserPartner, filterMomentsByUser, filterKeuanganByUser, currentPartner, currentPairId,
-  getCatatanByPair, currentUserLimits, currentUserLevel
+  loadUserLevelAndLimits, renderLevelBadge, canAddMoment, canAddTransaction, canAddCatatan,
+  loadUserPartnerAndPair, currentPartner, currentPairId, currentUserLimits, currentUserLevel
 } from './utils.js';
 import { 
   handleLogin, 
@@ -19,7 +18,6 @@ import {
   openChangePasswordFromProfile,
   forceRefreshProfile,
   updateProfileUI,
-  initProfile,
   validateSession,
   cleanupAuthListeners
 } from './auth.js';
@@ -49,7 +47,7 @@ let appInitialized = false;
 let offlineIndicator = null;
 let activeListeners = [];
 
-// ============ CLEANUP SEMUA LISTENER ============
+// ============ CLEANUP ============
 export function cleanupAllListeners() {
   console.log("Cleaning up all Firebase listeners...");
   
@@ -186,7 +184,7 @@ async function loadComponents() {
   }
 }
 
-// ============ HAMBURGER MENU FUNCTIONS ============
+// ============ HAMBURGER MENU ============
 function initHamburgerMenu() {
   setTimeout(() => {
     const hamburgerBtn = document.getElementById('hamburgerMenuBtn');
@@ -392,17 +390,17 @@ function showPage(pageId) {
     el.classList.add("active");
   });
   
-  setTimeout(() => {
+  setTimeout(async () => {
     if (pageId === "moment") {
       const limits = currentUserLimits;
       if (limits && limits.hasMoment === false) {
         showNotif(`⚠️ Akun Trial tidak dapat mengakses Menu Momen. Upgrade ke Basic atau Pro untuk akses penuh!`, true, 'warning');
         return;
       }
-      if (typeof renderCalendar === 'function') renderCalendar();
-      if (typeof renderMomentsList === 'function') renderMomentsList();
+      if (typeof renderCalendar === 'function') await renderCalendar();
+      if (typeof renderMomentsList === 'function') await renderMomentsList();
     } else if (pageId === "dashboard") {
-      if (typeof renderDashboard === 'function') renderDashboard();
+      if (typeof renderDashboard === 'function') await renderDashboard();
     } else if (pageId === "keuangan") {
       if (typeof initKeuangan === 'function') initKeuangan();
     } else if (pageId === "catatan") {
@@ -426,11 +424,11 @@ async function setupAppSession(u) {
   const userData = await loadUserLevelAndLimits(u);
   console.log("User level and limits loaded:", userData);
   
-  // Load partner
-  const partner = await loadUserPartner(u);
+  // Load partner and pair data
+  const partner = await loadUserPartnerAndPair(u);
   console.log(`Partner for ${u}: ${partner}, PairId: ${currentPairId}`);
   
-  renderLevelBadge();
+  await renderLevelBadge();
   
   // Set limits checker
   if (typeof setLimitsChecker === 'function') {
@@ -464,7 +462,7 @@ async function setupAppSession(u) {
   
   if (hamburgerBtn) hamburgerBtn.style.display = window.innerWidth <= 768 ? "flex" : "none";
   
-  const displayName = u === "FACHMI" ? "Fachmi" : "Azizah";
+  const displayName = u === "FACHMI" ? "Fachmi" : u === "AZIZAH" ? "Azizah" : u;
   const userGreet = document.getElementById("userGreet");
   if (userGreet) userGreet.innerText = displayName;
   
@@ -484,12 +482,25 @@ async function setupAppSession(u) {
     partnerInfo.innerHTML = `<small class="text-muted"><i class="bi bi-heart-fill text-danger me-1"></i> Pasangan: ${partnerName}</small>`;
   }
   
+  // Tampilkan pairId info untuk debugging
+  let pairInfo = document.getElementById("pairInfo");
+  if (!pairInfo && currentPairId) {
+    const footer = document.querySelector('.mt-auto');
+    if (footer) {
+      pairInfo = document.createElement('div');
+      pairInfo.id = 'pairInfo';
+      pairInfo.className = 'text-center mt-2';
+      pairInfo.innerHTML = `<small class="text-muted">ID Pasangan: ${currentPairId}</small>`;
+      footer.appendChild(pairInfo);
+    }
+  }
+  
   setTimeout(() => {
     if (typeof forceRefreshProfile === 'function') forceRefreshProfile();
     if (typeof updateProfileUI === 'function') updateProfileUI();
   }, 200);
   
-  renderDashboard();
+  await renderDashboard();
   showPage('dashboard');
   
   setTimeout(() => {
@@ -516,32 +527,25 @@ function initFirebaseListener() {
   cleanupAllListeners();
   
   console.log("Initializing Firebase listener...");
-  firebaseListener = onValue(ref(db, "data/"), (snapshot) => {
-    const data = snapshot.val() || { 
-      dreams: {}, plans: {}, finances: {}, settings: {}, 
-      moments: {}, vendors: {}, profiles: {}, keuangan: {},
-      catatan: {}, impian: {}
-    };
-    
-    // Filter data berdasarkan user yang login
-    const loggedUser = sessionStorage.getItem("progrowth_user");
-    if (loggedUser && validateSession && validateSession()) {
-      const filteredMoments = filterMomentsByUser(data.moments || {});
-      data.filteredMoments = filteredMoments;
-    }
-    
+  firebaseListener = onValue(ref(db, "data/"), async (snapshot) => {
+    const data = snapshot.val() || {};
     setMasterData(data);
     
-    const loggedUser2 = sessionStorage.getItem("progrowth_user");
-    if (loggedUser2 && validateSession && validateSession()) {
-      if (currentPage === "dashboard" && typeof renderDashboard === 'function') renderDashboard();
-      else if (currentPage === "moment" && typeof renderCalendar === 'function') { 
-        renderCalendar(); 
-        if (typeof renderMomentsList === 'function') renderMomentsList(); 
+    const loggedUser = sessionStorage.getItem("progrowth_user");
+    if (loggedUser && validateSession && validateSession()) {
+      // Refresh shared data if needed
+      if (currentPage === "dashboard" && typeof renderDashboard === 'function') {
+        await renderDashboard();
+      } else if (currentPage === "moment" && typeof renderCalendar === 'function') { 
+        await renderCalendar(); 
+        await renderMomentsList(); 
+      } else if (currentPage === "keuangan" && typeof initKeuangan === 'function') {
+        initKeuangan();
+      } else if (currentPage === "catatan" && typeof initCatatan === 'function') {
+        initCatatan();
+      } else if (currentPage === "impian" && typeof initImpian === 'function') {
+        initImpian();
       }
-      else if (currentPage === "keuangan" && typeof initKeuangan === 'function') initKeuangan();
-      else if (currentPage === "catatan" && typeof initCatatan === 'function') initCatatan();
-      else if (currentPage === "impian" && typeof initImpian === 'function') initImpian();
     }
     
     console.log("Firebase data synced");
