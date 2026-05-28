@@ -3,7 +3,8 @@ import { db, ref, onValue, set } from './firebase-config.js';
 import { 
   masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser, 
   showLoading, hideLoading, getCache, setCache, clearCache, throttle,
-  triggerConfetti, initClickAnimation, escapeHtml
+  triggerConfetti, initClickAnimation, escapeHtml,
+  loadUserLevelAndLimits, renderLevelBadge, canAddMoment, canAddTransaction, canAddCatatan, getRemainingLimits
 } from './utils.js';
 import { 
   handleLogin, 
@@ -33,9 +34,10 @@ import {
   handleMultiplePhotos, 
   removePhotoAtIndex, 
   editMomentFromDetail,
-  clearCalendarCache
+  clearCalendarCache,
+  setLimitsChecker
 } from './moment.js';
-import { initKeuangan } from './keuangan.js';
+import { initKeuangan, setKeuanganLimitsChecker } from './keuangan.js';
 import { initCatatan } from './catatan.js';
 import { initImpian } from './impian.js';
 
@@ -296,7 +298,6 @@ function handleResize() {
   const hamburgerBtn = document.getElementById("hamburgerMenuBtn");
   
   if (window.innerWidth > 768) {
-    // DESKTOP MODE
     if (appContent) appContent.style.marginLeft = "280px";
     if (sidebar) {
       sidebar.style.display = "flex";
@@ -308,7 +309,6 @@ function handleResize() {
     if (overlay) overlay.classList.remove('active');
     document.body.style.overflow = '';
   } else {
-    // MOBILE MODE
     if (appContent) appContent.style.marginLeft = "0";
     if (sidebar) {
       sidebar.style.display = "flex";
@@ -445,8 +445,20 @@ function showPage(pageId) {
 }
 
 // ============ SETUP APP SESSION ============
-function setupAppSession(u) {
+async function setupAppSession(u) {
   console.log("Setting up session for user:", u);
+  
+  // Load user level and limits
+  await loadUserLevelAndLimits(u);
+  renderLevelBadge();
+  
+  // Set limits checker ke moment.js dan keuangan.js
+  if (typeof setLimitsChecker === 'function') {
+    setLimitsChecker(canAddMoment);
+  }
+  if (typeof setKeuanganLimitsChecker === 'function') {
+    setKeuanganLimitsChecker(canAddTransaction);
+  }
   
   const loginScreen = document.getElementById("login-screen");
   const sidebar = document.getElementById("app-sidebar");
@@ -611,6 +623,7 @@ window.cleanupAllListeners = cleanupAllListeners;
 window.registerListener = registerListener;
 window.initHamburgerMenu = initHamburgerMenu;
 window.handleResize = handleResize;
+window.renderLevelBadge = renderLevelBadge;
 
 // Register logout handler
 window.handleLogout = handleLogout;
