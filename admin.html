@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+  <title>Admin Panel - GrowthTogether</title>
+  <!-- Bootstrap 5 + Icons + Font -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
+        "firebase/database": "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"
+      }
+    }
+  </script>
+  <style>
+    * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #faf5ff;
+      transition: background 0.2s;
+    }
+    body.dark {
+      background: #1a1025;
+    }
+    /* SIDEBAR ADMIN */
+    .admin-wrapper {
+      display: flex;
+      min-height: 100vh;
+    }
+    .admin-sidebar {
+      width: 280px;
+      background: white;
+      border-right: 1px solid #e9d5ff;
+      padding: 1.5rem 1rem;
+      position: fixed;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+    body.dark .admin-sidebar {
+      background: #2d1a3a;
+      border-right-color: #4c1d6e;
+    }
+    .sidebar-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .logo-icon {
+      background: linear-gradient(135deg, #7009b4, #4000C6);
+      width: 55px;
+      height: 55px;
+      border-radius: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+    .logo-icon i { font-size: 28px; color: white; }
+    .admin-sidebar .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      color: #4c1d95;
+      font-weight: 500;
+      transition: all 0.2s;
+      margin-bottom: 4px;
+      cursor: pointer;
+    }
+    body.dark .admin-sidebar .nav-link { color: #d8b4fe; }
+    .admin-sidebar .nav-link i { font-size: 1.25rem; width: 24px; }
+    .admin-sidebar .nav-link.active {
+      background: linear-gradient(135deg, #7009b4, #4000C6);
+      color: white;
+      box-shadow: 0 4px 12px rgba(112,9,180,0.3);
+    }
+    .admin-sidebar .nav-link:active { transform: scale(0.97); }
+    .admin-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 1.8rem 2rem;
+      transition: margin-left 0.3s;
+    }
+    /* Cards - Ukuran Konsisten */
+    .stat-card {
+      background: white;
+      border-radius: 20px;
+      border: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      transition: transform 0.2s, box-shadow 0.2s;
+      overflow: hidden;
+      height: 100%;
+      min-height: 130px;
+    }
+    body.dark .stat-card { background: #3d1f3d; }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 24px rgba(112,9,180,0.12); }
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Subscription Card */
+    .subscription-card {
+      background: white;
+      border-radius: 20px;
+      border: 1px solid #e9d5ff;
+      transition: all 0.2s;
+      height: 100%;
+    }
+    body.dark .subscription-card {
+      background: #2d1a3a;
+      border-color: #4c1d6e;
+    }
+    .subscription-card.pro {
+      background: linear-gradient(135deg, #7009b4, #4000C6);
+      color: white;
+      border: none;
+    }
+    .subscription-card.pro .text-muted { color: #d8b4fe !important; }
+    .subscription-card.pro .btn-outline-primary { 
+      background: rgba(255,255,255,0.2);
+      border-color: white;
+      color: white;
+    }
+    .btn-gradient {
+      background: linear-gradient(135deg, #7009b4, #4000C6);
+      border: none;
+      color: white;
+      border-radius: 40px;
+      padding: 8px 20px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .btn-gradient:active { transform: scale(0.96); }
+    .invite-card {
+      background: white;
+      border-radius: 24px;
+      border: 1px solid #e9d5ff;
+    }
+    body.dark .invite-card { background: #2d1a3a; border-color: #4c1d6e; }
+    .generated-link {
+      background: #f3e8ff;
+      padding: 12px;
+      border-radius: 18px;
+      font-size: 13px;
+      word-break: break-all;
+    }
+    body.dark .generated-link { background: #1e1028; color: #d8b4fe; }
+    .dark-mode-fab {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 48px;
+      height: 48px;
+      border-radius: 30px;
+      background: linear-gradient(135deg, #7009b4, #4000C6);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      cursor: pointer;
+      z-index: 1050;
+    }
+    /* Tabel User */
+    .user-table th, .user-table td {
+      vertical-align: middle;
+      padding: 14px 12px;
+    }
+    .badge-pro { background: linear-gradient(135deg, #7009b4, #4000C6); color: white; }
+    .badge-basic { background: #3b82f6; color: white; }
+    .badge-free { background: #10b981; color: white; }
+    @media (max-width: 768px) {
+      .admin-sidebar {
+        left: -280px;
+        position: fixed;
+      }
+      .admin-sidebar.open { left: 0; }
+      .admin-content { margin-left: 0; padding: 1rem; }
+      .hamburger {
+        display: flex;
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        z-index: 1060;
+        background: linear-gradient(135deg, #7009b4, #4000C6);
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        border: none;
+      }
+    }
+    .hamburger { display: none; }
+    .sidebar-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1040;
+      display: none;
+    }
+    /* Modal Register */
+    .register-modal .modal-content {
+      border-radius: 28px;
+    }
+    .limit-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: #f3e8ff;
+      color: #7009b4;
+    }
+  </style>
+</head>
+<body>
+<div class="admin-wrapper">
+  <!-- Sidebar Admin -->
+  <div class="admin-sidebar" id="adminSidebar">
+    <div class="sidebar-header">
+      <div class="logo-icon"><i class="bi bi-arrow-through-heart-fill"></i></div>
+      <h5 class="fw-bold mt-2 mb-0">growthogether</h5>
+      <small class="text-muted">Admin Panel</small>
+    </div>
+    <nav class="nav flex-column">
+      <a class="nav-link active" data-section="dashboard">
+        <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
+      </a>
+      <a class="nav-link" data-section="users">
+        <i class="bi bi-people-fill"></i> <span>Kelola Pengguna</span>
+      </a>
+      <a class="nav-link" data-section="offers">
+        <i class="bi bi-tags-fill"></i> <span>Penawaran & Paket</span>
+      </a>
+      <a class="nav-link" data-section="undangan">
+        <i class="bi bi-envelope-heart-fill"></i> <span>Kelola Undangan</span>
+      </a>
+      <a class="nav-link" data-section="invite-list">
+        <i class="bi bi-people-fill"></i> <span>Daftar Tamu Undangan</span>
+      </a>
+    </nav>
+    <div class="mt-auto pt-4">
+      <button class="btn btn-sm btn-outline-danger rounded-pill w-100" id="adminLogoutBtn">
+        <i class="bi bi-box-arrow-right me-2"></i> Keluar Admin
+      </button>
+      <button class="btn btn-sm btn-outline-secondary rounded-pill w-100 mt-2" id="backToAppBtn">
+        <i class="bi bi-house-heart me-2"></i> Kembali ke App
+      </button>
+    </div>
+  </div>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <button class="hamburger" id="hamburgerBtn"><i class="bi bi-list fs-4"></i></button>
+
+  <div class="admin-content" id="adminContent">
+    <!-- Dashboard Section -->
+    <div id="dashboardSection">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h4 class="fw-bold"><i class="bi bi-activity text-primary me-2"></i>Rangkuman GrowthTogether</h4>
+          <p class="text-muted small">Data realtime dari semua fitur pasangan</p>
+        </div>
+        <button id="refreshDashboardBtn" class="btn btn-sm btn-outline-primary rounded-pill"><i class="bi bi-arrow-repeat me-1"></i> Refresh</button>
+      </div>
+      <!-- Stat Cards - Ukuran Konsisten menggunakan row g-4 -->
+      <div class="row g-4 mb-5">
+        <div class="col-md-3 col-sm-6 col-6">
+          <div class="stat-card p-3 d-flex flex-column justify-content-between h-100">
+            <div class="d-flex justify-content-between align-items-start">
+              <div><small class="text-muted">Total Momen</small><h2 class="fw-bold mt-1 mb-0" id="totalMoments">0</h2></div>
+              <div class="stat-icon bg-danger bg-opacity-10"><i class="bi bi-calendar-heart fs-3 text-danger"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6 col-6">
+          <div class="stat-card p-3 d-flex flex-column justify-content-between h-100">
+            <div class="d-flex justify-content-between align-items-start">
+              <div><small class="text-muted">Total Rencana</small><h2 class="fw-bold mt-1 mb-0" id="totalPlanningItems">0</h2></div>
+              <div class="stat-icon bg-warning bg-opacity-10"><i class="bi bi-journal-bookmark-fill fs-3 text-warning"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6 col-6">
+          <div class="stat-card p-3 d-flex flex-column justify-content-between h-100">
+            <div class="d-flex justify-content-between align-items-start">
+              <div><small class="text-muted">Total Saldo</small><h2 class="fw-bold mt-1 mb-0" id="totalBalance">Rp 0</h2></div>
+              <div class="stat-icon bg-success bg-opacity-10"><i class="bi bi-wallet2 fs-3 text-success"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6 col-6">
+          <div class="stat-card p-3 d-flex flex-column justify-content-between h-100">
+            <div class="d-flex justify-content-between align-items-start">
+              <div><small class="text-muted">Total Pengguna</small><h2 class="fw-bold mt-1 mb-0" id="totalUsers">2</h2></div>
+              <div class="stat-icon bg-info bg-opacity-10"><i class="bi bi-person-badge fs-3 text-info"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Grafik -->
+      <div class="card border-0 shadow-sm mt-2">
+        <div class="card-body">
+          <h6 class="fw-bold"><i class="bi bi-graph-up me-2"></i>Trend Keuangan Gabungan</h6>
+          <canvas id="adminChart" height="200" style="max-height: 260px;"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kelola Pengguna Section -->
+    <div id="usersSection" style="display: none;">
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <h4 class="fw-bold"><i class="bi bi-people-fill text-primary me-2"></i>Kelola Pengguna GrowthTogether</h4>
+        <button class="btn btn-gradient rounded-pill" data-bs-toggle="modal" data-bs-target="#registerUserModal">
+          <i class="bi bi-person-plus-fill me-2"></i>Daftarkan Pengguna Baru
+        </button>
+      </div>
+      
+      <!-- Daftar Pengguna -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 user-table">
+              <thead class="bg-light">
+                <tr><th>ID User</th><th>Username</th><th>Nama</th><th>Level</th><th>Limit Momen</th><th>Limit Keuangan</th><th>Limit Catatan</th><th>Status</th><th>Aksi</th></tr>
+              </thead>
+              <tbody id="usersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Penawaran & Paket Section -->
+    <div id="offersSection" style="display: none;">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold"><i class="bi bi-tags-fill text-success me-2"></i>Penawaran & Paket Berlangganan</h4>
+      </div>
+      
+      <div class="row g-4">
+        <!-- Paket Free -->
+        <div class="col-md-4">
+          <div class="subscription-card p-4 text-center h-100">
+            <div class="mb-3">
+              <span class="badge bg-success rounded-pill px-3 py-2">GRATIS</span>
+            </div>
+            <h2 class="fw-bold mb-0">Rp 0</h2>
+            <p class="text-muted small">/selamanya</p>
+            <hr>
+            <ul class="list-unstyled text-start mt-3">
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> 5 Momen (Upload Foto)</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> 5 Transaksi Keuangan</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> 5 Item Catatan</li>
+              <li class="mb-2 text-muted"><i class="bi bi-x-circle-fill text-danger me-2"></i> Tanpa Impian</li>
+              <li class="text-muted"><i class="bi bi-x-circle-fill text-danger me-2"></i> Tanpa Fitur Premium</li>
+            </ul>
+            <button class="btn btn-outline-success rounded-pill w-100 mt-3" disabled>Paket Saat Ini</button>
+          </div>
+        </div>
+        
+        <!-- Paket Basic -->
+        <div class="col-md-4">
+          <div class="subscription-card p-4 text-center h-100">
+            <div class="mb-3">
+              <span class="badge bg-primary rounded-pill px-3 py-2">BASIC</span>
+            </div>
+            <h2 class="fw-bold mb-0">Rp 49.000</h2>
+            <p class="text-muted small">/bulan</p>
+            <hr>
+            <ul class="list-unstyled text-start mt-3">
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> 50 Momen (Upload Foto)</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> 50 Transaksi Keuangan</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> 50 Item Catatan</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> Impian & Target</li>
+              <li><i class="bi bi-check-circle-fill text-primary me-2"></i> Ekspor Data CSV</li>
+            </ul>
+            <button class="btn btn-primary rounded-pill w-100 mt-3 upgrade-basic">Upgrade ke Basic</button>
+          </div>
+        </div>
+        
+        <!-- Paket Pro -->
+        <div class="col-md-4">
+          <div class="subscription-card pro p-4 text-center h-100">
+            <div class="mb-3">
+              <span class="badge bg-light text-dark rounded-pill px-3 py-2">PRO</span>
+            </div>
+            <h2 class="fw-bold mb-0">Rp 99.000</h2>
+            <p class="small opacity-75">/bulan</p>
+            <hr class="border-light">
+            <ul class="list-unstyled text-start mt-3">
+              <li class="mb-2"><i class="bi bi-infinity-fill me-2"></i> Tanpa Batas Momen</li>
+              <li class="mb-2"><i class="bi bi-infinity-fill me-2"></i> Tanpa Batas Keuangan</li>
+              <li class="mb-2"><i class="bi bi-infinity-fill me-2"></i> Tanpa Batas Catatan</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill me-2"></i> Semua Fitur Premium</li>
+              <li><i class="bi bi-check-circle-fill me-2"></i> Prioritas Dukungan</li>
+            </ul>
+            <button class="btn btn-light rounded-pill w-100 mt-3 upgrade-pro" style="color:#7009b4; font-weight:600;">Upgrade ke Pro</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Informasi Limit Pengguna -->
+      <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body">
+          <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-2"></i>Status Penggunaan Saat Ini</h6>
+          <div id="usageStats" class="row g-3"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bagian Generate Undangan -->
+    <div id="undanganSection" style="display: none;">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold"><i class="bi bi-envelope-heart-fill text-pink me-2"></i>Bagikan Undangan Digital</h4>
+      </div>
+      <div class="row g-4">
+        <div class="col-lg-5">
+          <div class="invite-card p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-person-plus me-2"></i>Buat Link Undangan</h5>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Nama Tamu *</label>
+              <input type="text" id="guestName" class="form-control rounded-pill" placeholder="Contoh: Ahmad & Siti">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">No. Telepon / WA</label>
+              <input type="tel" id="guestPhone" class="form-control rounded-pill" placeholder="08123456789">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Catatan Khusus</label>
+              <textarea id="guestNote" rows="2" class="form-control rounded-3" placeholder="Tambahan pesan untuk pasangan..."></textarea>
+            </div>
+            <button class="btn btn-gradient w-100 rounded-pill" id="generateInviteBtn"><i class="bi bi-link-45deg me-2"></i> Generate Link</button>
+            <div id="generatedLinkContainer" class="mt-3" style="display: none;">
+              <label class="fw-semibold small">Link Undangan:</label>
+              <div class="generated-link d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <code id="inviteLinkText" class="small"></code>
+                <button class="btn btn-sm btn-outline-secondary rounded-pill" id="copyLinkBtn"><i class="bi bi-files"></i> Salin</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-7">
+          <div class="invite-card p-4 h-100">
+            <h5 class="fw-bold mb-3"><i class="bi bi-grid-3x3-gap-fill"></i> Preview Undangan</h5>
+            <div class="preview-placeholder text-center p-4 bg-light rounded-4" id="invitePreview">
+              <i class="bi bi-envelope-paper-heart fs-1 text-muted"></i>
+              <p class="mt-2">Isi nama tamu untuk pratinjau</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daftar Tamu Undangan -->
+    <div id="inviteListSection" style="display: none;">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold"><i class="bi bi-people-fill me-2"></i>Daftar Tamu & Undangan</h4>
+        <button id="refreshInvitesBtn" class="btn btn-sm btn-outline-secondary rounded-pill"><i class="bi bi-arrow-repeat"></i> Muat ulang</button>
+      </div>
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="bg-light">
+                <tr><th>Nama Tamu</th><th>No Telepon</th><th>Link Undangan</th><th>Dibuat</th><th>Aksi</th></tr>
+              </thead>
+              <tbody id="inviteTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button class="dark-mode-fab" id="darkModeFab"><i class="bi bi-moon-stars fs-5"></i></button>
+</div>
+
+<!-- Modal Register User Baru -->
+<div class="modal fade" id="registerUserModal" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-content rounded-4 register-modal">
+      <div class="modal-header border-0 bg-gradient text-white" style="background: linear-gradient(135deg, #7009b4, #4000C6);">
+        <h5 class="fw-bold mb-0"><i class="bi bi-person-plus-fill me-2"></i>Daftarkan Pengguna Baru</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Username *</label>
+          <input type="text" id="regUsername" class="form-control rounded-3" placeholder="Contoh: BUDI">
+          <small class="text-muted">Huruf kapital, tanpa spasi (min 3 karakter)</small>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Nama Lengkap *</label>
+          <input type="text" id="regFullname" class="form-control rounded-3" placeholder="Contoh: Budi Santoso">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Password *</label>
+          <input type="password" id="regPassword" class="form-control rounded-3" placeholder="Minimal 4 karakter">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Level Awal</label>
+          <select id="regLevel" class="form-select rounded-3">
+            <option value="free">Free (5 limit)</option>
+            <option value="basic">Basic (50 limit)</option>
+            <option value="pro">Pro (Tanpa Batas)</option>
+          </select>
+        </div>
+        <div class="alert alert-info alert-sm py-2 mb-0">
+          <i class="bi bi-info-circle me-1"></i>
+          Setiap pengguna akan mendapatkan ID unik otomatis
+        </div>
+      </div>
+      <div class="modal-footer border-0 pb-4">
+        <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-gradient rounded-pill px-4" id="confirmRegisterBtn">Daftarkan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "firebase/app";
+  import { getDatabase, ref, get, set, push, onValue, remove, update } from "firebase/database";
+  
+  const firebaseConfig = { 
+    apiKey: "AIzaSyBeUaOyesw9ucpBGumNjrzUp3WfUtXu39w", 
+    authDomain: "growthogether.firebaseapp.com", 
+    databaseURL: "https://growthogether-default-rtdb.asia-southeast1.firebasedatabase.app", 
+    projectId: "growthogether", 
+    storageBucket: "growthogether.firebasestorage.app", 
+    messagingSenderId: "784796645743", 
+    appId: "1:784796645743:web:e4eb40810d3051826d909a" 
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  
+  let adminChart = null;
+  let currentSection = 'dashboard';
+  
+  // Helper Functions
+  function formatRp(val) { return `Rp ${(val || 0).toLocaleString('id-ID')}`; }
+  function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+  
+  // Hash Password SHA-256
+  async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password + "growthogether_salt_2024");
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  
+  // Generate User ID Unik
+  async function generateUserId() {
+    const usersRef = ref(db, "data/users");
+    const snapshot = await get(usersRef);
+    const users = snapshot.val() || {};
+    let maxId = 0;
+    Object.values(users).forEach(user => {
+      if (user.userId && parseInt(user.userId) > maxId) {
+        maxId = parseInt(user.userId);
+      }
+    });
+    const newId = maxId + 1;
+    return String(newId).padStart(3, '0');
+  }
+  
+  // Load Dashboard Stats
+  async function loadDashboardStats() {
+    try {
+      const snapshot = await get(ref(db, "data/"));
+      const data = snapshot.val() || {};
+      const moments = data.moments || {};
+      const totalMoments = Object.keys(moments).length;
+      
+      const catatanItems = data.catatan?.bersama?.items || {};
+      let totalPlanningItems = 0;
+      Object.values(catatanItems).forEach(katItems => {
+        if (katItems && typeof katItems === 'object') {
+          totalPlanningItems += Object.keys(katItems).filter(key => katItems[key] !== null).length;
+        }
+      });
+      
+      const users = data.users || {};
+      const totalUsers = Object.keys(users).length;
+      
+      let totalBalance = 0;
+      const userList = Object.values(users);
+      for (const user of userList) {
+        const transSnap = await get(ref(db, `data/keuangan/${user.username}/transaksi`));
+        const trans = transSnap.val() || {};
+        let pemasukan = 0, pengeluaran = 0;
+        Object.values(trans).forEach(t => {
+          if (t.tipe === 'pemasukan') pemasukan += (t.nominal || 0);
+          else pengeluaran += (t.nominal || 0);
+        });
+        totalBalance += (pemasukan - pengeluaran);
+      }
+      
+      document.getElementById('totalMoments').innerText = totalMoments;
+      document.getElementById('totalPlanningItems').innerText = totalPlanningItems;
+      document.getElementById('totalUsers').innerText = totalUsers;
+      document.getElementById('totalBalance').innerHTML = formatRp(totalBalance);
+      
+      // Update Chart
+      const allTrans = [];
+      for (const user of userList) {
+        const transSnap = await get(ref(db, `data/keuangan/${user.username}/transaksi`));
+        const trans = transSnap.val() || {};
+        Object.values(trans).forEach(t => allTrans.push({ ...t, user: user.username }));
+      }
+      const last7Days = [];
+      const today = new Date();
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        last7Days.push(d.toISOString().slice(0,10));
+      }
+      const pemasukan7d = [], pengeluaran7d = [];
+      last7Days.forEach(dateStr => {
+        let pMasuk = 0, pKeluar = 0;
+        allTrans.forEach(t => {
+          if (!t.tanggal) return;
+          const txDate = new Date(t.tanggal).toISOString().slice(0,10);
+          if (txDate === dateStr) {
+            if (t.tipe === 'pemasukan') pMasuk += t.nominal;
+            else pKeluar += t.nominal;
+          }
+        });
+        pemasukan7d.push(pMasuk);
+        pengeluaran7d.push(pKeluar);
+      });
+      if (adminChart) adminChart.destroy();
+      const ctx = document.getElementById('adminChart').getContext('2d');
+      adminChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: last7Days.map(d => d.slice(5)),
+          datasets: [
+            { label: 'Pemasukan', data: pemasukan7d, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.3 },
+            { label: 'Pengeluaran', data: pengeluaran7d, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.05)', fill: true, tension: 0.3 }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: Rp ${ctx.raw.toLocaleString('id-ID')}` } } } }
+      });
+    } catch(e) { console.error(e); }
+  }
+  
+  // Load Users List
+  async function loadUsersList() {
+    const snapshot = await get(ref(db, "data/users"));
+    const users = snapshot.val() || {};
+    const tbody = document.getElementById('usersTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    
+    const entries = Object.entries(users);
+    if (entries.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">Belum ada pengguna terdaftar</td></tr>';
+      return;
+    }
+    
+    for (let [username, userData] of entries) {
+      // Hitung penggunaan saat ini
+      const momentsSnap = await get(ref(db, `data/moments`));
+      const moments = momentsSnap.val() || {};
+      const userMoments = Object.values(moments).filter(m => m.author === username).length;
+      
+      const transSnap = await get(ref(db, `data/keuangan/${username}/transaksi`));
+      const trans = transSnap.val() || {};
+      const userTrans = Object.keys(trans).length;
+      
+      const catatanItems = await get(ref(db, `data/catatan/bersama/items`));
+      const catatan = catatanItems.val() || {};
+      let userCatatan = 0;
+      Object.values(catatan).forEach(katItems => {
+        if (katItems && typeof katItems === 'object') {
+          userCatatan += Object.keys(katItems).length;
+        }
+      });
+      
+      const limits = getLimitsForLevel(userData.level);
+      const momentLimitText = limits.moments === Infinity ? '∞' : `${userMoments}/${limits.moments}`;
+      const transLimitText = limits.transactions === Infinity ? '∞' : `${userTrans}/${limits.transactions}`;
+      const catatanLimitText = limits.catatan === Infinity ? '∞' : `${userCatatan}/${limits.catatan}`;
+      
+      const levelBadge = userData.level === 'pro' ? 'badge-pro' : (userData.level === 'basic' ? 'badge-basic' : 'badge-free');
+      const levelText = userData.level === 'pro' ? 'PRO' : (userData.level === 'basic' ? 'BASIC' : 'FREE');
+      
+      const row = tbody.insertRow();
+      row.insertCell(0).innerHTML = `<code>${userData.userId || '-'}</code>`;
+      row.insertCell(1).innerHTML = `<strong>${escapeHtml(username)}</strong>`;
+      row.insertCell(2).innerHTML = escapeHtml(userData.fullname || '-');
+      row.insertCell(3).innerHTML = `<span class="badge ${levelBadge}">${levelText}</span>`;
+      row.insertCell(4).innerHTML = momentLimitText;
+      row.insertCell(5).innerHTML = transLimitText;
+      row.insertCell(6).innerHTML = catatanLimitText;
+      row.insertCell(7).innerHTML = userData.active !== false ? '<span class="badge bg-success">Aktif</span>' : '<span class="badge bg-secondary">Nonaktif</span>';
+      row.insertCell(8).innerHTML = `
+        <div class="btn-group btn-group-sm">
+          <button class="btn btn-outline-primary rounded-pill me-1 edit-level-btn" data-username="${username}" data-level="${userData.level}">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button class="btn btn-outline-danger rounded-pill delete-user-btn" data-username="${username}">
+            <i class="bi bi-trash3"></i>
+          </button>
+        </div>
+      `;
+    }
+    
+    // Attach event listeners
+    document.querySelectorAll('.edit-level-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const username = btn.dataset.username;
+        const currentLevel = btn.dataset.level;
+        const newLevel = prompt(`Ubah level untuk ${username}\nLevel saat ini: ${currentLevel.toUpperCase()}\nMasukkan level baru (free/basic/pro):`, currentLevel);
+        if (newLevel && ['free', 'basic', 'pro'].includes(newLevel.toLowerCase())) {
+          await update(ref(db, `data/users/${username}/level`), newLevel.toLowerCase());
+          showToast(`Level ${username} diubah ke ${newLevel.toUpperCase()}`, 'success');
+          loadUsersList();
+          if (currentSection === 'offers') loadUsageStats();
+        } else if (newLevel) {
+          showToast('Level tidak valid! Gunakan: free, basic, atau pro', 'error');
+        }
+      });
+    });
+    
+    document.querySelectorAll('.delete-user-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const username = btn.dataset.username;
+        if (username === 'FACHMI' || username === 'AZIZAH') {
+          showToast('Tidak dapat menghapus user default!', 'error');
+          return;
+        }
+        if (confirm(`Hapus pengguna ${username}? Semua data akan terhapus.`)) {
+          await remove(ref(db, `data/users/${username}`));
+          await remove(ref(db, `data/auth/${username}`));
+          await remove(ref(db, `data/keuangan/${username}`));
+          await remove(ref(db, `data/impian/${username}`));
+          await remove(ref(db, `data/profiles/${username}`));
+          showToast(`Pengguna ${username} dihapus`, 'warning');
+          loadUsersList();
+          loadDashboardStats();
+        }
+      });
+    });
+  }
+  
+  function getLimitsForLevel(level) {
+    switch(level) {
+      case 'free': return { moments: 5, transactions: 5, catatan: 5 };
+      case 'basic': return { moments: 50, transactions: 50, catatan: 50 };
+      case 'pro': return { moments: Infinity, transactions: Infinity, catatan: Infinity };
+      default: return { moments: 5, transactions: 5, catatan: 5 };
+    }
+  }
+  
+  async function loadUsageStats() {
+    const snapshot = await get(ref(db, "data/users"));
+    const users = snapshot.val() || {};
+    const statsContainer = document.getElementById('usageStats');
+    if (!statsContainer) return;
+    
+    let html = '';
+    for (let [username, userData] of Object.entries(users)) {
+      const momentsSnap = await get(ref(db, `data/moments`));
+      const moments = momentsSnap.val() || {};
+      const userMoments = Object.values(moments).filter(m => m.author === username).length;
+      
+      const transSnap = await get(ref(db, `data/keuangan/${username}/transaksi`));
+      const trans = transSnap.val() || {};
+      const userTrans = Object.keys(trans).length;
+      
+      const limits = getLimitsForLevel(userData.level);
+      const momentPercent = limits.moments === Infinity ? 0 : (userMoments / limits.moments) * 100;
+      const transPercent = limits.transactions === Infinity ? 0 : (userTrans / limits.transactions) * 100;
+      
+      html += `
+        <div class="col-md-6">
+          <div class="card border-0 shadow-sm">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong>${escapeHtml(username)}</strong>
+                <span class="badge ${userData.level === 'pro' ? 'badge-pro' : (userData.level === 'basic' ? 'badge-basic' : 'badge-free')}">${userData.level.toUpperCase()}</span>
+              </div>
+              <div class="mb-2">
+                <small>Momen: ${userMoments}${limits.moments !== Infinity ? '/' + limits.moments : ' (Tanpa Batas)'}</small>
+                ${limits.moments !== Infinity ? `<div class="progress" style="height: 4px;"><div class="progress-bar bg-danger" style="width: ${Math.min(100, momentPercent)}%"></div></div>` : ''}
+              </div>
+              <div class="mb-2">
+                <small>Keuangan: ${userTrans}${limits.transactions !== Infinity ? '/' + limits.transactions : ' (Tanpa Batas)'}</small>
+                ${limits.transactions !== Infinity ? `<div class="progress" style="height: 4px;"><div class="progress-bar bg-warning" style="width: ${Math.min(100, transPercent)}%"></div></div>` : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    statsContainer.innerHTML = html || '<div class="col-12 text-center text-muted">Belum ada data pengguna</div>';
+  }
+  
+  // Register New User
+  async function registerNewUser(username, fullname, password, level) {
+    const usersRef = ref(db, "data/users");
+    const snapshot = await get(usersRef);
+    const users = snapshot.val() || {};
+    
+    const usernameUpper = username.toUpperCase().trim();
+    if (users[usernameUpper]) {
+      throw new Error("Username sudah terdaftar!");
+    }
+    if (usernameUpper.length < 3) {
+      throw new Error("Username minimal 3 karakter!");
+    }
+    if (password.length < 4) {
+      throw new Error("Password minimal 4 karakter!");
+    }
+    
+    const userId = await generateUserId();
+    const hashedPassword = await hashPassword(password);
+    
+    await set(ref(db, `data/auth/${usernameUpper}`), hashedPassword);
+    await set(ref(db, `data/users/${usernameUpper}`), {
+      userId: userId,
+      username: usernameUpper,
+      fullname: fullname,
+      level: level,
+      active: true,
+      createdAt: Date.now()
+    });
+    await set(ref(db, `data/profiles/${usernameUpper}`), {
+      status: 'merencanakan',
+      photo: null
+    });
+    await set(ref(db, `data/keuangan/${usernameUpper}`), { transaksi: {} });
+    await set(ref(db, `data/impian/${usernameUpper}`), {});
+    
+    return { username: usernameUpper, userId };
+  }
+  
+  // Load Invitations
+  async function loadInvitations() {
+    const snap = await get(ref(db, "data/invitations"));
+    const invites = snap.val() || {};
+    const tbody = document.getElementById('inviteTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const entries = Object.entries(invites);
+    if (entries.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Belum ada undangan</td></tr>';
+      return;
+    }
+    for (let [id, inv] of entries.reverse()) {
+      const row = tbody.insertRow();
+      row.insertCell(0).innerHTML = `<strong>${escapeHtml(inv.guestName || 'Tanpa Nama')}</strong>`;
+      row.insertCell(1).innerHTML = inv.phone || '-';
+      const linkCell = row.insertCell(2);
+      const fullLink = `${window.location.origin}${window.location.pathname}?invite=${id}`;
+      linkCell.innerHTML = `<span class="small text-truncate d-inline-block" style="max-width:180px;">${fullLink.substring(0,50)}...</span> <button class="btn btn-sm btn-link copyInvLink" data-link="${fullLink}"><i class="bi bi-copy"></i></button>`;
+      row.insertCell(3).innerHTML = inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('id') : '-';
+      const actionCell = row.insertCell(4);
+      actionCell.innerHTML = `<button class="btn btn-sm btn-outline-danger rounded-pill deleteInvBtn" data-id="${id}"><i class="bi bi-trash3"></i> Hapus</button>`;
+    }
+    document.querySelectorAll('.copyInvLink').forEach(btn => {
+      btn.addEventListener('click', () => { navigator.clipboard.writeText(btn.dataset.link); showToast('Link disalin!'); });
+    });
+    document.querySelectorAll('.deleteInvBtn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (confirm('Hapus undangan ini?')) {
+          await remove(ref(db, `data/invitations/${btn.dataset.id}`));
+          loadInvitations();
+          showToast('Undangan dihapus', 'warning');
+        }
+      });
+    });
+  }
+  
+  async function generateInvitationLink(guestName, phone, note) {
+    if (!guestName.trim()) throw new Error("Nama tamu wajib diisi");
+    const id = Date.now().toString() + Math.random().toString(36).substring(2,6);
+    const baseUrl = window.location.origin + window.location.pathname;
+    const inviteData = {
+      guestName: guestName.trim(),
+      phone: phone || '',
+      note: note || '',
+      createdAt: Date.now(),
+      linkId: id
+    };
+    await set(ref(db, `data/invitations/${id}`), inviteData);
+    return `${baseUrl}?invite=${id}`;
+  }
+  
+  function showToast(msg, type='success') { 
+    const toastDiv = document.createElement('div');
+    toastDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed bottom-0 start-50 translate-middle-x mb-4 px-4 py-2 rounded-pill shadow`; 
+    toastDiv.style.zIndex = 9999; 
+    toastDiv.style.background = type === 'success' ? '#10b981' : '#ef4444'; 
+    toastDiv.style.color = 'white';
+    toastDiv.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>${escapeHtml(msg)}`;
+    document.body.appendChild(toastDiv);
+    setTimeout(() => toastDiv.remove(), 2500);
+  }
+  
+  function showSection(sectionId) {
+    document.getElementById('dashboardSection').style.display = sectionId === 'dashboard' ? 'block' : 'none';
+    document.getElementById('usersSection').style.display = sectionId === 'users' ? 'block' : 'none';
+    document.getElementById('offersSection').style.display = sectionId === 'offers' ? 'block' : 'none';
+    document.getElementById('undanganSection').style.display = sectionId === 'undangan' ? 'block' : 'none';
+    document.getElementById('inviteListSection').style.display = sectionId === 'invite-list' ? 'block' : 'none';
+    document.querySelectorAll('.admin-sidebar .nav-link').forEach(link => link.classList.remove('active'));
+    document.querySelector(`.admin-sidebar .nav-link[data-section="${sectionId}"]`).classList.add('active');
+    if (sectionId === 'users') loadUsersList();
+    if (sectionId === 'offers') loadUsageStats();
+    if (sectionId === 'invite-list') loadInvitations();
+    if (sectionId === 'dashboard') loadDashboardStats();
+    currentSection = sectionId;
+  }
+  
+  // Initialize Default Users (FACHMI ID-001, AZIZAH ID-002 with PRO level)
+  async function initDefaultUsers() {
+    const usersRef = ref(db, "data/users");
+    const snapshot = await get(usersRef);
+    if (!snapshot.exists()) {
+      const hashedPassFachmi = await hashPassword("gokil223");
+      const hashedPassAzizah = await hashPassword("1234");
+      
+      await set(ref(db, `data/auth/FACHMI`), hashedPassFachmi);
+      await set(ref(db, `data/auth/AZIZAH`), hashedPassAzizah);
+      await set(ref(db, `data/users/FACHMI`), {
+        userId: "001",
+        username: "FACHMI",
+        fullname: "Fachmi",
+        level: "pro",
+        active: true,
+        createdAt: Date.now()
+      });
+      await set(ref(db, `data/users/AZIZAH`), {
+        userId: "002",
+        username: "AZIZAH",
+        fullname: "Azizah",
+        level: "pro",
+        active: true,
+        createdAt: Date.now()
+      });
+      await set(ref(db, `data/profiles/FACHMI`), { status: 'merencanakan', photo: null });
+      await set(ref(db, `data/profiles/AZIZAH`), { status: 'merencanakan', photo: null });
+      await set(ref(db, `data/keuangan/FACHMI`), { transaksi: {} });
+      await set(ref(db, `data/keuangan/AZIZAH`), { transaksi: {} });
+      await set(ref(db, `data/impian/FACHMI`), {});
+      await set(ref(db, `data/impian/AZIZAH`), {});
+      console.log("Default users created: FACHMI (001-PRO), AZIZAH (002-PRO)");
+    }
+  }
+  
+  // Initialize App
+  window.addEventListener('DOMContentLoaded', async () => {
+    await initDefaultUsers();
+    await loadDashboardStats();
+    
+    // Register User
+    document.getElementById('confirmRegisterBtn')?.addEventListener('click', async () => {
+      const username = document.getElementById('regUsername').value;
+      const fullname = document.getElementById('regFullname').value;
+      const password = document.getElementById('regPassword').value;
+      const level = document.getElementById('regLevel').value;
+      
+      if (!username || !fullname || !password) {
+        showToast("Semua field harus diisi!", 'error');
+        return;
+      }
+      try {
+        const result = await registerNewUser(username, fullname, password, level);
+        showToast(`Pengguna ${result.username} berhasil didaftarkan! ID: ${result.userId}`, 'success');
+        const modal = bootstrap.Modal.getInstance(document.getElementById('registerUserModal'));
+        if (modal) modal.hide();
+        document.getElementById('regUsername').value = '';
+        document.getElementById('regFullname').value = '';
+        document.getElementById('regPassword').value = '';
+        if (currentSection === 'users') loadUsersList();
+        loadDashboardStats();
+      } catch(err) {
+        showToast(err.message, 'error');
+      }
+    });
+    
+    // Generate Invitation
+    document.getElementById('generateInviteBtn')?.addEventListener('click', async () => {
+      const name = document.getElementById('guestName').value.trim();
+      const phone = document.getElementById('guestPhone').value;
+      const note = document.getElementById('guestNote').value;
+      if (!name) return showToast("Nama tamu harus diisi", 'error');
+      try {
+        const fullLink = await generateInvitationLink(name, phone, note);
+        document.getElementById('generatedLinkContainer').style.display = 'block';
+        document.getElementById('inviteLinkText').innerText = fullLink;
+        const previewDiv = document.getElementById('invitePreview');
+        previewDiv.innerHTML = `
+          <div class="text-center p-3" style="background: linear-gradient(145deg, #fdf2f8, #fff); border-radius: 28px;">
+            <i class="bi bi-envelope-heart-fill fs-1 text-danger"></i>
+            <h5 class="fw-bold mt-2">Undangan untuk ${escapeHtml(name)}</h5>
+            <p class="small">💌 “Dengan hormat, kami mengundang Anda...”</p>
+            <button class="btn btn-sm btn-outline-primary rounded-pill copyPreviewLink">Salin Link</button>
+          </div>`;
+        previewDiv.querySelector('.copyPreviewLink')?.addEventListener('click',()=>{navigator.clipboard.writeText(fullLink); showToast("Link disalin");});
+        showToast("Link undangan berhasil dibuat!", 'success');
+        if (currentSection === 'invite-list') loadInvitations();
+      } catch(err) { showToast(err.message, 'error'); }
+    });
+    
+    document.getElementById('copyLinkBtn')?.addEventListener('click', () => {
+      const link = document.getElementById('inviteLinkText')?.innerText;
+      if(link){ navigator.clipboard.writeText(link); showToast("Link disalin"); }
+    });
+    document.getElementById('refreshDashboardBtn')?.addEventListener('click', () => loadDashboardStats());
+    document.getElementById('refreshInvitesBtn')?.addEventListener('click', () => loadInvitations());
+    
+    document.querySelectorAll('.admin-sidebar .nav-link').forEach(link => {
+      link.addEventListener('click', (e) => { const sec = link.dataset.section; if(sec) showSection(sec); if(window.innerWidth <= 768) closeSidebar(); });
+    });
+    
+    document.getElementById('adminLogoutBtn')?.addEventListener('click', () => { sessionStorage.clear(); location.href = location.pathname; });
+    document.getElementById('backToAppBtn')?.addEventListener('click', () => { window.location.href = location.pathname; });
+    
+    // Upgrade buttons
+    document.querySelectorAll('.upgrade-basic, .upgrade-pro').forEach(btn => {
+      btn.addEventListener('click', () => {
+        showToast("Fitur upgrade akan tersedia segera. Hubungi admin.", 'info');
+      });
+    });
+    
+    // Dark Mode
+    const darkFab = document.getElementById('darkModeFab');
+    const isDark = localStorage.getItem('adminDark') === 'true';
+    if(isDark) document.body.classList.add('dark');
+    darkFab?.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('adminDark', document.body.classList.contains('dark'));
+      darkFab.innerHTML = document.body.classList.contains('dark') ? '<i class="bi bi-brightness-high-fill"></i>' : '<i class="bi bi-moon-stars"></i>';
+    });
+    
+    // Mobile hamburger
+    const hamburger = document.getElementById('hamburgerBtn');
+    const sidebar = document.getElementById('adminSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    function closeSidebar() { sidebar.classList.remove('open'); overlay.style.display = 'none'; }
+    function openSidebar() { sidebar.classList.add('open'); overlay.style.display = 'block'; }
+    hamburger?.addEventListener('click', openSidebar);
+    overlay?.addEventListener('click', closeSidebar);
+    window.addEventListener('resize', () => { if(window.innerWidth > 768) { closeSidebar(); overlay.style.display = 'none'; } });
+    
+    showSection('dashboard');
+  });
+</script>
+</body>
+</html>
