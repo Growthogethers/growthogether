@@ -6,7 +6,7 @@ import {
   triggerConfetti, initClickAnimation, escapeHtml,
   loadUserLevelAndLimits, renderLevelBadge, canAddMoment, canAddTransaction, canAddCatatan, getRemainingLimits,
   loadUserPartner, filterMomentsByUser, filterKeuanganByUser, currentPartner, currentPairId,
-  getCatatanByPair
+  getCatatanByPair, currentUserLimits, currentUserLevel
 } from './utils.js';
 import { 
   handleLogin, 
@@ -423,7 +423,8 @@ async function setupAppSession(u) {
   console.log("Setting up session for user:", u);
   
   // Load user level and limits
-  await loadUserLevelAndLimits(u);
+  const userData = await loadUserLevelAndLimits(u);
+  console.log("User level and limits loaded:", userData);
   
   // Load partner
   const partner = await loadUserPartner(u);
@@ -468,7 +469,16 @@ async function setupAppSession(u) {
   if (userGreet) userGreet.innerText = displayName;
   
   // Tampilkan info pasangan di sidebar
-  const partnerInfo = document.getElementById("partnerInfo");
+  let partnerInfo = document.getElementById("partnerInfo");
+  if (!partnerInfo && partner) {
+    const profileSection = document.querySelector('.profile-section');
+    if (profileSection) {
+      partnerInfo = document.createElement('div');
+      partnerInfo.id = 'partnerInfo';
+      partnerInfo.className = 'mt-2';
+      profileSection.appendChild(partnerInfo);
+    }
+  }
   if (partnerInfo && partner) {
     const partnerName = partner === "FACHMI" ? "Fachmi" : partner === "AZIZAH" ? "Azizah" : partner;
     partnerInfo.innerHTML = `<small class="text-muted"><i class="bi bi-heart-fill text-danger me-1"></i> Pasangan: ${partnerName}</small>`;
@@ -516,7 +526,6 @@ function initFirebaseListener() {
     // Filter data berdasarkan user yang login
     const loggedUser = sessionStorage.getItem("progrowth_user");
     if (loggedUser && validateSession && validateSession()) {
-      // Filter moments hanya untuk user ini dan pasangannya
       const filteredMoments = filterMomentsByUser(data.moments || {});
       data.filteredMoments = filteredMoments;
     }
