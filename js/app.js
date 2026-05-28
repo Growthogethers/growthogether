@@ -1,10 +1,12 @@
-// js/app.js - Main Application (PERBAIKAN LENGKAP)
+// js/app.js - Main Application (PERBAIKAN LENGKAP dengan Partner System)
 import { db, ref, onValue, set } from './firebase-config.js';
 import { 
   masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser, 
   showLoading, hideLoading, getCache, setCache, clearCache, throttle,
   triggerConfetti, initClickAnimation, escapeHtml,
-  loadUserLevelAndLimits, renderLevelBadge, canAddMoment, canAddTransaction, canAddCatatan, getRemainingLimits
+  loadUserLevelAndLimits, renderLevelBadge, canAddMoment, canAddTransaction, canAddCatatan, getRemainingLimits,
+  loadUserPartner, filterMomentsByUser, filterKeuanganByUser, currentPartner, currentPairId,
+  getCatatanByPair
 } from './utils.js';
 import { 
   handleLogin, 
@@ -132,7 +134,6 @@ async function loadComponents() {
   try {
     console.log("Loading components...");
     
-    // Gunakan fetch dengan timeout untuk menghindari hanging
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
     
@@ -157,7 +158,6 @@ async function loadComponents() {
     
     console.log("Components loaded successfully");
     
-    // Tunggu sedikit agar DOM terupdate
     await new Promise(resolve => setTimeout(resolve, 100));
     
     attachEventListeners();
@@ -169,7 +169,6 @@ async function loadComponents() {
     
   } catch (error) {
     console.error('Error loading components:', error);
-    // Tampilkan pesan error di layar
     const loader = document.getElementById('initialLoader');
     if (loader) {
       loader.innerHTML = `
@@ -189,7 +188,6 @@ async function loadComponents() {
 
 // ============ HAMBURGER MENU FUNCTIONS ============
 function initHamburgerMenu() {
-  // Tunggu hingga sidebar benar-benar ada di DOM
   setTimeout(() => {
     const hamburgerBtn = document.getElementById('hamburgerMenuBtn');
     const sidebar = document.getElementById('app-sidebar');
@@ -337,7 +335,6 @@ function initOfflineIndicator() {
 function attachEventListeners() {
   console.log("Attaching event listeners...");
   
-  // Profile trigger
   const profileTrigger = document.getElementById('profileTrigger');
   if (profileTrigger) {
     profileTrigger.onclick = (e) => {
@@ -347,7 +344,6 @@ function attachEventListeners() {
     };
   }
   
-  // Logout button
   const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
   if (sidebarLogoutBtn) {
     sidebarLogoutBtn.onclick = (e) => {
@@ -356,7 +352,6 @@ function attachEventListeners() {
     };
   }
   
-  // Privacy toggle
   document.querySelectorAll("#privacyToggleDash").forEach(btn => {
     btn.onclick = () => {
       togglePrivacy();
@@ -364,7 +359,6 @@ function attachEventListeners() {
     };
   });
   
-  // Navigation
   const throttledShowPage = throttle((page) => {
     showPage(page);
   }, 300);
@@ -400,6 +394,11 @@ function showPage(pageId) {
   
   setTimeout(() => {
     if (pageId === "moment") {
+      const limits = currentUserLimits;
+      if (limits && limits.hasMoment === false) {
+        showNotif(`⚠️ Akun Trial tidak dapat mengakses Menu Momen. Upgrade ke Basic atau Pro untuk akses penuh!`, true, 'warning');
+        return;
+      }
       if (typeof renderCalendar === 'function') renderCalendar();
       if (typeof renderMomentsList === 'function') renderMomentsList();
     } else if (pageId === "dashboard") {
@@ -409,6 +408,11 @@ function showPage(pageId) {
     } else if (pageId === "catatan") {
       if (typeof initCatatan === 'function') initCatatan();
     } else if (pageId === "impian") {
+      const limits = currentUserLimits;
+      if (limits && limits.impian === false) {
+        showNotif(`⚠️ Akun Trial tidak dapat mengakses Menu Impian. Upgrade ke Basic atau Pro untuk akses penuh!`, true, 'warning');
+        return;
+      }
       if (typeof initImpian === 'function') initImpian();
     }
   }, 50);
@@ -420,6 +424,11 @@ async function setupAppSession(u) {
   
   // Load user level and limits
   await loadUserLevelAndLimits(u);
+  
+  // Load partner
+  const partner = await loadUserPartner(u);
+  console.log(`Partner for ${u}: ${partner}, PairId: ${currentPairId}`);
+  
   renderLevelBadge();
   
   // Set limits checker
@@ -458,6 +467,13 @@ async function setupAppSession(u) {
   const userGreet = document.getElementById("userGreet");
   if (userGreet) userGreet.innerText = displayName;
   
+  // Tampilkan info pasangan di sidebar
+  const partnerInfo = document.getElementById("partnerInfo");
+  if (partnerInfo && partner) {
+    const partnerName = partner === "FACHMI" ? "Fachmi" : partner === "AZIZAH" ? "Azizah" : partner;
+    partnerInfo.innerHTML = `<small class="text-muted"><i class="bi bi-heart-fill text-danger me-1"></i> Pasangan: ${partnerName}</small>`;
+  }
+  
   setTimeout(() => {
     if (typeof forceRefreshProfile === 'function') forceRefreshProfile();
     if (typeof updateProfileUI === 'function') updateProfileUI();
@@ -469,6 +485,9 @@ async function setupAppSession(u) {
   setTimeout(() => {
     triggerConfetti();
     showNotif(`🎉 Selamat datang, ${displayName}!`, false, 'success');
+    if (partner) {
+      showNotif(`💕 Terhubung dengan pasangan: ${partner}`, false, 'info');
+    }
   }, 500);
 }
 
@@ -493,10 +512,19 @@ function initFirebaseListener() {
       moments: {}, vendors: {}, profiles: {}, keuangan: {},
       catatan: {}, impian: {}
     };
-    setMasterData(data);
     
+    // Filter data berdasarkan user yang login
     const loggedUser = sessionStorage.getItem("progrowth_user");
     if (loggedUser && validateSession && validateSession()) {
+      // Filter moments hanya untuk user ini dan pasangannya
+      const filteredMoments = filterMomentsByUser(data.moments || {});
+      data.filteredMoments = filteredMoments;
+    }
+    
+    setMasterData(data);
+    
+    const loggedUser2 = sessionStorage.getItem("progrowth_user");
+    if (loggedUser2 && validateSession && validateSession()) {
       if (currentPage === "dashboard" && typeof renderDashboard === 'function') renderDashboard();
       else if (currentPage === "moment" && typeof renderCalendar === 'function') { 
         renderCalendar(); 
