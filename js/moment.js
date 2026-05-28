@@ -1,4 +1,4 @@
-// js/moment.js - Optimasi dengan Lazy Loading + Calendar Cache + Filter Tanggal
+// js/moment.js - Dengan limit checker
 import { db, ref, push, update, remove } from './firebase-config.js';
 import { 
   masterData, escapeHtml, showNotif, compressImage, showCustomConfirm, 
@@ -11,11 +11,16 @@ let currentMomentPhotos = [];
 let isRenderingCalendar = false;
 let currentMonthFilter = null;
 let currentYearFilter = null;
+let canAddMomentChecker = null;
 
 // Calendar cache
 let cachedCalendarHtml = null;
 let cachedMonthYear = null;
 let cachedMomentsHash = null;
+
+export function setLimitsChecker(checkerFn) {
+  canAddMomentChecker = checkerFn;
+}
 
 function getMomentsHash(moments) {
   const momentKeys = Object.keys(moments).sort();
@@ -48,7 +53,6 @@ export async function handleMultiplePhotos(input) {
   
   if (files.length === 0) return;
   
-  // Gunakan validasi dari utils
   const compressedPhotos = await validateAndCompressPhotos(files, 2, 5 - currentMomentPhotos.length);
   
   if (compressedPhotos) {
@@ -247,7 +251,6 @@ export function renderMomentsList() {
   
   let momentsArray = Object.entries(moments).map(([id, m]) => ({ id, ...m }));
   
-  // Filter berdasarkan bulan dan tahun
   if (currentMonthFilter || currentYearFilter) {
     momentsArray = momentsArray.filter(m => {
       if (!m.date) return false;
@@ -378,6 +381,12 @@ export async function saveMoment() {
   if (currentMomentPhotos.length === 0) {
     showNotif('❌ Minimal upload 1 foto', true);
     return;
+  }
+  
+  // CEK LIMIT SEBELUM TAMBAH MOMEN BARU
+  if (!editId && canAddMomentChecker) {
+    const canAdd = await canAddMomentChecker(currentUser);
+    if (!canAdd) return;
   }
   
   showLoading("Menyimpan momen...");
