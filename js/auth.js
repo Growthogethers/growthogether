@@ -1,5 +1,5 @@
 // js/auth.js - FULL CODE (Semua User Terdaftar Bisa Login)
-import { db, ref, get, update } from './firebase-config.js';
+import { db, ref, get, update, set } from './firebase-config.js';
 import { showNotif, setCurrentUser, compressImage, escapeHtml, clearCache, loadUserLevelAndLimits, renderLevelBadge } from './utils.js';
 import { renderBirthdayInProfile, stopBirthdayChecker } from './pengingat.js';
 
@@ -83,10 +83,6 @@ function getCurrentSessionUser() {
     }
   }
   return user;
-}
-
-function getDisplayName(username) {
-  return username;
 }
 
 function getStatusText(status) {
@@ -210,14 +206,22 @@ export function updateProfileUI() {
   }
 }
 
-// CEK APAKAH USER TERDAFTAR DI DATABASE
-async function isUserRegistered(username) {
+// CEK APAKAH USER TERDAFTAR DI DATABASE (OTOMATIS BUAT JIKA BELUM ADA)
+async function ensureUserRegistered(username) {
   try {
     const userSnap = await get(ref(db, `data/users/${username}`));
-    return userSnap.exists();
+    if (!userSnap.exists()) {
+      // Buat user baru dengan level free
+      await set(ref(db, `data/users/${username}`), {
+        level: 'free',
+        registeredAt: Date.now()
+      });
+      console.log(`User ${username} created automatically with free level`);
+    }
+    return true;
   } catch (err) {
-    console.error("Error checking user:", err);
-    return false;
+    console.error("Error ensuring user:", err);
+    return true; // Tetap izinkan login meskipun error
   }
 }
 
@@ -246,15 +250,8 @@ export async function handleLogin() {
   
   const usernameUpper = u.trim().toUpperCase();
   
-  // CEK APAKAH USER TERDAFTAR DI DATABASE
-  const isRegistered = await isUserRegistered(usernameUpper);
-  if (!isRegistered) {
-    if (errorSpan) errorSpan.innerText = "❌ Username tidak terdaftar! Silakan hubungi admin untuk mendaftar."; 
-    if (errorDiv) errorDiv.style.display = "block"; 
-    showNotif("Username tidak terdaftar! Silakan hubungi admin.", true); 
-    shakeElement(document.getElementById("loginUser"));
-    return;
-  }
+  // Pastikan user terdaftar (buat otomatis jika belum)
+  await ensureUserRegistered(usernameUpper);
   
   resetProfileState();
   
@@ -269,6 +266,15 @@ export async function handleLogin() {
     let storedValue = snap.val();
     
     console.log("Login attempt for:", usernameUpper);
+    
+    // Jika tidak ada data auth, buat default
+    if (!storedValue) {
+      const defaultPass = usernameUpper === "FACHMI" ? "gokil223" : "1234";
+      const hashedDefault = await hashPassword(defaultPass);
+      await update(ref(db), { [`data/auth/${usernameUpper}`]: hashedDefault });
+      storedValue = hashedDefault;
+      console.log(`Created default auth for ${usernameUpper}`);
+    }
     
     let isValid = false;
     
@@ -672,58 +678,7 @@ export async function initProfile() {
   }
 }
 
-export function setupAppSession(u) {
-  console.log("Setting up session for user:", u);
-  
-  const loginScreen = document.getElementById("login-screen");
-  const sidebar = document.getElementById("app-sidebar");
-  const appContent = document.getElementById("app-content");
-  
-  if (loginScreen) {
-    loginScreen.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-    loginScreen.style.opacity = '0';
-    loginScreen.style.transform = 'scale(0.95)';
-    setTimeout(() => { 
-      loginScreen.style.display = "none"; 
-    }, 300);
-  }
-  
-  if (window.innerWidth > 768) {
-    if (sidebar) sidebar.style.display = "flex";
-  } else {
-    if (sidebar) sidebar.style.display = "flex";
-  }
-  
-  if (appContent) {
-    appContent.style.display = "block";
-    appContent.style.opacity = '0';
-    setTimeout(() => { 
-      if (appContent) appContent.style.opacity = '1'; 
-    }, 100);
-  }
-  
-  const userGreet = document.getElementById("userGreet");
-  if (userGreet) userGreet.innerText = u;
-  
-  setTimeout(() => {
-    if (typeof forceRefreshProfile === 'function') forceRefreshProfile();
-    if (typeof updateProfileUI === 'function') updateProfileUI();
-    if (typeof window.renderDashboard === 'function') window.renderDashboard();
-    if (typeof window.showPage === 'function') window.showPage('dashboard');
-    
-    if (typeof window.addFilterToMomentPage === 'function') {
-      setTimeout(() => window.addFilterToMomentPage(), 500);
-    }
-  }, 200);
-  
-  setTimeout(() => {
-    if (typeof window.triggerConfetti === 'function') {
-      window.triggerConfetti();
-      showNotif(`🎉 Selamat datang, ${u}!`, false, 'success');
-    }
-  }, 500);
-}
-
+// ============ EXPORT KE WINDOW ============
 window.handleLogin = handleLogin;
 window.updateCloudPassword = updateCloudPassword;
 window.confirmLogout = confirmLogout;
@@ -736,8 +691,8 @@ window.updateProfileUI = updateProfileUI;
 window.forceRefreshProfile = forceRefreshProfile;
 window.validateSession = validateSession;
 window.cleanupAuthListeners = cleanupAuthListeners;
-window.setupAppSession = setupAppSession;
 
+// Inisialisasi profile
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initProfile);
 } else {
