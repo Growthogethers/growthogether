@@ -1,4 +1,4 @@
-// js/keuangan.js - Versi lengkap dengan validasi duplikat
+// js/keuangan.js - Versi lengkap dengan validasi duplikat dan limit
 import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
 import { 
   showNotif, formatNumberRp, escapeHtml, showCustomPrompt, showCustomConfirm, 
@@ -20,6 +20,11 @@ let currentFilter = {
   startDate: '',
   endDate: ''
 };
+let canAddTransactionChecker = null;
+
+export function setKeuanganLimitsChecker(checkerFn) {
+  canAddTransactionChecker = checkerFn;
+}
 
 function initKeuanganChart() {
   const ctx = document.getElementById('keuanganChart');
@@ -296,6 +301,12 @@ window.addPemasukanKeKategori = async function(kategoriNama) {
   if (nominal && !isNaN(nominal) && parseInt(nominal) > 0) {
     const confirmed = await showCustomConfirm("Konfirmasi", `Tambahkan tabungan untuk "${kategoriNama}" sebesar Rp ${parseInt(nominal).toLocaleString('id-ID')}?`);
     if (confirmed) {
+      // CEK LIMIT SEBELUM TAMBAH
+      if (canAddTransactionChecker) {
+        const canAdd = await canAddTransactionChecker(currentUser);
+        if (!canAdd) return;
+      }
+      
       showLoading("Menyimpan transaksi...");
       try {
         await addTransaksiFromExternal(currentUser, {
@@ -335,6 +346,12 @@ window.addPengeluaranKeKategori = async function(kategoriNama) {
   if (nominal && !isNaN(nominal) && parseInt(nominal) > 0) {
     const confirmed = await showCustomConfirm("Konfirmasi", `Tambahkan pengeluaran untuk "${kategoriNama}" sebesar Rp ${parseInt(nominal).toLocaleString('id-ID')}?`);
     if (confirmed) {
+      // CEK LIMIT SEBELUM TAMBAH
+      if (canAddTransactionChecker) {
+        const canAdd = await canAddTransactionChecker(currentUser);
+        if (!canAdd) return;
+      }
+      
       showLoading("Menyimpan transaksi...");
       try {
         await addTransaksiFromExternal(currentUser, {
@@ -625,6 +642,12 @@ window.saveTransaksi = async function() {
   if (!nominal || nominal <= 0) {
     showNotif("Nominal tidak valid", true, 'error');
     return;
+  }
+  
+  // CEK LIMIT SEBELUM TAMBAH TRANSAKSI BARU
+  if (!editTransaksiId && canAddTransactionChecker) {
+    const canAdd = await canAddTransactionChecker(currentUser);
+    if (!canAdd) return;
   }
   
   // VALIDASI DUPLIKAT SEBELUM SAVE
