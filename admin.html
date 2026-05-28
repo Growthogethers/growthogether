@@ -7,6 +7,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script type="importmap">
     {
@@ -302,6 +303,7 @@
         justify-content: center;
         color: white;
         border: none;
+        cursor: pointer;
       }
     }
     .hamburger { display: none; }
@@ -318,6 +320,28 @@
     }
     .user-row { cursor: pointer; transition: background 0.2s; }
     .user-row:hover { background: rgba(112,9,180,0.05); }
+    
+    /* Toast Notification */
+    .custom-toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border-radius: 50px;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 10000;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      animation: slideUp 0.3s ease;
+    }
+    body.dark .custom-toast { background: #2d1a3a; color: white; }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
   </style>
 </head>
 <body>
@@ -331,8 +355,8 @@
     <h2 class="admin-login-title">Admin Panel</h2>
     <p class="admin-login-sub">growthogether • Akses Khusus Administrator</p>
     
-    <input type="text" id="adminUsername" class="admin-login-input" placeholder="Username" autocomplete="off">
-    <input type="password" id="adminPassword" class="admin-login-input" placeholder="Password">
+    <input type="text" id="adminUsername" class="admin-login-input" placeholder="Username" autocomplete="off" value="FACHMI">
+    <input type="password" id="adminPassword" class="admin-login-input" placeholder="Password" value="gokil223">
     
     <button class="admin-login-btn" id="adminLoginBtn">
       <i class="bi bi-box-arrow-in-right me-2"></i> Login sebagai Admin
@@ -448,7 +472,7 @@
     <div id="usersSection" style="display: none;">
       <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <h4 class="fw-bold"><i class="bi bi-people-fill text-primary me-2"></i>Kelola Pengguna GrowthTogether</h4>
-        <button class="btn btn-gradient rounded-pill" data-bs-toggle="modal" data-bs-target="#registerUserModal">
+        <button class="btn btn-gradient rounded-pill" id="openRegisterModalBtn">
           <i class="bi bi-person-plus-fill me-2"></i>Daftarkan Pengguna Baru
         </button>
       </div>
@@ -488,9 +512,7 @@
               <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> 5 Transaksi Keuangan</li>
               <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> 5 Item Catatan</li>
               <li class="mb-2 text-muted"><i class="bi bi-x-circle-fill text-danger me-2"></i> Tanpa Impian</li>
-              <li class="text-muted"><i class="bi bi-x-circle-fill text-danger me-2"></i> Tanpa Fitur Premium</li>
             </ul>
-            <button class="btn btn-outline-success rounded-pill w-100 mt-3 upgrade-free" disabled>Paket Saat Ini</button>
           </div>
         </div>
         
@@ -504,13 +526,11 @@
             <p class="text-muted small">/bulan</p>
             <hr>
             <ul class="list-unstyled text-start mt-3">
-              <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> 50 Momen (Upload Foto)</li>
-              <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> 50 Transaksi Keuangan</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> 50 Momen</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> 50 Transaksi</li>
               <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> 50 Item Catatan</li>
-              <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> Impian & Target</li>
-              <li><i class="bi bi-check-circle-fill text-primary me-2"></i> Ekspor Data CSV</li>
+              <li><i class="bi bi-check-circle-fill text-primary me-2"></i> Impian & Target</li>
             </ul>
-            <button class="btn btn-primary rounded-pill w-100 mt-3 upgrade-basic">Upgrade ke Basic</button>
           </div>
         </div>
         
@@ -527,10 +547,8 @@
               <li class="mb-2"><i class="bi bi-infinity-fill me-2"></i> Tanpa Batas Momen</li>
               <li class="mb-2"><i class="bi bi-infinity-fill me-2"></i> Tanpa Batas Keuangan</li>
               <li class="mb-2"><i class="bi bi-infinity-fill me-2"></i> Tanpa Batas Catatan</li>
-              <li class="mb-2"><i class="bi bi-check-circle-fill me-2"></i> Semua Fitur Premium</li>
-              <li><i class="bi bi-check-circle-fill me-2"></i> Prioritas Dukungan</li>
+              <li><i class="bi bi-check-circle-fill me-2"></i> Semua Fitur Premium</li>
             </ul>
-            <button class="btn btn-light rounded-pill w-100 mt-3 upgrade-pro" style="color:#7009b4; font-weight:600;">Upgrade ke Pro</button>
           </div>
         </div>
       </div>
@@ -610,11 +628,11 @@
   <button class="dark-mode-fab" id="darkModeFab"><i class="bi bi-moon-stars fs-5"></i></button>
 </div>
 
-<!-- Modal Register User Baru -->
-<div class="modal fade" id="registerUserModal" tabindex="-1" data-bs-backdrop="static">
+<!-- Modal Register User Baru - Dipastikan ada di luar admin-wrapper -->
+<div class="modal fade" id="registerUserModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-md">
     <div class="modal-content rounded-4 register-modal">
-      <div class="modal-header border-0 bg-gradient text-white" style="background: linear-gradient(135deg, #7009b4, #4000C6);">
+      <div class="modal-header border-0" style="background: linear-gradient(135deg, #7009b4, #4000C6); color: white;">
         <h5 class="fw-bold mb-0"><i class="bi bi-person-plus-fill me-2"></i>Daftarkan Pengguna Baru</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
@@ -673,10 +691,25 @@
   let currentSection = 'dashboard';
   let currentAdminUser = null;
   let isLoadingUsers = false;
+  let registerModal = null;
   
   // Helper Functions
   function formatRp(val) { return `Rp ${(val || 0).toLocaleString('id-ID')}`; }
   function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+  
+  function showToast(msg, type = 'success') {
+    // Remove existing toast
+    const existingToast = document.querySelector('.custom-toast');
+    if (existingToast) existingToast.remove();
+    
+    const toast = document.createElement('div');
+    toast.className = 'custom-toast';
+    toast.style.background = type === 'success' ? '#10b981' : '#ef4444';
+    toast.style.color = 'white';
+    toast.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill'} me-2"></i> ${escapeHtml(msg)}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
   
   // Hash Password SHA-256
   async function hashPassword(password) {
@@ -687,7 +720,7 @@
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   }
   
-  // Generate User ID Unik (auto increment)
+  // Generate User ID Unik
   async function generateUserId() {
     const usersRef = ref(db, "data/users");
     const snapshot = await get(usersRef);
@@ -715,7 +748,6 @@
       return;
     }
     
-    // Hanya FACHMI atau AZIZAH yang bisa login sebagai admin
     if (username !== 'FACHMI' && username !== 'AZIZAH') {
       errorText.innerText = "Akses ditolak! Hanya FACHMI atau AZIZAH yang dapat mengakses admin panel.";
       errorDiv.style.display = 'block';
@@ -732,8 +764,6 @@
       if (!storedHash) {
         errorText.innerText = "User tidak ditemukan!";
         errorDiv.style.display = 'block';
-        loginBtn.disabled = false;
-        loginBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i> Login sebagai Admin';
         return;
       }
       
@@ -770,8 +800,6 @@
     sessionStorage.removeItem('admin_user');
     currentAdminUser = null;
     document.body.classList.remove('logged-in');
-    document.getElementById('adminUsername').value = '';
-    document.getElementById('adminPassword').value = '';
     showToast('Anda telah keluar dari admin panel', 'info');
   }
   
@@ -792,11 +820,11 @@
     return false;
   }
   
-  // ============ FORCE UPDATE USER DENGAN ID & LEVEL ============
+  // ============ FORCE UPDATE USER ============
   async function ensureUsersHaveIdAndLevel() {
     console.log("🔧 Memastikan semua user memiliki userId dan level...");
     
-    // Update FACHMI (ID-001, PRO)
+    // Update FACHMI
     await set(ref(db, `data/users/FACHMI`), {
       userId: "001",
       username: "FACHMI",
@@ -807,7 +835,7 @@
       updatedAt: Date.now()
     });
     
-    // Update AZIZAH (ID-005, PRO)
+    // Update AZIZAH
     await set(ref(db, `data/users/AZIZAH`), {
       userId: "005",
       username: "AZIZAH",
@@ -821,13 +849,11 @@
     // Pastikan auth ada
     const authSnap = await get(ref(db, "data/auth"));
     if (!authSnap.val()?.FACHMI) {
-      const hashedFachmi = await hashPassword("gokil223");
-      const hashedAzizah = await hashPassword("1234");
-      await set(ref(db, "data/auth/FACHMI"), hashedFachmi);
-      await set(ref(db, "data/auth/AZIZAH"), hashedAzizah);
+      await set(ref(db, "data/auth/FACHMI"), await hashPassword("gokil223"));
+      await set(ref(db, "data/auth/AZIZAH"), await hashPassword("1234"));
     }
     
-    console.log("✅ Users updated: FACHMI (001-PRO), AZIZAH (005-PRO)");
+    console.log("✅ Users updated");
   }
   
   // ============ DASHBOARD STATS ============
@@ -835,8 +861,7 @@
     try {
       const snapshot = await get(ref(db, "data/"));
       const data = snapshot.val() || {};
-      const moments = data.moments || {};
-      const totalMoments = Object.keys(moments).length;
+      const totalMoments = Object.keys(data.moments || {}).length;
       
       const catatanItems = data.catatan?.bersama?.items || {};
       let totalPlanningItems = 0;
@@ -850,9 +875,8 @@
       const totalUsers = Object.keys(users).length;
       
       let totalBalance = 0;
-      const userList = Object.values(users);
-      for (const user of userList) {
-        const transSnap = await get(ref(db, `data/keuangan/${user.username}/transaksi`));
+      for (const [username] of Object.entries(users)) {
+        const transSnap = await get(ref(db, `data/keuangan/${username}/transaksi`));
         const trans = transSnap.val() || {};
         let pemasukan = 0, pengeluaran = 0;
         Object.values(trans).forEach(t => {
@@ -867,12 +891,12 @@
       document.getElementById('totalUsers').innerText = totalUsers;
       document.getElementById('totalBalance').innerHTML = formatRp(totalBalance);
       
-      // Update Chart
+      // Chart
       const allTrans = [];
-      for (const user of userList) {
-        const transSnap = await get(ref(db, `data/keuangan/${user.username}/transaksi`));
+      for (const [username] of Object.entries(users)) {
+        const transSnap = await get(ref(db, `data/keuangan/${username}/transaksi`));
         const trans = transSnap.val() || {};
-        Object.values(trans).forEach(t => allTrans.push({ ...t, user: user.username }));
+        Object.values(trans).forEach(t => allTrans.push(t));
       }
       const last7Days = [];
       const today = new Date();
@@ -886,8 +910,7 @@
         let pMasuk = 0, pKeluar = 0;
         allTrans.forEach(t => {
           if (!t.tanggal) return;
-          const txDate = new Date(t.tanggal).toISOString().slice(0,10);
-          if (txDate === dateStr) {
+          if (new Date(t.tanggal).toISOString().slice(0,10) === dateStr) {
             if (t.tipe === 'pemasukan') pMasuk += t.nominal;
             else pKeluar += t.nominal;
           }
@@ -902,8 +925,8 @@
         data: {
           labels: last7Days.map(d => d.slice(5)),
           datasets: [
-            { label: 'Pemasukan', data: pemasukan7d, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.3 },
-            { label: 'Pengeluaran', data: pengeluaran7d, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.05)', fill: true, tension: 0.3 }
+            { label: 'Pemasukan', data: pemasukan7d, borderColor: '#10b981', fill: true, tension: 0.3 },
+            { label: 'Pengeluaran', data: pengeluaran7d, borderColor: '#ef4444', fill: true, tension: 0.3 }
           ]
         },
         options: { responsive: true, maintainAspectRatio: true, plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: Rp ${ctx.raw.toLocaleString('id-ID')}` } } } }
@@ -920,7 +943,7 @@
     }
   }
   
-  // ============ LOAD USERS (TANPA DOUBLE) ============
+  // ============ LOAD USERS ============
   async function loadUsersList() {
     if (isLoadingUsers) return;
     isLoadingUsers = true;
@@ -931,7 +954,6 @@
       const tbody = document.getElementById('usersTableBody');
       if (!tbody) return;
       
-      // Clear dengan aman
       while (tbody.firstChild) {
         tbody.removeChild(tbody.firstChild);
       }
@@ -943,7 +965,6 @@
       }
       
       for (let [username, userData] of entries) {
-        // Hitung penggunaan
         const momentsSnap = await get(ref(db, "data/moments"));
         const moments = momentsSnap.val() || {};
         const userMoments = Object.values(moments).filter(m => m.author === username).length;
@@ -958,9 +979,6 @@
         const levelText = level === 'pro' ? 'PRO' : (level === 'basic' ? 'BASIC' : 'FREE');
         
         const row = tbody.insertRow();
-        row.className = 'user-row';
-        row.setAttribute('data-username', username);
-        
         row.insertCell(0).innerHTML = `<code>${userData.userId || '-'}</code>`;
         row.insertCell(1).innerHTML = `<strong>${escapeHtml(username)}</strong>`;
         row.insertCell(2).innerHTML = escapeHtml(userData.fullname || '-');
@@ -982,7 +1000,7 @@
         `;
       }
       
-      // Event listeners untuk edit level
+      // Edit level buttons
       document.querySelectorAll('.edit-level-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
           e.stopPropagation();
@@ -994,13 +1012,11 @@
             showToast(`Level ${username} diubah ke ${newLevel.toUpperCase()}`, 'success');
             loadUsersList();
             loadUsageStats();
-          } else if (newLevel) {
-            showToast('Level tidak valid! Gunakan: free, basic, atau pro', 'error');
           }
         });
       });
       
-      // Event listeners untuk hapus user
+      // Delete user buttons
       document.querySelectorAll('.delete-user-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
           e.stopPropagation();
@@ -1045,8 +1061,6 @@
       const limits = getLimitsForLevel(userData.level || 'free');
       const level = userData.level || 'free';
       const levelBadge = level === 'pro' ? 'badge-pro' : (level === 'basic' ? 'badge-basic' : 'badge-free');
-      const momentPercent = limits.moments === Infinity ? 0 : (userMoments / limits.moments) * 100;
-      const transPercent = limits.transactions === Infinity ? 0 : (userTrans / limits.transactions) * 100;
       
       html += `
         <div class="col-md-6">
@@ -1061,11 +1075,11 @@
               </div>
               <div class="mb-2">
                 <small>Momen: ${userMoments}${limits.moments !== Infinity ? '/' + limits.moments : ' (∞)'}</small>
-                ${limits.moments !== Infinity ? `<div class="progress" style="height: 4px;"><div class="progress-bar bg-danger" style="width: ${Math.min(100, momentPercent)}%"></div></div>` : '<div class="progress" style="height: 4px;"><div class="progress-bar bg-success" style="width: 100%"></div></div>'}
+                ${limits.moments !== Infinity ? `<div class="progress mt-1" style="height: 4px;"><div class="progress-bar bg-danger" style="width: ${Math.min(100, (userMoments / limits.moments) * 100)}%"></div></div>` : ''}
               </div>
               <div>
                 <small>Keuangan: ${userTrans}${limits.transactions !== Infinity ? '/' + limits.transactions : ' (∞)'}</small>
-                ${limits.transactions !== Infinity ? `<div class="progress" style="height: 4px;"><div class="progress-bar bg-warning" style="width: ${Math.min(100, transPercent)}%"></div></div>` : '<div class="progress" style="height: 4px;"><div class="progress-bar bg-success" style="width: 100%"></div></div>'}
+                ${limits.transactions !== Infinity ? `<div class="progress mt-1" style="height: 4px;"><div class="progress-bar bg-warning" style="width: ${Math.min(100, (userTrans / limits.transactions) * 100)}%"></div></div>` : ''}
               </div>
             </div>
           </div>
@@ -1089,10 +1103,7 @@
     const userId = await generateUserId();
     const hashedPassword = await hashPassword(password);
     
-    // Buat auth
     await set(ref(db, `data/auth/${usernameUpper}`), hashedPassword);
-    
-    // Buat user
     await set(ref(db, `data/users/${usernameUpper}`), {
       userId: userId,
       username: usernameUpper,
@@ -1101,17 +1112,8 @@
       active: true,
       createdAt: Date.now()
     });
-    
-    // Buat profile
-    await set(ref(db, `data/profiles/${usernameUpper}`), {
-      status: 'merencanakan',
-      photo: null
-    });
-    
-    // Buat keuangan empty
+    await set(ref(db, `data/profiles/${usernameUpper}`), { status: 'merencanakan', photo: null });
     await set(ref(db, `data/keuangan/${usernameUpper}`), { transaksi: {} });
-    
-    // Buat impian empty
     await set(ref(db, `data/impian/${usernameUpper}`), {});
     
     return { username: usernameUpper, userId };
@@ -1136,7 +1138,7 @@
       row.insertCell(0).innerHTML = `<strong>${escapeHtml(inv.guestName || 'Tanpa Nama')}</strong>`;
       row.insertCell(1).innerHTML = inv.phone || '-';
       const fullLink = `${window.location.origin}${window.location.pathname}?invite=${id}`;
-      row.insertCell(2).innerHTML = `<span class="small text-truncate d-inline-block" style="max-width:180px;">${fullLink.substring(0,40)}...</span> <button class="btn btn-sm btn-link copyInvLink" data-link="${fullLink}"><i class="bi bi-copy"></i></button>`;
+      row.insertCell(2).innerHTML = `<span class="small">${fullLink.substring(0,40)}...</span> <button class="btn btn-sm btn-link copyInvLink" data-link="${fullLink}"><i class="bi bi-copy"></i></button>`;
       row.insertCell(3).innerHTML = inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('id') : '-';
       row.insertCell(4).innerHTML = `<button class="btn btn-sm btn-outline-danger rounded-pill deleteInvBtn" data-id="${id}"><i class="bi bi-trash3"></i> Hapus</button>`;
     }
@@ -1158,27 +1160,14 @@
   async function generateInvitationLink(guestName, phone, note) {
     if (!guestName.trim()) throw new Error("Nama tamu wajib diisi");
     const id = Date.now().toString() + Math.random().toString(36).substring(2,6);
-    const baseUrl = window.location.origin + window.location.pathname;
-    const inviteData = {
+    await set(ref(db, `data/invitations/${id}`), {
       guestName: guestName.trim(),
       phone: phone || '',
       note: note || '',
       createdAt: Date.now(),
       linkId: id
-    };
-    await set(ref(db, `data/invitations/${id}`), inviteData);
-    return `${baseUrl}?invite=${id}`;
-  }
-  
-  function showToast(msg, type='success') { 
-    const toastDiv = document.createElement('div');
-    toastDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed bottom-0 start-50 translate-middle-x mb-4 px-4 py-2 rounded-pill shadow`; 
-    toastDiv.style.zIndex = 9999; 
-    toastDiv.style.background = type === 'success' ? '#10b981' : '#ef4444'; 
-    toastDiv.style.color = 'white';
-    toastDiv.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>${escapeHtml(msg)}`;
-    document.body.appendChild(toastDiv);
-    setTimeout(() => toastDiv.remove(), 2500);
+    });
+    return `${window.location.origin}${window.location.pathname}?invite=${id}`;
   }
   
   function showSection(sectionId) {
@@ -1199,10 +1188,16 @@
   
   // ============ INITIALIZATION ============
   window.addEventListener('DOMContentLoaded', async () => {
-    // Check if already logged in
-    if (!checkAdminSession()) {
-      document.body.classList.remove('logged-in');
+    console.log("Admin panel starting...");
+    
+    // Initialize Bootstrap Modal
+    const modalElement = document.getElementById('registerUserModal');
+    if (modalElement) {
+      registerModal = new bootstrap.Modal(modalElement);
     }
+    
+    // Check session
+    checkAdminSession();
     
     // Login button
     document.getElementById('adminLoginBtn')?.addEventListener('click', handleAdminLogin);
@@ -1213,6 +1208,32 @@
     document.getElementById('backToAppBtn')?.addEventListener('click', () => { 
       window.location.href = window.location.pathname.replace('admin.html', 'index.html'); 
     });
+    
+    // OPEN REGISTER MODAL - Perbaikan utama!
+    const openModalBtn = document.getElementById('openRegisterModalBtn');
+    if (openModalBtn) {
+      openModalBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log("Opening register modal...");
+        if (registerModal) {
+          // Reset form
+          document.getElementById('regUsername').value = '';
+          document.getElementById('regFullname').value = '';
+          document.getElementById('regPassword').value = '';
+          document.getElementById('regLevel').value = 'free';
+          registerModal.show();
+        } else {
+          console.error("Modal not initialized");
+          // Fallback: try to re-init
+          const modalEl = document.getElementById('registerUserModal');
+          if (modalEl) {
+            registerModal = new bootstrap.Modal(modalEl);
+            registerModal.show();
+          }
+        }
+      });
+    }
     
     // Register User Button
     document.getElementById('confirmRegisterBtn')?.addEventListener('click', async () => {
@@ -1228,11 +1249,7 @@
       try {
         const result = await registerNewUser(username, fullname, password, level);
         showToast(`Pengguna ${result.username} berhasil didaftarkan! ID: ${result.userId}`, 'success');
-        const modal = bootstrap.Modal.getInstance(document.getElementById('registerUserModal'));
-        if (modal) modal.hide();
-        document.getElementById('regUsername').value = '';
-        document.getElementById('regFullname').value = '';
-        document.getElementById('regPassword').value = '';
+        if (registerModal) registerModal.hide();
         if (currentSection === 'users') loadUsersList();
         loadDashboardStats();
       } catch(err) {
@@ -1280,13 +1297,6 @@
       });
     });
     
-    // Upgrade buttons (demo)
-    document.querySelectorAll('.upgrade-basic, .upgrade-pro, .upgrade-free').forEach(btn => {
-      btn.addEventListener('click', () => {
-        showToast("Fitur upgrade akan tersedia segera. Hubungi admin.", 'info');
-      });
-    });
-    
     // Dark Mode
     const darkFab = document.getElementById('darkModeFab');
     const isDark = localStorage.getItem('adminDark') === 'true';
@@ -1303,8 +1313,8 @@
     const overlay = document.getElementById('sidebarOverlay');
     function closeSidebar() { sidebar.classList.remove('open'); overlay.style.display = 'none'; }
     function openSidebar() { sidebar.classList.add('open'); overlay.style.display = 'block'; }
-    hamburger?.addEventListener('click', openSidebar);
-    overlay?.addEventListener('click', closeSidebar);
+    if (hamburger) hamburger.addEventListener('click', openSidebar);
+    if (overlay) overlay.addEventListener('click', closeSidebar);
     window.addEventListener('resize', () => { if(window.innerWidth > 768) { closeSidebar(); overlay.style.display = 'none'; } });
     
     if (document.body.classList.contains('logged-in')) {
