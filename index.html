@@ -2,20 +2,70 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
   <title>GrowthTogether - Jalan Bareng, Mimpi Nyata</title>
   
-  <!-- Bootstrap 5 + Icons -->
+  <!-- Bootstrap 5 + Icons + Font -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   
+  <!-- CSS Utama -->
+  <link rel="stylesheet" href="css/style.css">
+  
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Inter', sans-serif; background: #faf5ff; }
+    /* Additional styles */
+    .badge-pro {
+      background: linear-gradient(135deg, #7009b4, #4000C6);
+      color: white;
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 20px;
+    }
+    .badge-basic {
+      background: #3b82f6;
+      color: white;
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 20px;
+    }
+    .badge-free {
+      background: #10b981;
+      color: white;
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 20px;
+    }
     
-    /* Loading Screen */
+    /* Login screen fix */
+    #login-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #7009b4 0%, #4000C6 100%);
+      z-index: 9999;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    body.logged-in #login-screen {
+      display: none !important;
+    }
+    
+    body.logged-in #app-sidebar,
+    body.logged-in #app-content {
+      display: block;
+    }
+    
+    #app-sidebar, #app-content {
+      display: none;
+    }
+    
+    /* Loading screen */
     #initialLoader {
       position: fixed;
       top: 0;
@@ -28,271 +78,7 @@
       align-items: center;
       justify-content: center;
       flex-direction: column;
-      transition: opacity 0.5s;
     }
-    
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.1); opacity: 0.8; }
-    }
-    
-    /* Login Screen */
-    #login-screen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, #7009b4 0%, #4000C6 100%);
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .login-card {
-      background: white;
-      border-radius: 32px;
-      padding: 2rem;
-      width: 100%;
-      max-width: 380px;
-      text-align: center;
-      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
-    }
-    
-    body.dark .login-card { background: #2d1a3a; }
-    
-    .login-logo {
-      width: 70px;
-      height: 70px;
-      background: linear-gradient(135deg, #7009b4, #4000C6);
-      border-radius: 35px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 1rem;
-    }
-    
-    .login-logo i { font-size: 34px; color: white; }
-    .login-title { font-size: 1.5rem; font-weight: 700; background: linear-gradient(135deg, #7009b4, #4000C6); background-clip: text; -webkit-background-clip: text; color: transparent; }
-    
-    .login-input {
-      width: 100%;
-      border: 1.5px solid #e9d5ff;
-      border-radius: 60px;
-      padding: 0.85rem 1rem;
-      margin-bottom: 1rem;
-    }
-    
-    body.dark .login-input {
-      background: #1e1028;
-      border-color: #4c1d6e;
-      color: #e9d5ff;
-    }
-    
-    .login-input:focus {
-      border-color: #7009b4;
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(112,9,180,0.15);
-    }
-    
-    .login-btn {
-      background: linear-gradient(135deg, #7009b4, #4000C6);
-      border: none;
-      border-radius: 60px;
-      padding: 0.85rem;
-      font-weight: 700;
-      color: white;
-      width: 100%;
-      cursor: pointer;
-    }
-    
-    .login-btn:active { transform: scale(0.98); }
-    
-    .error-msg {
-      background: #fee2e2;
-      color: #dc2626;
-      padding: 0.75rem;
-      border-radius: 60px;
-      font-size: 0.8rem;
-      margin-top: 1rem;
-      display: none;
-    }
-    
-    body.dark .error-msg { background: #7f1d1d; color: #fca5a5; }
-    
-    /* Main App - Hidden by default */
-    #app-main {
-      display: none;
-    }
-    
-    body.logged-in #login-screen { display: none !important; }
-    body.logged-in #app-main { display: block; }
-    
-    /* Sidebar */
-    .sidebar {
-      width: 280px;
-      height: 100vh;
-      position: fixed;
-      top: 0;
-      left: 0;
-      background: white;
-      border-right: 1px solid #e9d5ff;
-      padding: 1.5rem 1rem;
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-    }
-    
-    body.dark .sidebar {
-      background: #2d1a3a;
-      border-right-color: #4c1d6e;
-    }
-    
-    .sidebar-header { text-align: center; margin-bottom: 2rem; }
-    .logo-icon {
-      background: linear-gradient(135deg, #7009b4, #4000C6);
-      width: 55px;
-      height: 55px;
-      border-radius: 28px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 12px;
-    }
-    .logo-icon i { font-size: 28px; color: white; }
-    
-    .nav-link {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      border-radius: 14px;
-      color: #4c1d95;
-      font-weight: 500;
-      cursor: pointer;
-      margin-bottom: 4px;
-      text-decoration: none;
-    }
-    
-    body.dark .nav-link { color: #d8b4fe; }
-    .nav-link.active {
-      background: linear-gradient(135deg, #7009b4, #4000C6);
-      color: white;
-    }
-    
-    /* Main Content */
-    .main-content {
-      margin-left: 280px;
-      padding: 1.8rem 2rem;
-      min-height: 100vh;
-    }
-    
-    /* Cards */
-    .stat-card {
-      background: white;
-      border-radius: 20px;
-      border: none;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      padding: 1.5rem;
-    }
-    
-    body.dark .stat-card { background: #3d1f3d; }
-    
-    .dark-mode-fab {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 48px;
-      height: 48px;
-      border-radius: 30px;
-      background: linear-gradient(135deg, #7009b4, #4000C6);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: none;
-      cursor: pointer;
-      z-index: 1050;
-    }
-    
-    /* Mobile */
-    @media (max-width: 768px) {
-      .sidebar {
-        left: -280px;
-        position: fixed;
-      }
-      .sidebar.open { left: 0; }
-      .main-content { margin-left: 0; padding: 1rem; }
-      .hamburger {
-        display: flex;
-        position: fixed;
-        top: 16px;
-        left: 16px;
-        z-index: 1060;
-        background: linear-gradient(135deg, #7009b4, #4000C6);
-        width: 44px;
-        height: 44px;
-        border-radius: 14px;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        border: none;
-        cursor: pointer;
-      }
-    }
-    
-    .hamburger { display: none; }
-    .sidebar-overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      z-index: 1040;
-      display: none;
-    }
-    
-    .profile-avatar {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid #7009b4;
-    }
-    
-    .badge-pro { background: linear-gradient(135deg, #7009b4, #4000C6); color: white; }
-    .badge-basic { background: #3b82f6; color: white; }
-    .badge-free { background: #10b981; color: white; }
-    
-    .moment-card {
-      background: white;
-      border-radius: 16px;
-      overflow: hidden;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    
-    body.dark .moment-card { background: #3d1f3d; }
-    
-    .moment-image {
-      width: 100%;
-      height: 120px;
-      object-fit: cover;
-    }
-    
-    .custom-toast {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: white;
-      border-radius: 50px;
-      padding: 12px 24px;
-      z-index: 10000;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-    }
-    
-    body.dark .custom-toast { background: #2d1a3a; color: white; }
   </style>
 </head>
 <body>
@@ -310,196 +96,28 @@
   </div>
 </div>
 
-<!-- Login Screen -->
-<div id="login-screen">
-  <div class="login-card">
-    <div class="login-logo mx-auto">
-      <i class="bi bi-arrow-through-heart-fill"></i>
-    </div>
-    <h2 class="login-title">growthogether</h2>
-    <p class="text-muted small">jalan bareng, mimpi nyata ✨</p>
-    
-    <input type="text" id="loginUser" class="login-input" placeholder="Username" autocomplete="off" value="FACHMI">
-    <input type="password" id="loginPass" class="login-input" placeholder="Password" value="gokil223">
-    
-    <button class="login-btn" id="loginBtn">
-      <i class="bi bi-box-arrow-in-right me-2"></i> Masuk
-    </button>
-    
-    <div id="loginError" class="error-msg">
-      <i class="bi bi-exclamation-triangle-fill me-2"></i> <span id="errorText"></span>
-    </div>
-  </div>
-</div>
+<!-- Tempat untuk Sidebar (akan diisi oleh JS) -->
+<div id="sidebar-container"></div>
 
-<!-- Main App -->
-<div id="app-main">
-  <!-- Sidebar -->
-  <div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <div class="logo-icon mx-auto"><i class="bi bi-arrow-through-heart-fill"></i></div>
-      <h5 class="fw-bold mt-2 mb-0">growthogether</h5>
-      <small class="text-muted">jalan bareng, mimpi nyata</small>
-    </div>
-    
-    <div class="text-center mb-4" id="profileSection" style="cursor: pointer;">
-      <img id="profileAvatar" class="profile-avatar" src="https://ui-avatars.com/api/?background=7009b4&color=fff&bold=true&size=80&name=User" alt="Profile">
-      <h6 class="fw-bold mt-2 mb-0" id="profileName">User</h6>
-      <small class="text-muted" id="profileStatusText">merencanakan</small>
-      <div class="mt-1" id="userLevelBadge"></div>
-    </div>
-    
-    <nav class="nav flex-column">
-      <a class="nav-link active" data-page="dashboard">
-        <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
-      </a>
-      <a class="nav-link" data-page="moment">
-        <i class="bi bi-calendar-heart"></i> <span>Moment</span>
-      </a>
-      <a class="nav-link" data-page="keuangan">
-        <i class="bi bi-wallet2"></i> <span>Keuangan</span>
-      </a>
-    </nav>
-    
-    <div class="mt-auto pt-4">
-      <button class="btn btn-sm btn-outline-danger rounded-pill w-100" id="logoutBtn">
-        <i class="bi bi-box-arrow-right me-2"></i> Keluar
-      </button>
-    </div>
-  </div>
-  
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
-  <button class="hamburger" id="hamburgerBtn"><i class="bi bi-list fs-4"></i></button>
-  
-  <!-- Main Content -->
-  <div class="main-content" id="mainContent">
-    <!-- Dashboard Page -->
-    <div id="dashboard-page">
-      <h4 class="fw-bold mb-4"><i class="bi bi-speedometer2 me-2"></i>Dashboard</h4>
-      <div class="row g-4">
-        <div class="col-md-4">
-          <div class="stat-card">
-            <h6 class="text-muted">Total Momen</h6>
-            <h2 class="fw-bold" id="totalMoments">0</h2>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="stat-card">
-            <h6 class="text-muted">Total Keuangan</h6>
-            <h2 class="fw-bold" id="totalBalance">Rp 0</h2>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="stat-card">
-            <h6 class="text-muted">Level Akun</h6>
-            <h2 class="fw-bold" id="userLevel">FREE</h2>
-          </div>
-        </div>
-      </div>
-      
-      <div class="mt-4">
-        <div class="card p-4">
-          <h5>Selamat Datang di GrowthTogether!</h5>
-          <p class="text-muted">Kelola persiapan pernikahanmu bersama pasangan.</p>
-          <div id="momentsPreview" class="row g-3 mt-2"></div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Moment Page -->
-    <div id="moment-page" style="display: none;">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-bold"><i class="bi bi-calendar-heart me-2"></i>Moment Gallery</h4>
-        <button class="btn btn-primary rounded-pill" id="addMomentBtn"><i class="bi bi-plus-lg me-2"></i>Tambah Momen</button>
-      </div>
-      <div id="momentsList" class="row g-3"></div>
-    </div>
-    
-    <!-- Keuangan Page -->
-    <div id="keuangan-page" style="display: none;">
-      <h4 class="fw-bold mb-4"><i class="bi bi-wallet2 me-2"></i>Keuangan</h4>
-      <div class="row g-4 mb-4">
-        <div class="col-md-4">
-          <div class="stat-card text-center">
-            <small class="text-muted">Total Pemasukan</small>
-            <h4 class="text-success fw-bold" id="totalPemasukan">Rp 0</h4>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="stat-card text-center">
-            <small class="text-muted">Total Pengeluaran</small>
-            <h4 class="text-danger fw-bold" id="totalPengeluaran">Rp 0</h4>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="stat-card text-center">
-            <small class="text-muted">Saldo</small>
-            <h4 class="text-primary fw-bold" id="totalSaldo">Rp 0</h4>
-          </div>
-        </div>
-      </div>
-      <button class="btn btn-success rounded-pill mb-3" id="addTransaksiBtn"><i class="bi bi-plus-lg me-2"></i>Tambah Transaksi</button>
-      <div id="transaksiList" class="list-group"></div>
-    </div>
-  </div>
-  
-  <button class="dark-mode-fab" id="darkModeFab">
-    <i class="bi bi-moon-stars fs-5"></i>
-  </button>
-</div>
+<!-- Tempat untuk Modals (akan diisi oleh JS) -->
+<div id="modals-container"></div>
 
-<!-- Modal Tambah Momen -->
-<div class="modal fade" id="momentModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4">
-      <div class="modal-header bg-danger text-white">
-        <h5 class="fw-bold mb-0">Tambah Momen</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <input type="date" id="momentDate" class="form-control mb-3">
-        <input type="text" id="momentTitle" class="form-control mb-3" placeholder="Judul Momen">
-        <textarea id="momentStory" class="form-control mb-3" rows="3" placeholder="Cerita..."></textarea>
-        <input type="file" id="momentPhoto" accept="image/*" class="form-control">
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-danger" id="saveMomentBtn">Simpan</button>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- Main Content (akan diisi oleh JS) -->
+<div id="app-content"></div>
 
-<!-- Modal Tambah Transaksi -->
-<div class="modal fade" id="transaksiModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4">
-      <div class="modal-header bg-success text-white">
-        <h5 class="fw-bold mb-0">Tambah Transaksi</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <select id="transaksiTipe" class="form-select mb-3">
-          <option value="pemasukan">📥 Pemasukan</option>
-          <option value="pengeluaran">📤 Pengeluaran</option>
-        </select>
-        <input type="text" id="transaksiKategori" class="form-control mb-3" placeholder="Kategori">
-        <input type="number" id="transaksiNominal" class="form-control mb-3" placeholder="Nominal">
-        <input type="date" id="transaksiTanggal" class="form-control mb-3">
-        <textarea id="transaksiCatatan" class="form-control" rows="2" placeholder="Catatan"></textarea>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-success" id="saveTransaksiBtn">Simpan</button>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- Login Screen (akan diisi oleh JS) -->
+<div id="login-screen"></div>
+
+<!-- Dark Mode FAB -->
+<button class="dark-mode-fab" id="darkModeFab" style="display: none;">
+  <i class="bi bi-moon-stars fs-5"></i>
+</button>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getDatabase, ref, get, set, push, remove, update, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+  import { getDatabase } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
   
+  // Firebase Config
   const firebaseConfig = { 
     apiKey: "AIzaSyBeUaOyesw9ucpBGumNjrzUp3WfUtXu39w", 
     authDomain: "growthogether.firebaseapp.com", 
@@ -513,440 +131,9 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   
-  let currentUser = null;
-  let currentPage = 'dashboard';
+  window.db = db;
   
-  // Helper functions
-  async function hashPassword(password) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password + "growthogether_salt_2024");
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-  
-  function showToast(msg, isErr = false) {
-    const existing = document.querySelector('.custom-toast');
-    if (existing) existing.remove();
-    
-    const toast = document.createElement('div');
-    toast.className = 'custom-toast';
-    toast.style.background = isErr ? '#ef4444' : '#10b981';
-    toast.style.color = 'white';
-    toast.innerHTML = `<i class="bi bi-${isErr ? 'exclamation-triangle-fill' : 'check-circle-fill'} me-2"></i> ${msg}`;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-  }
-  
-  function formatRp(val) { return `Rp ${(val || 0).toLocaleString('id-ID')}`; }
-  
-  function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
-  
-  // Load user level
-  async function loadUserLevel(username) {
-    try {
-      const userSnap = await get(ref(db, `data/users/${username}`));
-      const userData = userSnap.val();
-      const level = userData?.level || 'free';
-      const levelBadge = document.getElementById('userLevel');
-      if (levelBadge) levelBadge.innerText = level.toUpperCase();
-      
-      const levelBadgeSidebar = document.getElementById('userLevelBadge');
-      if (levelBadgeSidebar) {
-        let badgeClass = 'badge-free';
-        if (level === 'basic') badgeClass = 'badge-basic';
-        if (level === 'pro') badgeClass = 'badge-pro';
-        levelBadgeSidebar.innerHTML = `<span class="badge ${badgeClass}">${level.toUpperCase()}</span>`;
-      }
-      return level;
-    } catch(err) { console.error(err); return 'free'; }
-  }
-  
-  // Load dashboard stats
-  async function loadDashboard() {
-    if (!currentUser) return;
-    
-    try {
-      const momentsSnap = await get(ref(db, "data/moments"));
-      const moments = momentsSnap.val() || {};
-      const userMoments = Object.values(moments).filter(m => m.author === currentUser).length;
-      document.getElementById('totalMoments').innerText = userMoments;
-      
-      const transSnap = await get(ref(db, `data/keuangan/${currentUser}/transaksi`));
-      const trans = transSnap.val() || {};
-      let pemasukan = 0, pengeluaran = 0;
-      Object.values(trans).forEach(t => {
-        if (t.tipe === 'pemasukan') pemasukan += (t.nominal || 0);
-        else pengeluaran += (t.nominal || 0);
-      });
-      document.getElementById('totalBalance').innerHTML = formatRp(pemasukan - pengeluaran);
-      
-      // Preview moments
-      const previewDiv = document.getElementById('momentsPreview');
-      const recentMoments = Object.entries(moments)
-        .filter(([_, m]) => m.author === currentUser)
-        .sort((a, b) => (b[1].date || '').localeCompare(a[1].date || ''))
-        .slice(0, 3);
-      
-      if (recentMoments.length === 0) {
-        previewDiv.innerHTML = '<div class="col-12 text-muted">Belum ada momen. Yuk tambah momen spesial!</div>';
-      } else {
-        previewDiv.innerHTML = recentMoments.map(([id, m]) => `
-          <div class="col-md-4">
-            <div class="moment-card">
-              ${m.photos && m.photos[0] ? `<img src="${m.photos[0]}" class="moment-image">` : `<div class="moment-image" style="background: linear-gradient(135deg, #7009b4, #4000C6); display: flex; align-items: center; justify-content: center;"><i class="bi bi-camera-fill text-white fs-1"></i></div>`}
-              <div class="p-3">
-                <h6 class="fw-bold">${escapeHtml(m.title || 'Momen')}</h6>
-                <small class="text-muted">${m.date || ''}</small>
-              </div>
-            </div>
-          </div>
-        `).join('');
-      }
-    } catch(err) { console.error(err); }
-  }
-  
-  // Load keuangan
-  async function loadKeuangan() {
-    if (!currentUser) return;
-    
-    try {
-      const transSnap = await get(ref(db, `data/keuangan/${currentUser}/transaksi`));
-      const trans = transSnap.val() || {};
-      let pemasukan = 0, pengeluaran = 0;
-      const transList = [];
-      
-      Object.entries(trans).forEach(([id, t]) => {
-        if (t.tipe === 'pemasukan') pemasukan += (t.nominal || 0);
-        else pengeluaran += (t.nominal || 0);
-        transList.push({ id, ...t });
-      });
-      
-      document.getElementById('totalPemasukan').innerHTML = formatRp(pemasukan);
-      document.getElementById('totalPengeluaran').innerHTML = formatRp(pengeluaran);
-      document.getElementById('totalSaldo').innerHTML = formatRp(pemasukan - pengeluaran);
-      
-      const container = document.getElementById('transaksiList');
-      if (transList.length === 0) {
-        container.innerHTML = '<div class="text-center text-muted py-4">Belum ada transaksi</div>';
-      } else {
-        container.innerHTML = transList.sort((a, b) => (b.tanggal || 0) - (a.tanggal || 0)).slice(0, 20).map(t => `
-          <div class="list-group-item d-flex justify-content-between align-items-center">
-            <div>
-              <span class="badge ${t.tipe === 'pemasukan' ? 'bg-success' : 'bg-danger'} me-2">${t.tipe === 'pemasukan' ? '+' : '-'}</span>
-              <strong>${escapeHtml(t.kategori)}</strong>
-              <br><small class="text-muted">${t.tanggal ? new Date(t.tanggal).toLocaleDateString('id-ID') : '-'}</small>
-              ${t.catatan ? `<br><small>${escapeHtml(t.catatan)}</small>` : ''}
-            </div>
-            <div class="text-end">
-              <span class="fw-bold ${t.tipe === 'pemasukan' ? 'text-success' : 'text-danger'}">${formatRp(t.nominal)}</span>
-              <div>
-                <button class="btn btn-sm btn-outline-danger mt-1" onclick="deleteTransaksi('${t.id}')">Hapus</button>
-              </div>
-            </div>
-          </div>
-        `).join('');
-      }
-    } catch(err) { console.error(err); }
-  }
-  
-  // Load moments
-  async function loadMoments() {
-    if (!currentUser) return;
-    
-    try {
-      const momentsSnap = await get(ref(db, "data/moments"));
-      const moments = momentsSnap.val() || {};
-      const userMoments = Object.entries(moments)
-        .filter(([_, m]) => m.author === currentUser)
-        .sort((a, b) => (b[1].date || '').localeCompare(a[1].date || ''));
-      
-      const container = document.getElementById('momentsList');
-      if (userMoments.length === 0) {
-        container.innerHTML = '<div class="col-12 text-center text-muted py-5">Belum ada momen. Klik tombol Tambah Momen</div>';
-      } else {
-        container.innerHTML = userMoments.map(([id, m]) => `
-          <div class="col-md-4 col-sm-6">
-            <div class="moment-card">
-              ${m.photos && m.photos[0] ? `<img src="${m.photos[0]}" class="moment-image">` : `<div class="moment-image" style="background: linear-gradient(135deg, #7009b4, #4000C6); display: flex; align-items: center; justify-content: center;"><i class="bi bi-camera-fill text-white fs-1"></i></div>`}
-              <div class="p-3">
-                <h6 class="fw-bold">${escapeHtml(m.title || 'Momen')}</h6>
-                <p class="small text-muted">${escapeHtml((m.story || '').substring(0, 100))}</p>
-                <small class="text-muted">${m.date || ''}</small>
-                <div class="mt-2">
-                  <button class="btn btn-sm btn-outline-danger" onclick="deleteMoment('${id}')">Hapus</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        `).join('');
-      }
-    } catch(err) { console.error(err); }
-  }
-  
-  // Save moment
-  async function saveMoment() {
-    const date = document.getElementById('momentDate').value;
-    const title = document.getElementById('momentTitle').value;
-    const story = document.getElementById('momentStory').value;
-    const photoFile = document.getElementById('momentPhoto').files[0];
-    
-    if (!date) {
-      showToast('Tanggal harus diisi!', true);
-      return;
-    }
-    
-    let photoBase64 = null;
-    if (photoFile) {
-      const reader = new FileReader();
-      photoBase64 = await new Promise((resolve) => {
-        reader.onload = (e) => resolve(e.target.result);
-        reader.readAsDataURL(photoFile);
-      });
-    }
-    
-    const momentData = {
-      date: date,
-      title: title || `Momen di ${date}`,
-      story: story || '',
-      author: currentUser,
-      photos: photoBase64 ? [photoBase64] : [],
-      createdAt: Date.now()
-    };
-    
-    try {
-      await push(ref(db, "data/moments"), momentData);
-      showToast('Momen berhasil ditambahkan!');
-      const modal = bootstrap.Modal.getInstance(document.getElementById('momentModal'));
-      if (modal) modal.hide();
-      document.getElementById('momentDate').value = '';
-      document.getElementById('momentTitle').value = '';
-      document.getElementById('momentStory').value = '';
-      document.getElementById('momentPhoto').value = '';
-      loadMoments();
-      loadDashboard();
-    } catch(err) {
-      console.error(err);
-      showToast('Gagal menambahkan momen', true);
-    }
-  }
-  
-  // Save transaction
-  async function saveTransaksi() {
-    const tipe = document.getElementById('transaksiTipe').value;
-    const kategori = document.getElementById('transaksiKategori').value;
-    const nominal = parseInt(document.getElementById('transaksiNominal').value);
-    const tanggal = document.getElementById('transaksiTanggal').value;
-    const catatan = document.getElementById('transaksiCatatan').value;
-    
-    if (!kategori || !nominal || !tanggal) {
-      showToast('Semua field harus diisi!', true);
-      return;
-    }
-    
-    const transaksiData = {
-      tipe: tipe,
-      kategori: kategori,
-      nominal: nominal,
-      tanggal: new Date(tanggal).getTime(),
-      catatan: catatan,
-      createdAt: Date.now()
-    };
-    
-    try {
-      await push(ref(db, `data/keuangan/${currentUser}/transaksi`), transaksiData);
-      showToast('Transaksi berhasil ditambahkan!');
-      const modal = bootstrap.Modal.getInstance(document.getElementById('transaksiModal'));
-      if (modal) modal.hide();
-      document.getElementById('transaksiKategori').value = '';
-      document.getElementById('transaksiNominal').value = '';
-      document.getElementById('transaksiCatatan').value = '';
-      document.getElementById('transaksiTanggal').value = new Date().toISOString().split('T')[0];
-      loadKeuangan();
-      loadDashboard();
-    } catch(err) {
-      console.error(err);
-      showToast('Gagal menambahkan transaksi', true);
-    }
-  }
-  
-  // Delete functions (global)
-  window.deleteMoment = async function(id) {
-    if (confirm('Yakin ingin menghapus momen ini?')) {
-      try {
-        await remove(ref(db, `data/moments/${id}`));
-        showToast('Momen dihapus');
-        loadMoments();
-        loadDashboard();
-      } catch(err) { showToast('Gagal menghapus', true); }
-    }
-  };
-  
-  window.deleteTransaksi = async function(id) {
-    if (confirm('Yakin ingin menghapus transaksi ini?')) {
-      try {
-        await remove(ref(db, `data/keuangan/${currentUser}/transaksi/${id}`));
-        showToast('Transaksi dihapus');
-        loadKeuangan();
-        loadDashboard();
-      } catch(err) { showToast('Gagal menghapus', true); }
-    }
-  };
-  
-  // Show page
-  function showPage(page) {
-    currentPage = page;
-    document.getElementById('dashboard-page').style.display = page === 'dashboard' ? 'block' : 'none';
-    document.getElementById('moment-page').style.display = page === 'moment' ? 'block' : 'none';
-    document.getElementById('keuangan-page').style.display = page === 'keuangan' ? 'block' : 'none';
-    
-    document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
-    document.querySelectorAll(`[data-page="${page}"]`).forEach(link => link.classList.add('active'));
-    
-    if (page === 'dashboard') loadDashboard();
-    else if (page === 'moment') loadMoments();
-    else if (page === 'keuangan') loadKeuangan();
-  }
-  
-  // Setup app after login
-  async function setupApp(user) {
-    currentUser = user;
-    document.body.classList.add('logged-in');
-    
-    // Update profile UI
-    const displayName = user === 'FACHMI' ? 'Fachmi' : 'Azizah';
-    document.getElementById('profileName').innerText = displayName;
-    const profileAvatar = document.getElementById('profileAvatar');
-    profileAvatar.src = `https://ui-avatars.com/api/?background=7009b4&color=fff&bold=true&size=80&name=${displayName}`;
-    
-    await loadUserLevel(user);
-    await loadDashboard();
-    showPage('dashboard');
-    showToast(`Selamat datang, ${displayName}! 🎉`);
-  }
-  
-  // Login handler
-  async function handleLogin() {
-    const username = document.getElementById('loginUser').value.trim().toUpperCase();
-    const password = document.getElementById('loginPass').value;
-    const errorDiv = document.getElementById('loginError');
-    const errorText = document.getElementById('errorText');
-    const loginBtn = document.getElementById('loginBtn');
-    
-    if (!username || !password) {
-      errorText.innerText = 'Username dan password harus diisi!';
-      errorDiv.style.display = 'block';
-      return;
-    }
-    
-    loginBtn.disabled = true;
-    loginBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Memeriksa...';
-    errorDiv.style.display = 'none';
-    
-    try {
-      const userSnap = await get(ref(db, `data/users/${username}`));
-      if (!userSnap.exists()) {
-        errorText.innerText = 'Username tidak terdaftar!';
-        errorDiv.style.display = 'block';
-        loginBtn.disabled = false;
-        loginBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i> Masuk';
-        return;
-      }
-      
-      const authSnap = await get(ref(db, `data/auth/${username}`));
-      const storedHash = authSnap.val();
-      
-      let isValid = false;
-      if (storedHash && storedHash.length === 64) {
-        const inputHash = await hashPassword(password);
-        isValid = (inputHash === storedHash);
-      } else if (storedHash) {
-        isValid = (storedHash === password);
-        if (isValid) {
-          const newHash = await hashPassword(password);
-          await update(ref(db), { [`data/auth/${username}`]: newHash });
-        }
-      }
-      
-      if (isValid) {
-        sessionStorage.setItem('progrowth_user', username);
-        await setupApp(username);
-      } else {
-        errorText.innerText = 'Password salah!';
-        errorDiv.style.display = 'block';
-      }
-    } catch(err) {
-      console.error(err);
-      errorText.innerText = 'Gagal koneksi ke database!';
-      errorDiv.style.display = 'block';
-    } finally {
-      loginBtn.disabled = false;
-      loginBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i> Masuk';
-    }
-  }
-  
-  // Logout
-  function handleLogout() {
-    if (confirm('Yakin ingin keluar?')) {
-      sessionStorage.removeItem('progrowth_user');
-      currentUser = null;
-      document.body.classList.remove('logged-in');
-      showToast('Anda telah keluar');
-    }
-  }
-  
-  // Check session
-  function checkSession() {
-    const savedUser = sessionStorage.getItem('progrowth_user');
-    if (savedUser) {
-      setupApp(savedUser);
-    }
-  }
-  
-  // Event listeners
-  document.getElementById('loginBtn').onclick = handleLogin;
-  document.getElementById('logoutBtn').onclick = handleLogout;
-  document.getElementById('addMomentBtn').onclick = () => {
-    document.getElementById('momentDate').value = new Date().toISOString().split('T')[0];
-    new bootstrap.Modal(document.getElementById('momentModal')).show();
-  };
-  document.getElementById('saveMomentBtn').onclick = saveMoment;
-  document.getElementById('addTransaksiBtn').onclick = () => {
-    document.getElementById('transaksiTanggal').value = new Date().toISOString().split('T')[0];
-    new bootstrap.Modal(document.getElementById('transaksiModal')).show();
-  };
-  document.getElementById('saveTransaksiBtn').onclick = saveTransaksi;
-  
-  document.querySelectorAll('.nav-link').forEach(link => {
-    link.onclick = () => {
-      const page = link.getAttribute('data-page');
-      if (page) showPage(page);
-      if (window.innerWidth <= 768) closeSidebar();
-    };
-  });
-  
-  // Hamburger menu
-  const hamburgerBtn = document.getElementById('hamburgerBtn');
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('sidebarOverlay');
-  
-  function openSidebar() { sidebar.classList.add('open'); overlay.style.display = 'block'; }
-  function closeSidebar() { sidebar.classList.remove('open'); overlay.style.display = 'none'; }
-  
-  if (hamburgerBtn) hamburgerBtn.onclick = openSidebar;
-  if (overlay) overlay.onclick = closeSidebar;
-  
-  // Dark mode
-  const darkFab = document.getElementById('darkModeFab');
-  const isDark = localStorage.getItem('darkMode') === 'enabled';
-  if (isDark) document.body.classList.add('dark');
-  darkFab.onclick = () => {
-    document.body.classList.toggle('dark');
-    localStorage.setItem('darkMode', document.body.classList.contains('dark') ? 'enabled' : 'disabled');
-    darkFab.innerHTML = document.body.classList.contains('dark') ? '<i class="bi bi-brightness-high-fill"></i>' : '<i class="bi bi-moon-stars"></i>';
-  };
-  
-  // Hide loading screen
+  // Hide initial loader setelah 1 detik
   setTimeout(() => {
     const loader = document.getElementById('initialLoader');
     if (loader) {
@@ -955,8 +142,17 @@
     }
   }, 1000);
   
-  // Start app
-  checkSession();
+  // Import app.js
+  import('./js/app.js').catch(err => {
+    console.error("Failed to load app.js:", err);
+    document.getElementById('initialLoader').innerHTML = `
+      <div class="text-center text-white">
+        <i class="bi bi-exclamation-triangle-fill fs-1 mb-3"></i>
+        <h3 class="fw-bold">Error</h3>
+        <p class="mb-3">Gagal memuat aplikasi: ${err.message}</p>
+      </div>
+    `;
+  });
 </script>
 </body>
 </html>
