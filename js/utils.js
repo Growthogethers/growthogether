@@ -7,7 +7,7 @@ export let privacyHidden = false;
 export let currentUserLevel = null;
 export let currentUserLimits = null;
 export let currentPartner = null;
-export let currentPairId = null; // ID pasangan untuk shared data
+export let currentPairId = null;
 
 // ============ CACHING SYSTEM ============
 let cacheData = {};
@@ -74,12 +74,13 @@ export async function loadUserPartner(username) {
     const partner = partnerSnap.val();
     currentPartner = partner;
     
-    // Generate pairId untuk shared data (urutkan alphabet)
     if (partner) {
       const pair = [username, partner].sort();
       currentPairId = `${pair[0]}_${pair[1]}`;
+      sessionStorage.setItem('progrowth_pairId', currentPairId);
     } else {
       currentPairId = username;
+      sessionStorage.setItem('progrowth_pairId', currentPairId);
     }
     
     console.log(`Partner for ${username}: ${partner}, PairId: ${currentPairId}`);
@@ -91,7 +92,6 @@ export async function loadUserPartner(username) {
 }
 
 // ============ FILTER DATA BY USER/PARTNER ============
-// Filter data momen yang hanya milik user ini atau pasangannya
 export function filterMomentsByUser(moments) {
   if (!moments) return {};
   if (!currentUser) return {};
@@ -105,7 +105,6 @@ export function filterMomentsByUser(moments) {
   return filtered;
 }
 
-// Filter data keuangan berdasarkan user (masing-masing punya data sendiri)
 export async function filterKeuanganByUser() {
   if (!currentUser) return {};
   
@@ -120,7 +119,6 @@ export async function filterKeuanganByUser() {
   }
 }
 
-// Get catatan berdasarkan pairId (bersama pasangan)
 export async function getCatatanByPair() {
   if (!currentPairId) return null;
   
@@ -133,7 +131,6 @@ export async function getCatatanByPair() {
   }
 }
 
-// Save catatan berdasarkan pairId
 export async function saveCatatanByPair(data) {
   if (!currentPairId) return null;
   
@@ -146,7 +143,6 @@ export async function saveCatatanByPair(data) {
   }
 }
 
-// Filter impian berdasarkan user (impian pribadi)
 export function filterImpianByUser(impian) {
   if (!impian) return {};
   if (!currentUser) return {};
