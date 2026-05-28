@@ -3,10 +3,10 @@ import { db, ref, push, onValue, remove, update, get, set } from './firebase-con
 import { 
   showNotif, formatNumberRp, escapeHtml, showCustomPrompt, showCustomConfirm, 
   getCache, setCache, clearCache, throttle, showLoading, hideLoading,
-  checkDuplicateTransaction
+  checkDuplicateTransaction, currentUser, currentPartner
 } from './utils.js';
 
-let currentUser = null;
+let currentUserLogged = null;
 let transaksiList = [];
 let kategoriList = [];
 let targetKategori = {};
@@ -104,10 +104,10 @@ function initKeuanganChart() {
 }
 
 async function updateChartData() {
-  const currentUser = sessionStorage.getItem("progrowth_user");
-  if (!currentUser) return;
+  const user = sessionStorage.getItem("progrowth_user");
+  if (!user) return;
   
-  const snapshot = await get(ref(db, `data/keuangan/${currentUser}/transaksi`));
+  const snapshot = await get(ref(db, `data/keuangan/${user}/transaksi`));
   const data = snapshot.val() || {};
   const transaksiArray = Object.values(data);
   
@@ -191,7 +191,13 @@ window.changeChartPeriod = function(period) {
 
 async function loadKategoriFromCatatan() {
   try {
-    const snapshot = await get(ref(db, `data/catatan/bersama/kategori`));
+    const pairId = sessionStorage.getItem('progrowth_pairId');
+    let catatanPath = `data/catatan/pairs/${pairId}`;
+    if (!pairId) {
+      catatanPath = `data/catatan/bersama`;
+    }
+    
+    const snapshot = await get(ref(db, `${catatanPath}/kategori`));
     const data = snapshot.val() || {};
     kategoriList = Object.entries(data).map(([id, val]) => ({ id, ...val }));
     dynamicCategories = kategoriList.map(k => k.nama);
@@ -301,15 +307,14 @@ window.addPemasukanKeKategori = async function(kategoriNama) {
   if (nominal && !isNaN(nominal) && parseInt(nominal) > 0) {
     const confirmed = await showCustomConfirm("Konfirmasi", `Tambahkan tabungan untuk "${kategoriNama}" sebesar Rp ${parseInt(nominal).toLocaleString('id-ID')}?`);
     if (confirmed) {
-      // CEK LIMIT SEBELUM TAMBAH
       if (canAddTransactionChecker) {
-        const canAdd = await canAddTransactionChecker(currentUser);
+        const canAdd = await canAddTransactionChecker(currentUserLogged);
         if (!canAdd) return;
       }
       
       showLoading("Menyimpan transaksi...");
       try {
-        await addTransaksiFromExternal(currentUser, {
+        await addTransaksiFromExternal(currentUserLogged, {
           tipe: 'pemasukan',
           kategori: kategoriNama,
           nominal: parseInt(nominal),
@@ -346,15 +351,14 @@ window.addPengeluaranKeKategori = async function(kategoriNama) {
   if (nominal && !isNaN(nominal) && parseInt(nominal) > 0) {
     const confirmed = await showCustomConfirm("Konfirmasi", `Tambahkan pengeluaran untuk "${kategoriNama}" sebesar Rp ${parseInt(nominal).toLocaleString('id-ID')}?`);
     if (confirmed) {
-      // CEK LIMIT SEBELUM TAMBAH
       if (canAddTransactionChecker) {
-        const canAdd = await canAddTransactionChecker(currentUser);
+        const canAdd = await canAddTransactionChecker(currentUserLogged);
         if (!canAdd) return;
       }
       
       showLoading("Menyimpan transaksi...");
       try {
-        await addTransaksiFromExternal(currentUser, {
+        await addTransaksiFromExternal(currentUserLogged, {
           tipe: 'pengeluaran',
           kategori: kategoriNama,
           nominal: parseInt(nominal),
@@ -377,7 +381,7 @@ window.addPengeluaranKeKategori = async function(kategoriNama) {
 };
 
 async function loadAllTransaksiOptimized(forceRefresh = false) {
-  const cacheKey = `keuangan_transaksi_${currentUser}`;
+  const cacheKey = `keuangan_transaksi_${currentUserLogged}`;
   if (!forceRefresh) {
     const cached = getCache(cacheKey);
     if (cached) {
@@ -390,7 +394,7 @@ async function loadAllTransaksiOptimized(forceRefresh = false) {
   }
   
   try {
-    const snapshot = await get(ref(db, `data/keuangan/${currentUser}/transaksi`));
+    const snapshot = await get(ref(db, `data/keuangan/${currentUserLogged}/transaksi`));
     const data = snapshot.val() || {};
     transaksiList = Object.entries(data).map(([id, val]) => ({ id, ...val }));
     
@@ -526,7 +530,6 @@ window.exportKeuanganToCSV = function() {
 };
 
 export async function addTransaksiFromExternal(userId, data) {
-  // VALIDASI DUPLIKAT TRANSAKSI
   const existingTransaksi = await get(ref(db, `data/keuangan/${userId}/transaksi`));
   const existingList = Object.values(existingTransaksi.val() || {});
   
@@ -621,7 +624,7 @@ window.openTransaksiModal = function(editId = null) {
 };
 
 async function loadTransaksiData(id) {
-  const snapshot = await get(ref(db, `data/keuangan/${currentUser}/transaksi/${id}`));
+  const snapshot = await get(ref(db, `data/keuangan/${currentUserLogged}/transaksi/${id}`));
   const data = snapshot.val();
   if (data) {
     document.getElementById('transaksiTipe').value = data.tipe || 'pemasukan';
@@ -644,13 +647,11 @@ window.saveTransaksi = async function() {
     return;
   }
   
-  // CEK LIMIT SEBELUM TAMBAH TRANSAKSI BARU
   if (!editTransaksiId && canAddTransactionChecker) {
-    const canAdd = await canAddTransactionChecker(currentUser);
+    const canAdd = await canAddTransactionChecker(currentUserLogged);
     if (!canAdd) return;
   }
   
-  // VALIDASI DUPLIKAT SEBELUM SAVE
   const isDuplicate = checkDuplicateTransaction(transaksiList, {
     tanggal: new Date(tanggal).getTime(),
     kategori: kategori,
@@ -675,13 +676,13 @@ window.saveTransaksi = async function() {
   
   try {
     if (editTransaksiId) {
-      await update(ref(db, `data/keuangan/${currentUser}/transaksi/${editTransaksiId}`), transaksiData);
+      await update(ref(db, `data/keuangan/${currentUserLogged}/transaksi/${editTransaksiId}`), transaksiData);
       showNotif("Transaksi berhasil diupdate", false, 'success');
       editTransaksiId = null;
     } else {
       transaksiData.createdAt = Date.now();
-      transaksiData.createdBy = currentUser;
-      await push(ref(db, `data/keuangan/${currentUser}/transaksi`), transaksiData);
+      transaksiData.createdBy = currentUserLogged;
+      await push(ref(db, `data/keuangan/${currentUserLogged}/transaksi`), transaksiData);
       showNotif("Transaksi berhasil ditambahkan", false, 'success');
       
       if (tipe === 'pemasukan' && typeof window.triggerConfetti === 'function') {
@@ -689,7 +690,7 @@ window.saveTransaksi = async function() {
       }
     }
     
-    clearCache(`keuangan_transaksi_${currentUser}`);
+    clearCache(`keuangan_transaksi_${currentUserLogged}`);
     await loadAllTransaksiOptimized(true);
     updateChartData();
     
@@ -712,9 +713,9 @@ window.deleteTransaksi = async function(id) {
   if (confirmed) {
     showLoading("Menghapus transaksi...");
     try {
-      await remove(ref(db, `data/keuangan/${currentUser}/transaksi/${id}`));
+      await remove(ref(db, `data/keuangan/${currentUserLogged}/transaksi/${id}`));
       showNotif("Transaksi dihapus", false, 'warning');
-      clearCache(`keuangan_transaksi_${currentUser}`);
+      clearCache(`keuangan_transaksi_${currentUserLogged}`);
       await loadAllTransaksiOptimized(true);
       updateChartData();
     } catch (err) {
@@ -727,8 +728,8 @@ window.deleteTransaksi = async function(id) {
 };
 
 export function initKeuangan() {
-  currentUser = sessionStorage.getItem("progrowth_user");
-  if (!currentUser) return;
+  currentUserLogged = sessionStorage.getItem("progrowth_user");
+  if (!currentUserLogged) return;
   
   if (isInitialized) {
     refreshData();
@@ -740,7 +741,7 @@ export function initKeuangan() {
   
   const keuanganUserName = document.getElementById('keuanganUserName');
   if (keuanganUserName) {
-    const displayName = currentUser === "FACHMI" ? "Fachmi" : "Azizah";
+    const displayName = currentUserLogged === "FACHMI" ? "Fachmi" : "Azizah";
     keuanganUserName.innerHTML = `Keuangan ${displayName}`;
   }
   
@@ -752,12 +753,16 @@ export function initKeuangan() {
     initKeuanganChart();
   });
   
-  onValue(ref(db, `data/catatan/bersama/kategori`), () => {
+  const pairId = sessionStorage.getItem('progrowth_pairId');
+  let catatanPath = `data/catatan/pairs/${pairId}`;
+  if (!pairId) catatanPath = `data/catatan/bersama`;
+  
+  onValue(ref(db, `${catatanPath}/kategori`), () => {
     loadKategoriFromCatatan();
     renderKategoriProgress();
   });
   
-  onValue(ref(db, `data/keuangan/${currentUser}/transaksi`), () => {
+  onValue(ref(db, `data/keuangan/${currentUserLogged}/transaksi`), () => {
     loadAllTransaksiOptimized(true);
     updateChartData();
     renderKategoriProgress();
