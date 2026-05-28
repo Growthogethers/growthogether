@@ -11,15 +11,12 @@ export async function renderDashboard() {
   currentUser = sessionStorage.getItem("progrowth_user");
   if (!currentUser) return;
   
-  // Gunakan filtered moments
   const moments = masterData.filteredMoments || masterData.moments || {};
   const momentsArray = Object.values(moments);
   
-  // Ambil data keuangan user sendiri saja (untuk dashboard ringkasan pribadi)
   const myKeuangan = await getKeuanganForUser(currentUser);
   const partnerName = currentPartner === "FACHMI" ? "Fachmi" : currentPartner === "AZIZAH" ? "Azizah" : currentPartner;
   
-  // Render Ringkasan Keuangan User Sendiri
   const keuanganContainer = document.getElementById('keuanganSummary');
   if (keuanganContainer && myKeuangan) {
     keuanganContainer.innerHTML = `
@@ -56,7 +53,6 @@ export async function renderDashboard() {
     `;
   }
   
-  // Render Recent Moments dengan fitur pencarian
   const recentContainer = document.getElementById('recentMomentsPreview');
   if (recentContainer) {
     const searchHtml = `
@@ -143,7 +139,6 @@ async function getKeuanganForUser(username) {
     const pengeluaran = transList.filter(t => t.tipe === 'pengeluaran').reduce((sum, t) => sum + (t.nominal || 0), 0);
     const saldo = pemasukan - pengeluaran;
     
-    // Jika ada partner, ambil juga data partner
     let partnerSaldo = 0;
     let partnerPemasukan = 0;
     let partnerPengeluaran = 0;
