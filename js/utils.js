@@ -1,5 +1,5 @@
-// js/utils.js - Lengkap dengan Pair System (Data per Pasangan)
-import { db, ref, get } from './firebase-config.js';
+// js/utils.js - Lengkap dengan Pair System (Data per Pasangan) - FINAL FIXED
+import { db, ref, get, set, push, remove, update } from './firebase-config.js';
 
 export let currentUser = null;
 export let masterData = null;
@@ -8,7 +8,7 @@ export let currentUserLevel = null;
 export let currentUserLimits = null;
 export let currentPartner = null;
 export let currentPairId = null;
-export let currentPairData = null; // Data shared untuk pasangan
+export let currentPairData = null;
 
 // ============ CACHING SYSTEM ============
 let cacheData = {};
@@ -70,7 +70,6 @@ export function clearCache(key) {
 // ============ LOAD PAIR DATA ============
 export async function loadUserPartnerAndPair(username) {
   try {
-    // Ambil data user untuk mendapatkan pairId
     const userSnap = await get(ref(db, `data/users/${username}`));
     const userData = userSnap.val();
     
@@ -78,11 +77,9 @@ export async function loadUserPartnerAndPair(username) {
       currentPairId = userData.pairId;
       console.log(`PairId for ${username}: ${currentPairId}`);
       
-      // Ambil data pair untuk mendapatkan member
       const pairSnap = await get(ref(db, `data/pairs/${currentPairId}`));
       currentPairData = pairSnap.val() || { members: [], moments: {}, keuangan: { transaksi: {} }, catatan: {} };
       
-      // Tentukan partner (member lain selain current user)
       const members = currentPairData.members || [];
       currentPartner = members.find(m => m !== username) || null;
       
@@ -101,25 +98,40 @@ export async function loadUserPartnerAndPair(username) {
   }
 }
 
-// Get shared moments untuk pasangan
-export function getSharedMoments() {
-  if (!currentPairData) return {};
-  return currentPairData.moments || {};
+// ============ SHARED DATA FUNCTIONS ============
+export async function getSharedMoments() {
+  if (!currentPairId) return {};
+  try {
+    const snap = await get(ref(db, `data/pairs/${currentPairId}/moments`));
+    return snap.val() || {};
+  } catch(err) {
+    console.error("Error getting shared moments:", err);
+    return {};
+  }
 }
 
-// Get shared keuangan untuk pasangan
-export function getSharedKeuangan() {
-  if (!currentPairData) return { transaksi: {} };
-  return currentPairData.keuangan || { transaksi: {} };
+export async function getSharedKeuangan() {
+  if (!currentPairId) return { transaksi: {} };
+  try {
+    const snap = await get(ref(db, `data/pairs/${currentPairId}/keuangan`));
+    return snap.val() || { transaksi: {} };
+  } catch(err) {
+    console.error("Error getting shared keuangan:", err);
+    return { transaksi: {} };
+  }
 }
 
-// Get shared catatan untuk pasangan
-export function getSharedCatatan() {
-  if (!currentPairData) return { kategori: {}, items: {} };
-  return currentPairData.catatan || { kategori: {}, items: {} };
+export async function getSharedCatatan() {
+  if (!currentPairId) return { kategori: {}, items: {} };
+  try {
+    const snap = await get(ref(db, `data/pairs/${currentPairId}/catatan`));
+    return snap.val() || { kategori: {}, items: {} };
+  } catch(err) {
+    console.error("Error getting shared catatan:", err);
+    return { kategori: {}, items: {} };
+  }
 }
 
-// Save shared moments
 export async function saveSharedMoments(moments) {
   if (!currentPairId) return false;
   try {
@@ -132,7 +144,6 @@ export async function saveSharedMoments(moments) {
   }
 }
 
-// Save shared keuangan
 export async function saveSharedKeuangan(keuangan) {
   if (!currentPairId) return false;
   try {
@@ -145,7 +156,6 @@ export async function saveSharedKeuangan(keuangan) {
   }
 }
 
-// Save shared catatan
 export async function saveSharedCatatan(catatan) {
   if (!currentPairId) return false;
   try {
@@ -158,7 +168,6 @@ export async function saveSharedCatatan(catatan) {
   }
 }
 
-// Add transaction to shared keuangan
 export async function addSharedTransaction(transaction) {
   if (!currentPairId) return null;
   
@@ -176,7 +185,6 @@ export async function addSharedTransaction(transaction) {
   }
 }
 
-// Add moment to shared moments
 export async function addSharedMoment(moment) {
   if (!currentPairId) return null;
   
@@ -193,60 +201,70 @@ export async function addSharedMoment(moment) {
   }
 }
 
-// Update shared moment
 export async function updateSharedMoment(momentId, momentData) {
   if (!currentPairId) return false;
   
   try {
     const currentMoments = await getSharedMoments();
-    currentMoments[momentId] = { ...currentMoments[momentId], ...momentData, updatedAt: Date.now() };
-    await saveSharedMoments(currentMoments);
-    return true;
+    if (currentMoments[momentId]) {
+      currentMoments[momentId] = { ...currentMoments[momentId], ...momentData, updatedAt: Date.now() };
+      await saveSharedMoments(currentMoments);
+      return true;
+    }
+    return false;
   } catch(err) {
     console.error("Error updating shared moment:", err);
     return false;
   }
 }
 
-// Delete shared moment
 export async function deleteSharedMoment(momentId) {
   if (!currentPairId) return false;
   
   try {
     const currentMoments = await getSharedMoments();
-    delete currentMoments[momentId];
-    await saveSharedMoments(currentMoments);
-    return true;
+    if (currentMoments[momentId]) {
+      delete currentMoments[momentId];
+      await saveSharedMoments(currentMoments);
+      return true;
+    }
+    return false;
   } catch(err) {
     console.error("Error deleting shared moment:", err);
     return false;
   }
 }
 
-// Update shared transaction
 export async function updateSharedTransaction(transactionId, transactionData) {
   if (!currentPairId) return false;
   
   try {
     const currentKeuangan = await getSharedKeuangan();
-    currentKeuangan.transaksi[transactionId] = { ...currentKeuangan.transaksi[transactionId], ...transactionData, updatedAt: Date.now() };
-    await saveSharedKeuangan(currentKeuangan);
-    return true;
+    const transactions = currentKeuangan.transaksi || {};
+    if (transactions[transactionId]) {
+      transactions[transactionId] = { ...transactions[transactionId], ...transactionData, updatedAt: Date.now() };
+      await saveSharedKeuangan({ transaksi: transactions });
+      return true;
+    }
+    return false;
   } catch(err) {
     console.error("Error updating shared transaction:", err);
     return false;
   }
 }
 
-// Delete shared transaction
 export async function deleteSharedTransaction(transactionId) {
   if (!currentPairId) return false;
   
   try {
     const currentKeuangan = await getSharedKeuangan();
-    delete currentKeuangan.transaksi[transactionId];
-    await saveSharedKeuangan(currentKeuangan);
-    return true;
+    const transactions = currentKeuangan.transaksi || {};
+    if (transactions[transactionId]) {
+      delete transactions[transactionId];
+      await saveSharedKeuangan({ transaksi: transactions });
+      return true;
+    }
+    return false;
   } catch(err) {
     console.error("Error deleting shared transaction:", err);
     return false;
@@ -891,13 +909,3 @@ window.updateSharedMoment = updateSharedMoment;
 window.deleteSharedMoment = deleteSharedMoment;
 window.updateSharedTransaction = updateSharedTransaction;
 window.deleteSharedTransaction = deleteSharedTransaction;
-
-// EXPORT untuk module (jika diperlukan)
-export { 
-  currentUser, masterData, privacyHidden, currentUserLevel, currentUserLimits, 
-  currentPartner, currentPairId, currentPairData,
-  loadUserPartnerAndPair, getSharedMoments, getSharedKeuangan, getSharedCatatan,
-  saveSharedMoments, saveSharedKeuangan, saveSharedCatatan,
-  addSharedTransaction, addSharedMoment, updateSharedMoment, deleteSharedMoment,
-  updateSharedTransaction, deleteSharedTransaction
-};
