@@ -6,6 +6,8 @@ export let masterData = null;
 export let privacyHidden = false;
 export let currentUserLevel = null;
 export let currentUserLimits = null;
+export let currentPartner = null;
+export let currentPairId = null; // ID pasangan untuk shared data
 
 // ============ CACHING SYSTEM ============
 let cacheData = {};
@@ -63,6 +65,99 @@ export function clearCache(key) {
     } catch(e) {}
   }
   console.log("Cache cleared:", key || "all");
+}
+
+// ============ LOAD PARTNER ============
+export async function loadUserPartner(username) {
+  try {
+    const partnerSnap = await get(ref(db, `data/partners/${username}`));
+    const partner = partnerSnap.val();
+    currentPartner = partner;
+    
+    // Generate pairId untuk shared data (urutkan alphabet)
+    if (partner) {
+      const pair = [username, partner].sort();
+      currentPairId = `${pair[0]}_${pair[1]}`;
+    } else {
+      currentPairId = username;
+    }
+    
+    console.log(`Partner for ${username}: ${partner}, PairId: ${currentPairId}`);
+    return partner;
+  } catch(err) {
+    console.error("Error loading partner:", err);
+    return null;
+  }
+}
+
+// ============ FILTER DATA BY USER/PARTNER ============
+// Filter data momen yang hanya milik user ini atau pasangannya
+export function filterMomentsByUser(moments) {
+  if (!moments) return {};
+  if (!currentUser) return {};
+  
+  const filtered = {};
+  Object.entries(moments).forEach(([id, moment]) => {
+    if (moment.author === currentUser || (currentPartner && moment.author === currentPartner)) {
+      filtered[id] = moment;
+    }
+  });
+  return filtered;
+}
+
+// Filter data keuangan berdasarkan user (masing-masing punya data sendiri)
+export async function filterKeuanganByUser() {
+  if (!currentUser) return {};
+  
+  try {
+    const myFinanceSnap = await get(ref(db, `data/keuangan/${currentUser}`));
+    const myFinance = myFinanceSnap.val() || { transaksi: {} };
+    
+    return { [currentUser]: myFinance };
+  } catch(err) {
+    console.error("Error filtering keuangan:", err);
+    return { [currentUser]: { transaksi: {} } };
+  }
+}
+
+// Get catatan berdasarkan pairId (bersama pasangan)
+export async function getCatatanByPair() {
+  if (!currentPairId) return null;
+  
+  try {
+    const catatanSnap = await get(ref(db, `data/catatan/pairs/${currentPairId}`));
+    return catatanSnap.val() || { kategori: {}, items: {} };
+  } catch(err) {
+    console.error("Error loading catatan:", err);
+    return { kategori: {}, items: {} };
+  }
+}
+
+// Save catatan berdasarkan pairId
+export async function saveCatatanByPair(data) {
+  if (!currentPairId) return null;
+  
+  try {
+    await set(ref(db, `data/catatan/pairs/${currentPairId}`), data);
+    return true;
+  } catch(err) {
+    console.error("Error saving catatan:", err);
+    return false;
+  }
+}
+
+// Filter impian berdasarkan user (impian pribadi)
+export function filterImpianByUser(impian) {
+  if (!impian) return {};
+  if (!currentUser) return {};
+  
+  const filtered = {};
+  Object.entries(impian).forEach(([id, dream]) => {
+    if (dream.userId === currentUser) {
+      filtered[id] = dream;
+    }
+  });
+  return filtered;
 }
 
 // ============ LOADING INDICATOR ============
@@ -407,30 +502,29 @@ export async function loadUserLevelAndLimits(username) {
       currentUserLevel = userData.level;
       
       switch(currentUserLevel) {
-        case 'free':
-          currentUserLimits = { moments: 5, transactions: 5, catatan: 5, impian: false };
+        case 'trial':
+          currentUserLimits = { moments: 0, transactions: 5, catatan: 5, impian: false, hasMoment: false };
           break;
         case 'basic':
-          currentUserLimits = { moments: 50, transactions: 50, catatan: 50, impian: true };
+          currentUserLimits = { moments: 50, transactions: 50, catatan: 50, impian: true, hasMoment: true };
           break;
         case 'pro':
-          currentUserLimits = { moments: Infinity, transactions: Infinity, catatan: Infinity, impian: true };
+          currentUserLimits = { moments: Infinity, transactions: Infinity, catatan: Infinity, impian: true, hasMoment: true };
           break;
         default:
-          currentUserLimits = { moments: 5, transactions: 5, catatan: 5, impian: false };
+          currentUserLimits = { moments: 0, transactions: 5, catatan: 5, impian: false, hasMoment: false };
       }
       
       console.log(`User level: ${currentUserLevel}, Limits:`, currentUserLimits);
       return { level: currentUserLevel, limits: currentUserLimits };
     } else {
-      // Jika user tidak memiliki level, set default free
-      currentUserLevel = 'free';
-      currentUserLimits = { moments: 5, transactions: 5, catatan: 5, impian: false };
-      return { level: 'free', limits: { moments: 5, transactions: 5, catatan: 5, impian: false } };
+      currentUserLevel = 'trial';
+      currentUserLimits = { moments: 0, transactions: 5, catatan: 5, impian: false, hasMoment: false };
+      return { level: 'trial', limits: { moments: 0, transactions: 5, catatan: 5, impian: false, hasMoment: false } };
     }
   } catch(err) {
     console.error("Error loading user level:", err);
-    return { level: 'free', limits: { moments: 5, transactions: 5, catatan: 5, impian: false } };
+    return { level: 'trial', limits: { moments: 0, transactions: 5, catatan: 5, impian: false, hasMoment: false } };
   }
 }
 
@@ -443,6 +537,10 @@ async function getCurrentUserLimits(username) {
 export async function canAddMoment(username) {
   const limits = await getCurrentUserLimits(username);
   if (limits.moments === Infinity) return true;
+  if (limits.moments === 0) {
+    showNotif(`⚠️ Akun Trial tidak dapat menambah momen. Upgrade ke Basic atau Pro untuk akses momen!`, true, 'warning');
+    return false;
+  }
   
   const momentsSnap = await get(ref(db, "data/moments"));
   const moments = momentsSnap.val() || {};
@@ -475,7 +573,7 @@ export async function canAddCatatan() {
   const limits = await getCurrentUserLimits(username);
   if (limits.catatan === Infinity) return true;
   
-  const catatanSnap = await get(ref(db, "data/catatan/bersama/items"));
+  const catatanSnap = await get(ref(db, `data/catatan/pairs/${currentPairId}/items`));
   const catatan = catatanSnap.val() || {};
   let totalItems = 0;
   Object.values(catatan).forEach(katItems => {
@@ -516,7 +614,7 @@ export async function renderLevelBadge() {
   try {
     const userSnap = await get(ref(db, `data/users/${currentUser}`));
     const userData = userSnap.val();
-    const level = userData?.level || 'free';
+    const level = userData?.level || 'trial';
     
     const levelBadge = document.getElementById('userLevelBadge');
     if (levelBadge) {
@@ -525,7 +623,7 @@ export async function renderLevelBadge() {
       switch(level) {
         case 'pro': levelText = 'PRO'; levelClass = 'badge-pro'; break;
         case 'basic': levelText = 'BASIC'; levelClass = 'badge-basic'; break;
-        default: levelText = 'FREE'; levelClass = 'badge-free';
+        default: levelText = 'TRIAL'; levelClass = 'badge-trial';
       }
       levelBadge.innerHTML = `<span class="badge ${levelClass}">${levelText}</span>`;
     }
@@ -723,3 +821,8 @@ window.canAddCatatan = canAddCatatan;
 window.getRemainingLimits = getRemainingLimits;
 window.renderLevelBadge = renderLevelBadge;
 window.loadUserLevelAndLimits = loadUserLevelAndLimits;
+window.loadUserPartner = loadUserPartner;
+window.filterMomentsByUser = filterMomentsByUser;
+window.filterKeuanganByUser = filterKeuanganByUser;
+window.getCatatanByPair = getCatatanByPair;
+window.saveCatatanByPair = saveCatatanByPair;
