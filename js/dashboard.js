@@ -1,5 +1,5 @@
-// js/dashboard.js - Versi revisi: dengan fitur pencarian momen
-import { masterData, formatNumberRp, showNotif, escapeHtml } from './utils.js';
+// js/dashboard.js - Versi revisi: dengan fitur pencarian momen dan partner
+import { masterData, formatNumberRp, showNotif, escapeHtml, currentPartner, filterMomentsByUser } from './utils.js';
 import { db, ref, get } from './firebase-config.js';
 
 let currentUser = null;
@@ -11,40 +11,47 @@ export async function renderDashboard() {
   currentUser = sessionStorage.getItem("progrowth_user");
   if (!currentUser) return;
   
-  const moments = masterData.moments || {};
+  // Gunakan filtered moments
+  const moments = masterData.filteredMoments || masterData.moments || {};
   const momentsArray = Object.values(moments);
   
-  const keuanganData = await getKeuanganPerUser();
+  // Ambil data keuangan user sendiri saja (untuk dashboard ringkasan pribadi)
+  const myKeuangan = await getKeuanganForUser(currentUser);
+  const partnerName = currentPartner === "FACHMI" ? "Fachmi" : currentPartner === "AZIZAH" ? "Azizah" : currentPartner;
   
-  // Render Ringkasan Keuangan Per User
+  // Render Ringkasan Keuangan User Sendiri
   const keuanganContainer = document.getElementById('keuanganSummary');
-  if (keuanganContainer && keuanganData) {
+  if (keuanganContainer && myKeuangan) {
     keuanganContainer.innerHTML = `
       <div class="row g-3">
-        <div class="col-6">
-          <div class="card p-3 h-100" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white;">
+        <div class="col-12">
+          <div class="card p-3" style="background: linear-gradient(135deg, #7009b4, #4000C6); color: white;">
             <div class="d-flex justify-content-between align-items-center">
               <div>
-                <small class="opacity-75">Saldo Fachmi</small>
-                <h4 class="fw-bold mb-0">${formatNumberRp(keuanganData.fachmi.saldo)}</h4>
-                <small class="opacity-75">Pemasukan: ${formatNumberRp(keuanganData.fachmi.pemasukan)}</small>
+                <small class="opacity-75">Total Saldo Anda</small>
+                <h4 class="fw-bold mb-0">${formatNumberRp(myKeuangan.saldo)}</h4>
+                <small class="opacity-75">Pemasukan: ${formatNumberRp(myKeuangan.pemasukan)}</small>
+                <br>
+                <small class="opacity-75">Pengeluaran: ${formatNumberRp(myKeuangan.pengeluaran)}</small>
               </div>
               <i class="bi bi-person-circle fs-1 opacity-50"></i>
             </div>
           </div>
         </div>
-        <div class="col-6">
-          <div class="card p-3 h-100" style="background: linear-gradient(135deg, #ec4899, #f43f5e); color: white;">
+        ${currentPartner ? `
+        <div class="col-12">
+          <div class="card p-3" style="background: linear-gradient(135deg, #ec4899, #f43f5e); color: white;">
             <div class="d-flex justify-content-between align-items-center">
               <div>
-                <small class="opacity-75">Saldo Azizah</small>
-                <h4 class="fw-bold mb-0">${formatNumberRp(keuanganData.azizah.saldo)}</h4>
-                <small class="opacity-75">Pemasukan: ${formatNumberRp(keuanganData.azizah.pemasukan)}</small>
+                <small class="opacity-75">Saldo ${partnerName || 'Partner'}</small>
+                <h4 class="fw-bold mb-0">${formatNumberRp(myKeuangan.partnerSaldo || 0)}</h4>
+                <small class="opacity-75">Pemasukan: ${formatNumberRp(myKeuangan.partnerPemasukan || 0)}</small>
               </div>
-              <i class="bi bi-person-circle fs-1 opacity-50"></i>
+              <i class="bi bi-person-heart fs-1 opacity-50"></i>
             </div>
           </div>
         </div>
+        ` : ''}
       </div>
     `;
   }
@@ -52,7 +59,6 @@ export async function renderDashboard() {
   // Render Recent Moments dengan fitur pencarian
   const recentContainer = document.getElementById('recentMomentsPreview');
   if (recentContainer) {
-    // Tambahkan input pencarian di dashboard
     const searchHtml = `
       <div class="mb-3">
         <div class="input-group">
@@ -71,7 +77,6 @@ export async function renderDashboard() {
     const searchInput = document.getElementById('dashboardSearchMoment');
     const momentsListDiv = document.getElementById('dashboardMomentsList');
     
-    // Fungsi render momen dengan filter
     const renderFilteredMoments = (searchTerm = '') => {
       let filteredMoments = [...momentsArray];
       
@@ -94,7 +99,9 @@ export async function renderDashboard() {
       } else {
         momentsListDiv.innerHTML = `
           <div class="row g-2">
-            ${recentMoments.map(moment => `
+            ${recentMoments.map(moment => {
+              const authorName = moment.author === "FACHMI" ? "Fachmi" : moment.author === "AZIZAH" ? "Azizah" : moment.author;
+              return `
               <div class="col-4">
                 <div class="moment-card h-100" onclick="window.selectMomentDate('${moment.date}')" style="cursor: pointer;">
                   ${moment.photos && moment.photos[0] 
@@ -103,16 +110,16 @@ export async function renderDashboard() {
                   <div class="p-2 text-center">
                     <small class="fw-bold d-block text-truncate">${escapeHtml(moment.title || 'Momen')}</small>
                     <small class="text-muted">${moment.date || ''}</small>
+                    <small class="text-muted d-block" style="font-size: 9px;">oleh: ${escapeHtml(authorName)}</small>
                   </div>
                 </div>
               </div>
-            `).join('')}
+            `}).join('')}
           </div>
         `;
       }
     };
     
-    // Event listener untuk search dengan debounce
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
         if (searchTimeout) clearTimeout(searchTimeout);
@@ -126,34 +133,33 @@ export async function renderDashboard() {
   }
 }
 
-async function getKeuanganPerUser() {
+async function getKeuanganForUser(username) {
   try {
-    const [fachmiTransaksi, azizahTransaksi] = await Promise.all([
-      get(ref(db, `data/keuangan/FACHMI/transaksi`)),
-      get(ref(db, `data/keuangan/AZIZAH/transaksi`))
-    ]);
+    const transSnap = await get(ref(db, `data/keuangan/${username}/transaksi`));
+    const trans = transSnap.val() || {};
+    const transList = Object.values(trans);
     
-    const fachmiData = fachmiTransaksi.val() || {};
-    const azizahData = azizahTransaksi.val() || {};
+    const pemasukan = transList.filter(t => t.tipe === 'pemasukan').reduce((sum, t) => sum + (t.nominal || 0), 0);
+    const pengeluaran = transList.filter(t => t.tipe === 'pengeluaran').reduce((sum, t) => sum + (t.nominal || 0), 0);
+    const saldo = pemasukan - pengeluaran;
     
-    const fachmiList = Object.values(fachmiData);
-    const azizahList = Object.values(azizahData);
+    // Jika ada partner, ambil juga data partner
+    let partnerSaldo = 0;
+    let partnerPemasukan = 0;
+    let partnerPengeluaran = 0;
+    if (currentPartner) {
+      const partnerTransSnap = await get(ref(db, `data/keuangan/${currentPartner}/transaksi`));
+      const partnerTrans = partnerTransSnap.val() || {};
+      const partnerList = Object.values(partnerTrans);
+      partnerPemasukan = partnerList.filter(t => t.tipe === 'pemasukan').reduce((sum, t) => sum + (t.nominal || 0), 0);
+      partnerPengeluaran = partnerList.filter(t => t.tipe === 'pengeluaran').reduce((sum, t) => sum + (t.nominal || 0), 0);
+      partnerSaldo = partnerPemasukan - partnerPengeluaran;
+    }
     
-    const fachmiPemasukan = fachmiList.filter(t => t.tipe === 'pemasukan').reduce((sum, t) => sum + (t.nominal || 0), 0);
-    const fachmiPengeluaran = fachmiList.filter(t => t.tipe === 'pengeluaran').reduce((sum, t) => sum + (t.nominal || 0), 0);
-    const azizahPemasukan = azizahList.filter(t => t.tipe === 'pemasukan').reduce((sum, t) => sum + (t.nominal || 0), 0);
-    const azizahPengeluaran = azizahList.filter(t => t.tipe === 'pengeluaran').reduce((sum, t) => sum + (t.nominal || 0), 0);
-    
-    return {
-      fachmi: { saldo: fachmiPemasukan - fachmiPengeluaran, pemasukan: fachmiPemasukan, pengeluaran: fachmiPengeluaran },
-      azizah: { saldo: azizahPemasukan - azizahPengeluaran, pemasukan: azizahPemasukan, pengeluaran: azizahPengeluaran }
-    };
+    return { saldo, pemasukan, pengeluaran, partnerSaldo, partnerPemasukan, partnerPengeluaran };
   } catch (err) {
     console.error("Error loading keuangan:", err);
-    return {
-      fachmi: { saldo: 0, pemasukan: 0, pengeluaran: 0 },
-      azizah: { saldo: 0, pemasukan: 0, pengeluaran: 0 }
-    };
+    return { saldo: 0, pemasukan: 0, pengeluaran: 0, partnerSaldo: 0, partnerPemasukan: 0, partnerPengeluaran: 0 };
   }
 }
 
