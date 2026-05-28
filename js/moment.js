@@ -1,9 +1,10 @@
-// js/moment.js - Dengan limit checker dan filter partner
-import { db, ref, push, update, remove } from './firebase-config.js';
+// js/moment.js - Dengan shared moments per pasangan
+import { db, ref } from './firebase-config.js';
 import { 
-  masterData, escapeHtml, showNotif, compressImage, showCustomConfirm, 
-  throttle, showLoading, hideLoading, validateAndCompressPhotos, filterMomentsByUser,
-  currentUser, currentPartner
+  escapeHtml, showNotif, showCustomConfirm, 
+  throttle, showLoading, hideLoading, validateAndCompressPhotos,
+  currentUser, currentPartner, currentPairId,
+  getSharedMoments, addSharedMoment, updateSharedMoment, deleteSharedMoment
 } from './utils.js';
 
 let currentViewDate = new Date();
@@ -71,13 +72,13 @@ export function removePhotoAtIndex(index) {
   showNotif('🗑️ Foto dihapus');
 }
 
-export function renderCalendar() {
+export async function renderCalendar() {
   if (isRenderingCalendar) return;
   
   const year = currentViewDate.getFullYear();
   const month = currentViewDate.getMonth();
-  const moments = masterData?.filteredMoments || masterData?.moments || {};
-  const cacheKey = `${year}-${month}`;
+  const moments = await getSharedMoments();
+  const cacheKey = `${currentPairId}-${year}-${month}`;
   const currentMomentsHash = getMomentsHash(moments);
   
   if (cachedCalendarHtml && cachedMonthYear === cacheKey && cachedMomentsHash === currentMomentsHash) {
@@ -234,15 +235,8 @@ function applyMomentFilters() {
   renderMomentsList();
 }
 
-const throttledRenderMoments = throttle(() => {
-  renderMomentsList();
-}, 500);
-
-export function renderMomentsList() {
-  const data = masterData;
-  if (!data) return;
-  
-  const moments = data.filteredMoments || data.moments || {};
+export async function renderMomentsList() {
+  const moments = await getSharedMoments();
   const momentsListEl = document.getElementById('momentsList');
   const momentsCountEl = document.getElementById('momentsCount');
   if (!momentsListEl) return;
@@ -276,7 +270,7 @@ export function renderMomentsList() {
         <div class="text-center py-5">
           <i class="bi bi-calendar-heart fs-1 text-muted"></i>
           <h6 class="mt-2">${(currentMonthFilter || currentYearFilter) ? 'Tidak ada momen untuk filter ini' : 'Belum ada momen'}</h6>
-          <p class="text-muted small">${(currentMonthFilter || currentYearFilter) ? 'Coba pilih filter lain' : 'Klik tanggal pada kalender untuk menambah momen'}</p>
+          <p class="text-muted small">Klik tanggal pada kalender untuk menambah momen bersama pasangan</p>
         </div>
       </div>
     `;
@@ -290,7 +284,7 @@ export function renderMomentsList() {
     const specialClass = moment.isSpecial ? 'special-card' : '';
     const firstPhoto = moment.photos && moment.photos[0] ? moment.photos[0] : null;
     const dateFormatted = moment.date ? moment.date.split('-').reverse().join('/') : '';
-    const authorName = moment.author === "FACHMI" ? "Fachmi" : moment.author === "AZIZAH" ? "Azizah" : moment.author;
+    const authorName = moment.createdBy === "FACHMI" ? "Fachmi" : moment.createdBy === "AZIZAH" ? "Azizah" : moment.createdBy;
     
     tempDiv.innerHTML = `
       <div class="col-6 col-lg-3 col-md-4 mb-3">
@@ -299,7 +293,7 @@ export function renderMomentsList() {
           <div class="card-body p-2">
             <h6 class="fw-bold mb-0 small">${escapeHtml(moment.title || 'Momen')}</h6>
             <small class="text-muted" style="font-size: 10px;">${dateFormatted}</small>
-            <small class="text-muted d-block" style="font-size: 9px;">oleh: ${escapeHtml(authorName)}</small>
+            <small class="text-muted d-block" style="font-size: 9px;">dibuat oleh: ${escapeHtml(authorName)}</small>
           </div>
         </div>
       </div>
@@ -313,9 +307,8 @@ export function renderMomentsList() {
   momentsListEl.appendChild(fragment);
 }
 
-export function selectMomentDate(dateKey) {
-  const data = masterData;
-  const moments = data?.filteredMoments || data?.moments || {};
+export async function selectMomentDate(dateKey) {
+  const moments = await getSharedMoments();
   const existingEntry = Object.entries(moments).find(([id, m]) => m.date === dateKey);
   
   if (existingEntry) {
@@ -334,7 +327,9 @@ export function selectMomentDate(dateKey) {
   }
 }
 
-export function openMomentModal(momentId) {
+export async function openMomentModal(momentId) {
+  const moments = await getSharedMoments();
+  
   if (!momentId) {
     document.getElementById('momentModalTitle').innerText = 'Tambah Momen Baru';
     document.getElementById('momentEditId').value = '';
@@ -348,8 +343,7 @@ export function openMomentModal(momentId) {
     renderPhotoGrid();
   } else {
     document.getElementById('momentModalTitle').innerText = 'Edit Momen';
-    const data = masterData;
-    const moment = data?.moments?.[momentId];
+    const moment = moments[momentId];
     if (moment) {
       document.getElementById('momentEditId').value = momentId;
       document.getElementById('momentDate').value = moment.date || '';
@@ -371,7 +365,6 @@ export async function saveMoment() {
   const title = document.getElementById('momentTitle').value;
   const story = document.getElementById('momentStory').value;
   const isSpecial = document.getElementById('momentIsSpecial').checked;
-  const currentUser = sessionStorage.getItem('progrowth_user');
   
   if (!date) {
     showNotif('❌ Tanggal harus diisi', true);
@@ -396,19 +389,15 @@ export async function saveMoment() {
     story: story || '',
     isSpecial: isSpecial,
     photos: currentMomentPhotos,
-    author: currentUser,
     updatedAt: Date.now()
   };
   
   try {
     if (!editId) {
-      momentData.createdAt = Date.now();
-      await push(ref(db, 'data/moments'), momentData);
+      await addSharedMoment(momentData);
       showNotif('✅ Momen berhasil ditambahkan! 🎉');
     } else {
-      const existing = masterData?.moments?.[editId];
-      momentData.createdAt = existing?.createdAt || Date.now();
-      await update(ref(db, `data/moments/${editId}`), momentData);
+      await updateSharedMoment(editId, momentData);
       showNotif('✏️ Momen berhasil diperbarui! ✨');
     }
     
@@ -417,8 +406,8 @@ export async function saveMoment() {
     const modal = bootstrap.Modal.getInstance(document.getElementById('momentModal'));
     if (modal) modal.hide();
     
-    renderCalendar();
-    renderMomentsList();
+    await renderCalendar();
+    await renderMomentsList();
   } catch (err) {
     console.error(err);
     showNotif('❌ Gagal menyimpan momen', true);
@@ -429,15 +418,15 @@ export async function saveMoment() {
 
 export async function viewMomentDetail(momentId) {
   currentDetailMomentId = momentId;
-  const data = masterData;
-  const moment = data?.moments?.[momentId];
+  const moments = await getSharedMoments();
+  const moment = moments[momentId];
   
   if (!moment) return;
   
   document.getElementById('detailTitle').innerHTML = escapeHtml(moment.title || 'Momen Spesial');
   document.getElementById('detailDate').innerHTML = moment.date || '';
   document.getElementById('detailStory').innerHTML = escapeHtml(moment.story || 'Tidak ada cerita.').replace(/\n/g, '<br>');
-  const authorName = moment.author === "FACHMI" ? "Fachmi" : moment.author === "AZIZAH" ? "Azizah" : moment.author;
+  const authorName = moment.createdBy === "FACHMI" ? "Fachmi" : moment.createdBy === "AZIZAH" ? "Azizah" : moment.createdBy;
   document.getElementById('detailAuthor').innerHTML = authorName || '';
   document.getElementById('detailMood').innerHTML = moment.isSpecial ? '⭐ Momen Spesial' : '❤️ Momen Berkesan';
   
@@ -487,7 +476,7 @@ export async function deleteMomentFromDetail() {
   if (confirmed) {
     showLoading("Menghapus momen...");
     try {
-      await remove(ref(db, `data/moments/${currentDetailMomentId}`));
+      await deleteSharedMoment(currentDetailMomentId);
       showNotif('🗑️ Momen berhasil dihapus');
       
       clearCalendarCache();
@@ -495,8 +484,8 @@ export async function deleteMomentFromDetail() {
       const modal = bootstrap.Modal.getInstance(document.getElementById('momentDetailModal'));
       if (modal) modal.hide();
       
-      renderCalendar();
-      renderMomentsList();
+      await renderCalendar();
+      await renderMomentsList();
     } catch (err) {
       console.error(err);
       showNotif('❌ Gagal menghapus momen', true);
