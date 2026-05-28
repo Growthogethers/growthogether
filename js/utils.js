@@ -1,7 +1,9 @@
-// js/utils.js - Lengkap dengan Enhanced XSS Protection & Security
+// js/utils.js - Lengkap dengan Enhanced XSS Protection & Limit Functions
 export let currentUser = null;
 export let masterData = null;
 export let privacyHidden = false;
+export let currentUserLevel = null;
+export let currentUserLimits = null;
 
 // ============ CACHING SYSTEM ============
 let cacheData = {};
@@ -393,6 +395,133 @@ export async function validateAndCompressPhotos(files, maxSizeMB = 2, maxFiles =
   return compressedPhotos;
 }
 
+// ============ LIMIT FUNCTIONS BERDASARKAN LEVEL ============
+import { db, ref, get } from './firebase-config.js';
+
+export async function loadUserLevelAndLimits(username) {
+  try {
+    const userSnap = await get(ref(db, `data/users/${username}`));
+    const userData = userSnap.val();
+    
+    if (userData && userData.level) {
+      currentUserLevel = userData.level;
+      
+      switch(currentUserLevel) {
+        case 'free':
+          currentUserLimits = { moments: 5, transactions: 5, catatan: 5, impian: false };
+          break;
+        case 'basic':
+          currentUserLimits = { moments: 50, transactions: 50, catatan: 50, impian: true };
+          break;
+        case 'pro':
+          currentUserLimits = { moments: Infinity, transactions: Infinity, catatan: Infinity, impian: true };
+          break;
+        default:
+          currentUserLimits = { moments: 5, transactions: 5, catatan: 5, impian: false };
+      }
+      
+      console.log(`User level: ${currentUserLevel}, Limits:`, currentUserLimits);
+      return { level: currentUserLevel, limits: currentUserLimits };
+    }
+  } catch(err) {
+    console.error("Error loading user level:", err);
+  }
+  return { level: 'free', limits: { moments: 5, transactions: 5, catatan: 5, impian: false } };
+}
+
+async function getCurrentUserLimits(username) {
+  if (currentUserLimits) return currentUserLimits;
+  const result = await loadUserLevelAndLimits(username);
+  return result.limits;
+}
+
+export async function canAddMoment(username) {
+  const limits = await getCurrentUserLimits(username);
+  if (limits.moments === Infinity) return true;
+  
+  const momentsSnap = await get(ref(db, "data/moments"));
+  const moments = momentsSnap.val() || {};
+  const userMoments = Object.values(moments).filter(m => m.author === username).length;
+  
+  if (userMoments >= limits.moments) {
+    showNotif(`⚠️ Limit momen Anda ${userMoments}/${limits.moments}. Upgrade ke Basic atau Pro untuk menambah lebih banyak!`, true, 'warning');
+    return false;
+  }
+  return true;
+}
+
+export async function canAddTransaction(username) {
+  const limits = await getCurrentUserLimits(username);
+  if (limits.transactions === Infinity) return true;
+  
+  const transSnap = await get(ref(db, `data/keuangan/${username}/transaksi`));
+  const trans = transSnap.val() || {};
+  const userTrans = Object.keys(trans).length;
+  
+  if (userTrans >= limits.transactions) {
+    showNotif(`⚠️ Limit transaksi Anda ${userTrans}/${limits.transactions}. Upgrade ke Basic atau Pro untuk menambah lebih banyak!`, true, 'warning');
+    return false;
+  }
+  return true;
+}
+
+export async function canAddCatatan() {
+  const username = sessionStorage.getItem("progrowth_user");
+  const limits = await getCurrentUserLimits(username);
+  if (limits.catatan === Infinity) return true;
+  
+  const catatanSnap = await get(ref(db, "data/catatan/bersama/items"));
+  const catatan = catatanSnap.val() || {};
+  let totalItems = 0;
+  Object.values(catatan).forEach(katItems => {
+    if (katItems && typeof katItems === 'object') {
+      totalItems += Object.keys(katItems).length;
+    }
+  });
+  
+  if (totalItems >= limits.catatan) {
+    showNotif(`⚠️ Limit catatan Anda ${totalItems}/${limits.catatan}. Upgrade ke Basic atau Pro untuk menambah lebih banyak!`, true, 'warning');
+    return false;
+  }
+  return true;
+}
+
+export async function getRemainingLimits(username) {
+  const limits = await getCurrentUserLimits(username);
+  const momentsSnap = await get(ref(db, "data/moments"));
+  const moments = momentsSnap.val() || {};
+  const userMoments = Object.values(moments).filter(m => m.author === username).length;
+  
+  const transSnap = await get(ref(db, `data/keuangan/${username}/transaksi`));
+  const trans = transSnap.val() || {};
+  const userTrans = Object.keys(trans).length;
+  
+  return {
+    level: currentUserLevel,
+    moments: { used: userMoments, limit: limits.moments, remaining: limits.moments === Infinity ? Infinity : limits.moments - userMoments },
+    transactions: { used: userTrans, limit: limits.transactions, remaining: limits.transactions === Infinity ? Infinity : limits.transactions - userTrans }
+  };
+}
+
+export function renderLevelBadge() {
+  const currentUser = sessionStorage.getItem("progrowth_user");
+  if (!currentUser) return;
+  
+  loadUserLevelAndLimits(currentUser).then(({ level }) => {
+    const levelBadge = document.getElementById('userLevelBadge');
+    if (levelBadge) {
+      let levelText = '';
+      let levelClass = '';
+      switch(level) {
+        case 'pro': levelText = 'PRO'; levelClass = 'badge-pro'; break;
+        case 'basic': levelText = 'BASIC'; levelClass = 'badge-basic'; break;
+        default: levelText = 'FREE'; levelClass = 'badge-free';
+      }
+      levelBadge.innerHTML = `<span class="badge ${levelClass}">${levelText}</span>`;
+    }
+  });
+}
+
 // ============ UTILITY FUNCTIONS ============
 export function formatNumberRp(val) { 
   if (privacyHidden) return "●●● ●●●";
@@ -502,8 +631,6 @@ export async function batchGet(refs, timeout = 10000) {
 }
 
 // ============ ANIMASI ============
-
-// Confetti celebration
 export function triggerConfetti() {
   const colors = ['#6366f1', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
   const count = 50;
@@ -523,7 +650,6 @@ export function triggerConfetti() {
   }
 }
 
-// Floating hearts animation
 export function triggerFloatingHearts(x, y) {
   const heart = document.createElement('div');
   heart.className = 'floating-heart';
@@ -539,7 +665,6 @@ export function triggerFloatingHearts(x, y) {
   setTimeout(() => heart.remove(), 2000);
 }
 
-// Pixel particles on click
 export function triggerPixelParticles(x, y) {
   for (let i = 0; i < 15; i++) {
     const particle = document.createElement('div');
@@ -555,7 +680,6 @@ export function triggerPixelParticles(x, y) {
   }
 }
 
-// Add click animation to interactive elements
 export function initClickAnimation() {
   document.body.addEventListener('click', (e) => {
     const target = e.target.closest('button, .nav-link, .calendar-day, .moment-card');
@@ -581,3 +705,9 @@ window.throttle = throttle;
 window.debounce = debounce;
 window.checkDuplicateTransaction = checkDuplicateTransaction;
 window.validateAndCompressPhotos = validateAndCompressPhotos;
+window.canAddMoment = canAddMoment;
+window.canAddTransaction = canAddTransaction;
+window.canAddCatatan = canAddCatatan;
+window.getRemainingLimits = getRemainingLimits;
+window.renderLevelBadge = renderLevelBadge;
+window.loadUserLevelAndLimits = loadUserLevelAndLimits;
