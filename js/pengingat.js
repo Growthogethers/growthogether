@@ -34,7 +34,7 @@ export function stopBirthdayChecker() {
 
 // Simpan birthday ke database
 export async function saveBirthday(userId, birthdayDate) {
-  if (!userId || !birthdayDate) return;
+  if (!userId || !birthdayDate) return false;
   
   try {
     await set(ref(db, `data/birthdays/${userId}`), {
@@ -191,7 +191,7 @@ export async function renderBirthdayInProfile() {
             <small class="text-muted d-block">${formattedDate}</small>
             ${countdown !== null ? `<small class="${countdownClass}">${countdownText}</small>` : ''}
           </div>
-          <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="openBirthdayEditModal()">
+          <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="window.openBirthdayEditModal()">
             <i class="bi bi-pencil"></i>
           </button>
         </div>
@@ -205,7 +205,7 @@ export async function renderBirthdayInProfile() {
         </label>
         <div class="d-flex align-items-center justify-content-between bg-light p-2 rounded-3">
           <span class="text-muted">Belum diatur</span>
-          <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="openBirthdayEditModal()">
+          <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="window.openBirthdayEditModal()">
             <i class="bi bi-plus"></i> Atur
           </button>
         </div>
@@ -221,6 +221,14 @@ window.openBirthdayEditModal = async function() {
   const partnerName = partnerUser === "FACHMI" ? "Fachmi" : "Azizah";
   const currentBirthday = await getBirthday(partnerUser) || '';
   
+  // Hapus modal yang sudah ada jika ada
+  let modal = document.getElementById('birthdayEditModal');
+  if (modal) {
+    const bsModal = bootstrap.Modal.getInstance(modal);
+    if (bsModal) bsModal.hide();
+    modal.remove();
+  }
+  
   const modalHtml = `
     <div class="modal fade" id="birthdayEditModal" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered modal-sm">
@@ -235,18 +243,15 @@ window.openBirthdayEditModal = async function() {
           </div>
           <div class="modal-footer border-0">
             <button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Batal</button>
-            <button class="btn btn-primary rounded-pill" onclick="saveBirthdayFromProfile()">Simpan</button>
+            <button class="btn btn-primary rounded-pill" onclick="window.saveBirthdayFromProfile()">Simpan</button>
           </div>
         </div>
       </div>
     </div>
   `;
   
-  let modal = document.getElementById('birthdayEditModal');
-  if (!modal) {
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    modal = document.getElementById('birthdayEditModal');
-  }
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  modal = document.getElementById('birthdayEditModal');
   
   const bsModal = new bootstrap.Modal(modal);
   bsModal.show();
@@ -269,7 +274,10 @@ window.saveBirthdayFromProfile = async function() {
   }
 };
 
+// Export ke window
 window.initPengingat = initPengingat;
 window.renderBirthdayInProfile = renderBirthdayInProfile;
 window.checkUpcomingBirthdays = checkUpcomingBirthdays;
 window.stopBirthdayChecker = stopBirthdayChecker;
+window.openBirthdayEditModal = window.openBirthdayEditModal;
+window.saveBirthdayFromProfile = window.saveBirthdayFromProfile;
