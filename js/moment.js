@@ -1,8 +1,9 @@
-// js/moment.js - Dengan limit checker
+// js/moment.js - Dengan limit checker dan filter partner
 import { db, ref, push, update, remove } from './firebase-config.js';
 import { 
   masterData, escapeHtml, showNotif, compressImage, showCustomConfirm, 
-  throttle, showLoading, hideLoading, validateAndCompressPhotos
+  throttle, showLoading, hideLoading, validateAndCompressPhotos, filterMomentsByUser,
+  currentUser, currentPartner
 } from './utils.js';
 
 let currentViewDate = new Date();
@@ -75,7 +76,8 @@ export function renderCalendar() {
   
   const year = currentViewDate.getFullYear();
   const month = currentViewDate.getMonth();
-  const moments = masterData?.moments || {};
+  // Gunakan filtered moments
+  const moments = masterData?.filteredMoments || masterData?.moments || {};
   const cacheKey = `${year}-${month}`;
   const currentMomentsHash = getMomentsHash(moments);
   
@@ -177,7 +179,7 @@ export function clearCalendarCache() {
   console.log("Calendar cache cleared");
 }
 
-// FITUR FILTER TANGGAL DI MOMEN
+// Filter tanggal di momen
 function initMomentFilters() {
   const filterContainer = document.getElementById('momentFilters');
   if (!filterContainer) return;
@@ -218,7 +220,6 @@ function initMomentFilters() {
     }
   }
   
-  // Event listeners
   const monthFilter = document.getElementById('momentMonthFilter');
   const yearFilter = document.getElementById('momentYearFilter');
   
@@ -244,7 +245,8 @@ export function renderMomentsList() {
   const data = masterData;
   if (!data) return;
   
-  const moments = data.moments || {};
+  // Gunakan filtered moments
+  const moments = data.filteredMoments || data.moments || {};
   const momentsListEl = document.getElementById('momentsList');
   const momentsCountEl = document.getElementById('momentsCount');
   if (!momentsListEl) return;
@@ -292,6 +294,7 @@ export function renderMomentsList() {
     const specialClass = moment.isSpecial ? 'special-card' : '';
     const firstPhoto = moment.photos && moment.photos[0] ? moment.photos[0] : null;
     const dateFormatted = moment.date ? moment.date.split('-').reverse().join('/') : '';
+    const authorName = moment.author === "FACHMI" ? "Fachmi" : moment.author === "AZIZAH" ? "Azizah" : moment.author;
     
     tempDiv.innerHTML = `
       <div class="col-6 col-lg-3 col-md-4 mb-3">
@@ -300,6 +303,7 @@ export function renderMomentsList() {
           <div class="card-body p-2">
             <h6 class="fw-bold mb-0 small">${escapeHtml(moment.title || 'Momen')}</h6>
             <small class="text-muted" style="font-size: 10px;">${dateFormatted}</small>
+            <small class="text-muted d-block" style="font-size: 9px;">oleh: ${escapeHtml(authorName)}</small>
           </div>
         </div>
       </div>
@@ -315,7 +319,7 @@ export function renderMomentsList() {
 
 export function selectMomentDate(dateKey) {
   const data = masterData;
-  const moments = data?.moments || {};
+  const moments = data?.filteredMoments || data?.moments || {};
   const existingEntry = Object.entries(moments).find(([id, m]) => m.date === dateKey);
   
   if (existingEntry) {
@@ -438,7 +442,8 @@ export async function viewMomentDetail(momentId) {
   document.getElementById('detailTitle').innerHTML = escapeHtml(moment.title || 'Momen Spesial');
   document.getElementById('detailDate').innerHTML = moment.date || '';
   document.getElementById('detailStory').innerHTML = escapeHtml(moment.story || 'Tidak ada cerita.').replace(/\n/g, '<br>');
-  document.getElementById('detailAuthor').innerHTML = moment.author || '';
+  const authorName = moment.author === "FACHMI" ? "Fachmi" : moment.author === "AZIZAH" ? "Azizah" : moment.author;
+  document.getElementById('detailAuthor').innerHTML = authorName || '';
   document.getElementById('detailMood').innerHTML = moment.isSpecial ? '⭐ Momen Spesial' : '❤️ Momen Berkesan';
   
   const carouselInner = document.getElementById('detailCarouselInner');
@@ -528,7 +533,6 @@ export function addFilterToMomentPage() {
 }
 
 // Exports
-// Di akhir file moment.js, pastikan semua fungsi yang diperlukan tersedia
 window.renderCalendar = renderCalendar;
 window.renderMomentsList = renderMomentsList;
 window.selectMomentDate = selectMomentDate;
