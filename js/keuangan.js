@@ -33,7 +33,6 @@ function initKeuanganChart() {
   if (keuanganChart) {
     keuanganChart.destroy();
     keuanganChart = null;
-    console.log("Previous chart destroyed");
   }
   
   keuanganChart = new Chart(ctx, {
