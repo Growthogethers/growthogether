@@ -76,7 +76,6 @@ export function renderCalendar() {
   
   const year = currentViewDate.getFullYear();
   const month = currentViewDate.getMonth();
-  // Gunakan filtered moments
   const moments = masterData?.filteredMoments || masterData?.moments || {};
   const cacheKey = `${year}-${month}`;
   const currentMomentsHash = getMomentsHash(moments);
@@ -179,7 +178,6 @@ export function clearCalendarCache() {
   console.log("Calendar cache cleared");
 }
 
-// Filter tanggal di momen
 function initMomentFilters() {
   const filterContainer = document.getElementById('momentFilters');
   if (!filterContainer) return;
@@ -211,7 +209,6 @@ function initMomentFilters() {
     </div>
   `;
   
-  // Populate tahun
   const yearSelect = document.getElementById('momentYearFilter');
   if (yearSelect) {
     const currentYear = new Date().getFullYear();
@@ -245,7 +242,6 @@ export function renderMomentsList() {
   const data = masterData;
   if (!data) return;
   
-  // Gunakan filtered moments
   const moments = data.filteredMoments || data.moments || {};
   const momentsListEl = document.getElementById('momentsList');
   const momentsCountEl = document.getElementById('momentsCount');
@@ -387,7 +383,6 @@ export async function saveMoment() {
     return;
   }
   
-  // CEK LIMIT SEBELUM TAMBAH MOMEN BARU
   if (!editId && canAddMomentChecker) {
     const canAdd = await canAddMomentChecker(currentUser);
     if (!canAdd) return;
@@ -516,7 +511,6 @@ export function changeMonth(delta) {
   renderCalendar();
 }
 
-// Tambahkan filter container ke content.html moment page
 export function addFilterToMomentPage() {
   const momentContainer = document.getElementById('moment-page');
   if (!momentContainer) return;
