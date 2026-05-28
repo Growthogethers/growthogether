@@ -1,4 +1,4 @@
-// js/app.js - Main Application (Tanpa Bottom Nav)
+// js/app.js - Main Application
 import { db, ref, onValue, set } from './firebase-config.js';
 import { 
   masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser, 
@@ -40,6 +40,7 @@ import {
 import { initKeuangan, setKeuanganLimitsChecker } from './keuangan.js';
 import { initCatatan } from './catatan.js';
 import { initImpian } from './impian.js';
+import { initPengingat, renderBirthdayInProfile, stopBirthdayChecker } from './pengingat.js';
 
 let firebaseListener = null;
 let currentPage = 'dashboard';
@@ -345,6 +346,23 @@ function initOfflineIndicator() {
   });
 }
 
+// ============ TOAST CONTAINER ============
+function injectToastContainer() {
+  if (!document.getElementById('customToastContainer')) {
+    const toastContainer = document.createElement('div');
+    toastContainer.id = 'customToastContainer';
+    toastContainer.style.cssText = `
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      pointer-events: none;
+    `;
+    document.body.appendChild(toastContainer);
+  }
+}
+
 // ============ ATTACH EVENT LISTENERS ============
 function attachEventListeners() {
   console.log("Attaching event listeners...");
@@ -554,23 +572,6 @@ function initFirebaseListener() {
   }
 }
 
-// ============ TOAST CONTAINER ============
-function injectToastContainer() {
-  if (!document.getElementById('customToastContainer')) {
-    const toastContainer = document.createElement('div');
-    toastContainer.id = 'customToastContainer';
-    toastContainer.style.cssText = `
-      position: fixed;
-      bottom: 80px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 9999;
-      pointer-events: none;
-    `;
-    document.body.appendChild(toastContainer);
-  }
-}
-
 // ============ INIT APP ============
 async function init() {
   console.log("🚀 Initializing Growthogether App...");
@@ -581,6 +582,7 @@ async function init() {
   await loadComponents();
   checkAuth();
   initFirebaseListener();
+  initPengingat(); // Initialize birthday reminder
   
   if (typeof initClickAnimation === 'function') {
     initClickAnimation();
@@ -595,7 +597,7 @@ async function init() {
   console.log("✅ App initialized successfully");
 }
 
-// ============ EXPORTS ============
+// ============ EXPORTS KE WINDOW ============
 window.setupAppSession = setupAppSession;
 window.showPage = showPage;
 window.renderDashboard = renderDashboard;
@@ -624,6 +626,9 @@ window.registerListener = registerListener;
 window.initHamburgerMenu = initHamburgerMenu;
 window.handleResize = handleResize;
 window.renderLevelBadge = renderLevelBadge;
+window.renderBirthdayInProfile = renderBirthdayInProfile;
+window.initPengingat = initPengingat;
+window.stopBirthdayChecker = stopBirthdayChecker;
 
 // Register logout handler
 window.handleLogout = handleLogout;
