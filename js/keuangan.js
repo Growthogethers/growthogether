@@ -1,9 +1,10 @@
-// js/keuangan.js - Versi lengkap dengan validasi duplikat dan limit
-import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
+// js/keuangan.js - Shared keuangan per pasangan
+import { db, ref, onValue } from './firebase-config.js';
 import { 
   showNotif, formatNumberRp, escapeHtml, showCustomPrompt, showCustomConfirm, 
   getCache, setCache, clearCache, throttle, showLoading, hideLoading,
-  checkDuplicateTransaction, currentUser, currentPartner
+  checkDuplicateTransaction, currentUser, currentPartner, currentPairId,
+  getSharedKeuangan, addSharedTransaction, updateSharedTransaction, deleteSharedTransaction
 } from './utils.js';
 
 let currentUserLogged = null;
@@ -103,12 +104,8 @@ function initKeuanganChart() {
 }
 
 async function updateChartData() {
-  const user = sessionStorage.getItem("progrowth_user");
-  if (!user) return;
-  
-  const snapshot = await get(ref(db, `data/keuangan/${user}/transaksi`));
-  const data = snapshot.val() || {};
-  const transaksiArray = Object.values(data);
+  const keuangan = await getSharedKeuangan();
+  const transaksiArray = Object.values(keuangan.transaksi || {});
   
   const now = new Date();
   let labels = [];
@@ -190,14 +187,8 @@ window.changeChartPeriod = function(period) {
 
 async function loadKategoriFromCatatan() {
   try {
-    const pairId = sessionStorage.getItem('progrowth_pairId');
-    let catatanPath = `data/catatan/pairs/${pairId}`;
-    if (!pairId) {
-      catatanPath = `data/catatan/bersama`;
-    }
-    
-    const snapshot = await get(ref(db, `${catatanPath}/kategori`));
-    const data = snapshot.val() || {};
+    const catatanSnap = await get(ref(db, `data/catatan/pairs/${currentPairId}/kategori`));
+    const data = catatanSnap.val() || {};
     kategoriList = Object.entries(data).map(([id, val]) => ({ id, ...val }));
     dynamicCategories = kategoriList.map(k => k.nama);
     
@@ -313,7 +304,7 @@ window.addPemasukanKeKategori = async function(kategoriNama) {
       
       showLoading("Menyimpan transaksi...");
       try {
-        await addTransaksiFromExternal(currentUserLogged, {
+        await addSharedTransaction({
           tipe: 'pemasukan',
           kategori: kategoriNama,
           nominal: parseInt(nominal),
@@ -357,7 +348,7 @@ window.addPengeluaranKeKategori = async function(kategoriNama) {
       
       showLoading("Menyimpan transaksi...");
       try {
-        await addTransaksiFromExternal(currentUserLogged, {
+        await addSharedTransaction({
           tipe: 'pengeluaran',
           kategori: kategoriNama,
           nominal: parseInt(nominal),
@@ -380,7 +371,7 @@ window.addPengeluaranKeKategori = async function(kategoriNama) {
 };
 
 async function loadAllTransaksiOptimized(forceRefresh = false) {
-  const cacheKey = `keuangan_transaksi_${currentUserLogged}`;
+  const cacheKey = `keuangan_transaksi_${currentPairId}`;
   if (!forceRefresh) {
     const cached = getCache(cacheKey);
     if (cached) {
@@ -393,9 +384,8 @@ async function loadAllTransaksiOptimized(forceRefresh = false) {
   }
   
   try {
-    const snapshot = await get(ref(db, `data/keuangan/${currentUserLogged}/transaksi`));
-    const data = snapshot.val() || {};
-    transaksiList = Object.entries(data).map(([id, val]) => ({ id, ...val }));
+    const keuangan = await getSharedKeuangan();
+    transaksiList = Object.entries(keuangan.transaksi || {}).map(([id, val]) => ({ id, ...val }));
     
     setCache(cacheKey, transaksiList, 3);
     renderTransaksiWithFilters();
@@ -463,12 +453,15 @@ function renderTransaksiWithFilters() {
     return;
   }
   
-  container.innerHTML = sortedList.slice(0, 50).map(t => `
+  container.innerHTML = sortedList.slice(0, 50).map(t => {
+    const authorName = t.createdBy === "FACHMI" ? "Fachmi" : t.createdBy === "AZIZAH" ? "Azizah" : t.createdBy;
+    return `
     <div class="list-group-item d-flex justify-content-between align-items-start" style="border-left: 3px solid ${t.tipe === 'pemasukan' ? '#10b981' : '#ef4444'}; margin-bottom: 8px; border-radius: 12px; background: var(--card-bg);">
       <div class="flex-grow-1">
         <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
           <span class="badge ${t.tipe === 'pemasukan' ? 'bg-success' : 'bg-danger'}">${t.tipe === 'pemasukan' ? '📥 Pemasukan' : '📤 Pengeluaran'}</span>
           <span class="fw-medium">${escapeHtml(t.kategori)}</span>
+          <small class="text-muted">oleh: ${escapeHtml(authorName)}</small>
         </div>
         <small class="d-block text-muted">${t.tanggal ? new Date(t.tanggal).toLocaleDateString('id-ID') : '-'}</small>
         ${t.catatan ? `<small class="d-block text-muted">📝 ${escapeHtml(t.catatan)}</small>` : ''}
@@ -487,7 +480,7 @@ function renderTransaksiWithFilters() {
         </div>
       </div>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 window.resetFilters = function() {
@@ -505,13 +498,14 @@ window.resetFilters = function() {
 };
 
 window.exportKeuanganToCSV = function() {
-  const headers = ['Tanggal', 'Tipe', 'Kategori', 'Nominal', 'Catatan'];
+  const headers = ['Tanggal', 'Tipe', 'Kategori', 'Nominal', 'Catatan', 'Dibuat Oleh'];
   const rows = transaksiList.map(t => [
     new Date(t.tanggal).toLocaleDateString('id-ID'),
     t.tipe === 'pemasukan' ? 'Pemasukan' : 'Pengeluaran',
     `"${(t.kategori || '').replace(/"/g, '""')}"`,
     t.nominal,
-    `"${(t.catatan || '').replace(/"/g, '""')}"`
+    `"${(t.catatan || '').replace(/"/g, '""')}"`,
+    t.createdBy || '-'
   ]);
   
   const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
@@ -519,7 +513,7 @@ window.exportKeuanganToCSV = function() {
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
   link.href = url;
-  link.setAttribute('download', `keuangan_${new Date().toISOString().split('T')[0]}.csv`);
+  link.setAttribute('download', `keuangan_${currentPairId}_${new Date().toISOString().split('T')[0]}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -527,38 +521,6 @@ window.exportKeuanganToCSV = function() {
   
   showNotif(`✅ Laporan keuangan berhasil diexport! (${transaksiList.length} transaksi)`, false, 'success');
 };
-
-export async function addTransaksiFromExternal(userId, data) {
-  const existingTransaksi = await get(ref(db, `data/keuangan/${userId}/transaksi`));
-  const existingList = Object.values(existingTransaksi.val() || {});
-  
-  const isDuplicate = checkDuplicateTransaction(existingList, {
-    tanggal: Date.now(),
-    kategori: data.kategori,
-    nominal: data.nominal,
-    tipe: data.tipe
-  });
-  
-  if (isDuplicate) {
-    return null;
-  }
-  
-  const transaksiData = {
-    tipe: data.tipe || 'pengeluaran',
-    kategori: data.kategori || 'Pernikahan',
-    nominal: data.nominal,
-    tanggal: Date.now(),
-    catatan: data.catatan || '',
-    fromKeuangan: data.fromKeuangan || false,
-    fromCatatan: data.fromCatatan || false,
-    createdAt: Date.now(),
-    createdBy: userId
-  };
-  
-  const newRef = await push(ref(db, `data/keuangan/${userId}/transaksi`), transaksiData);
-  clearCache(`keuangan_transaksi_${userId}`);
-  return { id: newRef.key, ...transaksiData };
-}
 
 window.openTransaksiModal = function(editId = null) {
   editTransaksiId = editId;
@@ -623,8 +585,8 @@ window.openTransaksiModal = function(editId = null) {
 };
 
 async function loadTransaksiData(id) {
-  const snapshot = await get(ref(db, `data/keuangan/${currentUserLogged}/transaksi/${id}`));
-  const data = snapshot.val();
+  const keuangan = await getSharedKeuangan();
+  const data = keuangan.transaksi?.[id];
   if (data) {
     document.getElementById('transaksiTipe').value = data.tipe || 'pemasukan';
     document.getElementById('transaksiKategori').value = data.kategori || 'Lainnya';
@@ -675,13 +637,11 @@ window.saveTransaksi = async function() {
   
   try {
     if (editTransaksiId) {
-      await update(ref(db, `data/keuangan/${currentUserLogged}/transaksi/${editTransaksiId}`), transaksiData);
+      await updateSharedTransaction(editTransaksiId, transaksiData);
       showNotif("Transaksi berhasil diupdate", false, 'success');
       editTransaksiId = null;
     } else {
-      transaksiData.createdAt = Date.now();
-      transaksiData.createdBy = currentUserLogged;
-      await push(ref(db, `data/keuangan/${currentUserLogged}/transaksi`), transaksiData);
+      await addSharedTransaction(transaksiData);
       showNotif("Transaksi berhasil ditambahkan", false, 'success');
       
       if (tipe === 'pemasukan' && typeof window.triggerConfetti === 'function') {
@@ -689,7 +649,7 @@ window.saveTransaksi = async function() {
       }
     }
     
-    clearCache(`keuangan_transaksi_${currentUserLogged}`);
+    clearCache(`keuangan_transaksi_${currentPairId}`);
     await loadAllTransaksiOptimized(true);
     updateChartData();
     
@@ -712,9 +672,9 @@ window.deleteTransaksi = async function(id) {
   if (confirmed) {
     showLoading("Menghapus transaksi...");
     try {
-      await remove(ref(db, `data/keuangan/${currentUserLogged}/transaksi/${id}`));
+      await deleteSharedTransaction(id);
       showNotif("Transaksi dihapus", false, 'warning');
-      clearCache(`keuangan_transaksi_${currentUserLogged}`);
+      clearCache(`keuangan_transaksi_${currentPairId}`);
       await loadAllTransaksiOptimized(true);
       updateChartData();
     } catch (err) {
@@ -726,7 +686,7 @@ window.deleteTransaksi = async function(id) {
   }
 };
 
-export function initKeuangan() {
+export async function initKeuangan() {
   currentUserLogged = sessionStorage.getItem("progrowth_user");
   if (!currentUserLogged) return;
   
@@ -740,8 +700,8 @@ export function initKeuangan() {
   
   const keuanganUserName = document.getElementById('keuanganUserName');
   if (keuanganUserName) {
-    const displayName = currentUserLogged === "FACHMI" ? "Fachmi" : "Azizah";
-    keuanganUserName.innerHTML = `Keuangan ${displayName}`;
+    const partnerName = currentPartner === "FACHMI" ? "Fachmi" : currentPartner === "AZIZAH" ? "Azizah" : currentPartner;
+    keuanganUserName.innerHTML = `Keuangan ${currentUserLogged} & ${partnerName}`;
   }
   
   Promise.all([
@@ -752,18 +712,16 @@ export function initKeuangan() {
     initKeuanganChart();
   });
   
-  const pairId = sessionStorage.getItem('progrowth_pairId');
-  let catatanPath = `data/catatan/pairs/${pairId}`;
-  if (!pairId) catatanPath = `data/catatan/bersama`;
-  
-  onValue(ref(db, `${catatanPath}/kategori`), () => {
-    loadKategoriFromCatatan();
+  // Listen for changes in shared keuangan
+  const pairId = currentPairId;
+  onValue(ref(db, `data/pairs/${pairId}/keuangan/transaksi`), () => {
+    loadAllTransaksiOptimized(true);
+    updateChartData();
     renderKategoriProgress();
   });
   
-  onValue(ref(db, `data/keuangan/${currentUserLogged}/transaksi`), () => {
-    loadAllTransaksiOptimized(true);
-    updateChartData();
+  onValue(ref(db, `data/catatan/pairs/${pairId}/kategori`), () => {
+    loadKategoriFromCatatan();
     renderKategoriProgress();
   });
   
@@ -793,5 +751,4 @@ async function refreshData() {
 }
 
 window.initKeuangan = initKeuangan;
-window.addTransaksiFromExternal = addTransaksiFromExternal;
 window.exportKeuanganToCSV = exportKeuanganToCSV;
