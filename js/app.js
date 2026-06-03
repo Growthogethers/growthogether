@@ -1,4 +1,4 @@
-// js/app.js - Main Application dengan Pair System (FIXED)
+// js/app.js - Main Application dengan Pair System (FIXED) - TANPA partnerInfo & pairInfo
 import { db, ref, onValue } from './firebase-config.js';
 import { 
   masterData, setMasterData, showNotif, togglePrivacy, setCurrentUser, 
@@ -466,34 +466,7 @@ async function setupAppSession(u) {
   const userGreet = document.getElementById("userGreet");
   if (userGreet) userGreet.innerText = displayName;
   
-  // Tampilkan info pasangan di sidebar
-  let partnerInfo = document.getElementById("partnerInfo");
-  if (!partnerInfo && partner) {
-    const profileSection = document.querySelector('.profile-section');
-    if (profileSection) {
-      partnerInfo = document.createElement('div');
-      partnerInfo.id = 'partnerInfo';
-      partnerInfo.className = 'mt-2';
-      profileSection.appendChild(partnerInfo);
-    }
-  }
-  if (partnerInfo && partner) {
-    const partnerName = partner === "FACHMI" ? "Fachmi" : partner === "AZIZAH" ? "Azizah" : partner;
-    partnerInfo.innerHTML = `<small class="text-muted"><i class="bi bi-heart-fill text-danger me-1"></i> Pasangan: ${partnerName}</small>`;
-  }
-  
-  // Tampilkan pairId info untuk debugging
-  let pairInfo = document.getElementById("pairInfo");
-  if (!pairInfo && currentPairId) {
-    const footer = document.querySelector('.mt-auto');
-    if (footer) {
-      pairInfo = document.createElement('div');
-      pairInfo.id = 'pairInfo';
-      pairInfo.className = 'text-center mt-2';
-      pairInfo.innerHTML = `<small class="text-muted">ID Pasangan: ${currentPairId}</small>`;
-      footer.appendChild(pairInfo);
-    }
-  }
+  // HAPUS bagian yang menampilkan partnerInfo dan pairInfo di sidebar
   
   setTimeout(() => {
     if (typeof forceRefreshProfile === 'function') forceRefreshProfile();
@@ -506,9 +479,6 @@ async function setupAppSession(u) {
   setTimeout(() => {
     triggerConfetti();
     showNotif(`🎉 Selamat datang, ${displayName}!`, false, 'success');
-    if (partner) {
-      showNotif(`💕 Terhubung dengan pasangan: ${partner}`, false, 'info');
-    }
   }, 500);
 }
 
