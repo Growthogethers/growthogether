@@ -277,7 +277,7 @@ body.dark {
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Hindari overflow ganda */
+  overflow: hidden;
   transition: background 0.2s ease, left 0.3s ease;
 }
 
@@ -378,6 +378,34 @@ body.dark {
 
 .profile-section:hover .edit-profile-badge {
   opacity: 1;
+}
+
+/* Badge Level untuk Sidebar */
+.badge-trial {
+  background: #f59e0b;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.badge-basic {
+  background: #10b981;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.badge-pro {
+  background: #8b5cf6;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
 }
 
 /* ============ MAIN CONTENT ============ */
