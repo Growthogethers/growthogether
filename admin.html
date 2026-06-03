@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
   <title>Admin Panel - GrowthTogether</title>
+  <!-- Favicon / Logo Tab -->
+  <link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%237009b4'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%237009b4'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
@@ -348,13 +351,19 @@
       to { opacity: 1; transform: translateX(-50%) translateY(0); }
     }
     
+    /* RESPONSIVE STYLES - Mobile */
     @media (max-width: 768px) {
       .admin-sidebar {
         left: -280px;
         position: fixed;
+        transition: left 0.3s ease;
       }
       .admin-sidebar.open { left: 0; }
-      .admin-content { margin-left: 0; padding: 1rem; }
+      .admin-content { 
+        margin-left: 0; 
+        padding: 1rem;
+        padding-top: 70px;
+      }
       .hamburger {
         display: flex;
         position: fixed;
@@ -370,8 +379,112 @@
         color: white;
         border: none;
         cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      }
+      .hamburger:active { transform: scale(0.95); }
+      
+      .admin-content h4.fw-bold {
+        font-size: 1.25rem;
+      }
+      
+      .stat-card {
+        min-height: auto;
+      }
+      
+      .stat-card h2 {
+        font-size: 1.5rem;
+      }
+      
+      .stat-icon {
+        width: 36px;
+        height: 36px;
+      }
+      
+      .stat-icon i {
+        font-size: 1.25rem;
+      }
+      
+      .table-responsive {
+        font-size: 0.8rem;
+      }
+      
+      .user-table th, .user-table td {
+        padding: 10px 8px;
+      }
+      
+      .subscription-card {
+        margin-bottom: 1rem;
+      }
+      
+      .subscription-card h2 {
+        font-size: 1.5rem;
+      }
+      
+      .row.g-4 {
+        --bs-gutter-y: 1rem;
+      }
+      
+      .dark-mode-fab {
+        bottom: 16px;
+        right: 16px;
+        width: 42px;
+        height: 42px;
+      }
+      
+      .pair-card .d-flex {
+        flex-direction: column;
+        align-items: center !important;
+        text-align: center;
+      }
+      
+      .partner-badge {
+        width: 100%;
+        justify-content: center;
       }
     }
+    
+    /* Extra small devices */
+    @media (max-width: 480px) {
+      .admin-content {
+        padding: 0.75rem;
+        padding-top: 65px;
+      }
+      
+      .admin-login-card {
+        padding: 1.5rem;
+        margin: 0.75rem;
+      }
+      
+      .stat-card .d-flex {
+        flex-direction: column;
+        text-align: center;
+        gap: 8px;
+      }
+      
+      .stat-icon {
+        align-self: center;
+      }
+      
+      .btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      
+      .btn-group .btn {
+        margin-right: 0 !important;
+        margin-bottom: 4px;
+      }
+      
+      .table-responsive {
+        font-size: 0.7rem;
+      }
+      
+      .user-table th, .user-table td {
+        padding: 6px 4px;
+      }
+    }
+    
     .hamburger { display: none; }
     .sidebar-overlay {
       position: fixed;
@@ -380,9 +493,21 @@
       background: rgba(0,0,0,0.5);
       z-index: 1040;
       display: none;
+      transition: opacity 0.3s ease;
     }
+    .sidebar-overlay.active { display: block; }
     .register-modal .modal-content {
       border-radius: 28px;
+    }
+    
+    /* Preview button styles */
+    .preview-link-btn {
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .preview-link-btn:hover {
+      transform: scale(1.05);
+      color: #7009b4 !important;
     }
   </style>
 </head>
@@ -456,7 +581,7 @@
   <div class="admin-content" id="adminContent">
     <!-- Dashboard Section -->
     <div id="dashboardSection">
-      <div class="d-flex justify-content-between align-items-center mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
           <h4 class="fw-bold"><i class="bi bi-activity text-primary me-2"></i>Rangkuman GrowthTogether</h4>
           <p class="text-muted small">Data realtime dari semua fitur pasangan</p>
@@ -467,7 +592,7 @@
       <!-- Info Pasangan -->
       <div class="pair-card mb-4">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-          <div class="d-flex gap-3">
+          <div class="d-flex gap-3 flex-wrap justify-content-center">
             <div class="partner-badge">
               <i class="bi bi-person-circle text-primary"></i>
               <span><strong>FACHMI</strong> (Fachmi)</span>
@@ -480,7 +605,7 @@
           </div>
           <span class="badge bg-success">Pasangan Terhubung</span>
         </div>
-        <small class="text-muted d-block mt-2">💡 Setiap user baru akan otomatis terhubung sebagai pasangan dari user yang dipilih</small>
+        <small class="text-muted d-block mt-2 text-center">💡 Setiap user baru akan otomatis terhubung sebagai pasangan dari user yang dipilih</small>
       </div>
       
       <!-- Stat Cards -->
@@ -523,7 +648,9 @@
       <div class="card border-0 shadow-sm mt-2">
         <div class="card-body">
           <h6 class="fw-bold"><i class="bi bi-graph-up me-2"></i>Trend Keuangan Gabungan</h6>
-          <canvas id="adminChart" height="200" style="max-height: 260px;"></canvas>
+          <div class="chart-container" style="position: relative; min-height: 200px;">
+            <canvas id="adminChart" style="width:100%; max-height: 260px;"></canvas>
+          </div>
         </div>
       </div>
     </div>
@@ -553,7 +680,7 @@
 
     <!-- Penawaran & Paket Section -->
     <div id="offersSection" style="display: none;">
-      <div class="d-flex justify-content-between align-items-center mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <h4 class="fw-bold"><i class="bi bi-tags-fill text-success me-2"></i>Penawaran & Paket Berlangganan</h4>
       </div>
       
@@ -624,7 +751,7 @@
 
     <!-- Generate Undangan -->
     <div id="undanganSection" style="display: none;">
-      <div class="d-flex justify-content-between align-items-center mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <h4 class="fw-bold"><i class="bi bi-envelope-heart-fill text-pink me-2"></i>Bagikan Undangan Digital</h4>
       </div>
       <div class="row g-4">
@@ -650,6 +777,11 @@
                 <code id="inviteLinkText" class="small"></code>
                 <button class="btn btn-sm btn-outline-secondary rounded-pill" id="copyLinkBtn"><i class="bi bi-files"></i> Salin</button>
               </div>
+              <div class="mt-2">
+                <button class="btn btn-sm btn-outline-primary rounded-pill w-100" id="previewInviteBtn">
+                  <i class="bi bi-eye me-1"></i> Preview Undangan
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -667,7 +799,7 @@
 
     <!-- Daftar Tamu -->
     <div id="inviteListSection" style="display: none;">
-      <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <h4 class="fw-bold"><i class="bi bi-people-fill me-2"></i>Daftar Tamu & Undangan</h4>
         <button id="refreshInvitesBtn" class="btn btn-sm btn-outline-secondary rounded-pill"><i class="bi bi-arrow-repeat"></i> Muat ulang</button>
       </div>
@@ -738,7 +870,7 @@
   </div>
 </div>
 
-<!-- Modal Edit Level (Custom, bukan browser prompt) -->
+<!-- Modal Edit Level -->
 <div class="modal fade" id="editLevelModal" tabindex="-1" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered modal-sm">
     <div class="modal-content rounded-4 level-edit-modal">
@@ -808,6 +940,7 @@
   let editLevelModal = null;
   let currentEditUsername = null;
   let currentEditLevel = null;
+  let currentInviteLink = null;
   
   function formatRp(val) { return `Rp ${(val || 0).toLocaleString('id-ID')}`; }
   function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
@@ -846,14 +979,12 @@
     return String(maxId + 1).padStart(3, '0');
   }
   
-  // Get partner for a user
   async function getUserPartner(username) {
     const partnerRef = ref(db, `data/partners/${username}`);
     const snapshot = await get(partnerRef);
     return snapshot.val();
   }
   
-  // Set partner relationship (bidirectional)
   async function setPartnerRelationship(user1, user2) {
     await set(ref(db, `data/partners/${user1}`), user2);
     await set(ref(db, `data/partners/${user2}`), user1);
@@ -1007,7 +1138,6 @@
       const users = data.users || {};
       const totalUsers = Object.keys(users).length;
       
-      // Count pairs (users with partners)
       const partners = data.partners || {};
       const pairsSet = new Set();
       Object.keys(partners).forEach(user => {
@@ -1135,20 +1265,20 @@
         row.insertCell(6).innerHTML = limits.transactions === Infinity ? '∞' : `${userTrans}/${limits.transactions}`;
         row.insertCell(7).innerHTML = userData.active !== false ? '<span class="badge bg-success">Aktif</span>' : '<span class="badge bg-secondary">Nonaktif</span>';
         row.insertCell(8).innerHTML = `
-          <div class="btn-group btn-group-sm">
-            <button class="btn btn-outline-primary rounded-pill me-1 edit-level-btn" data-username="${username}" data-level="${level}">
+          <div class="btn-group btn-group-sm d-flex flex-wrap gap-1">
+            <button class="btn btn-outline-primary rounded-pill edit-level-btn" data-username="${username}" data-level="${level}">
               <i class="bi bi-pencil"></i> Ubah Level
             </button>
             ${username !== 'FACHMI' && username !== 'AZIZAH' ? `
             <button class="btn btn-outline-danger rounded-pill delete-user-btn" data-username="${username}">
-              <i class="bi bi-trash3"></i>
+              <i class="bi bi-trash3"></i> Hapus
             </button>
             ` : '<span class="text-muted small">(Admin)</span>'}
           </div>
         `;
       }
       
-      // Edit level buttons - menggunakan modal custom
+      // Edit level buttons
       document.querySelectorAll('.edit-level-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
           e.stopPropagation();
@@ -1184,7 +1314,6 @@
     }
   }
   
-  // Open custom edit level modal
   function openEditLevelModal(username, currentLevel) {
     currentEditUsername = username;
     currentEditLevel = currentLevel;
@@ -1193,7 +1322,6 @@
     const userNameSpan = document.getElementById('editLevelUserName');
     if (userNameSpan) userNameSpan.innerHTML = `Mengubah level untuk: <strong>${escapeHtml(username)}</strong>`;
     
-    // Reset selection
     const options = modalElement.querySelectorAll('.level-option');
     options.forEach(opt => {
       const level = opt.dataset.level;
@@ -1207,7 +1335,6 @@
       }
     });
     
-    // Add click handlers
     options.forEach(opt => {
       opt.onclick = () => {
         options.forEach(o => {
@@ -1247,7 +1374,6 @@
     }
   }
   
-  // LOAD USAGE STATS
   async function loadUsageStats() {
     const snapshot = await get(ref(db, "data/users"));
     const users = snapshot.val() || {};
@@ -1274,7 +1400,7 @@
         <div class="col-md-6">
           <div class="card border-0 shadow-sm">
             <div class="card-body">
-              <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
                 <div>
                   <strong>${escapeHtml(username)}</strong>
                   <small class="text-muted d-block">ID: ${userData.userId || '-'}</small>
@@ -1297,7 +1423,7 @@
     statsContainer.innerHTML = html || '<div class="col-12 text-center text-muted">Belum ada data pengguna</div>';
   }
   
-  // REGISTER NEW USER with partner
+  // REGISTER NEW USER
   async function registerNewUser(username, fullname, password, level, partnerUsername) {
     const usersRef = ref(db, "data/users");
     const snapshot = await get(usersRef);
@@ -1324,7 +1450,6 @@
     await set(ref(db, `data/keuangan/${usernameUpper}`), { transaksi: {} });
     await set(ref(db, `data/impian/${usernameUpper}`), {});
     
-    // Set partner relationship if specified
     if (partnerUsername) {
       const partnerUpper = partnerUsername.toUpperCase().trim();
       if (users[partnerUpper]) {
@@ -1366,11 +1491,17 @@
     }
     
     for (let [id, inv] of entries.reverse()) {
+      const fullLink = `${window.location.origin}${window.location.pathname}?invite=${id}`;
       const row = tbody.insertRow();
       row.insertCell(0).innerHTML = `<strong>${escapeHtml(inv.guestName || 'Tanpa Nama')}</strong>`;
       row.insertCell(1).innerHTML = inv.phone || '-';
-      const fullLink = `${window.location.origin}${window.location.pathname}?invite=${id}`;
-      row.insertCell(2).innerHTML = `<span class="small">${fullLink.substring(0,40)}...</span> <button class="btn btn-sm btn-link copyInvLink" data-link="${fullLink}"><i class="bi bi-copy"></i></button>`;
+      row.insertCell(2).innerHTML = `
+        <span class="small text-truncate d-inline-block" style="max-width: 180px;">${fullLink.substring(0,40)}...</span>
+        <div class="mt-1">
+          <button class="btn btn-sm btn-link copyInvLink p-0 me-2" data-link="${fullLink}"><i class="bi bi-copy"></i> Salin</button>
+          <button class="btn btn-sm btn-link text-primary preview-invite-link p-0" data-link-id="${id}" data-guest-name="${escapeHtml(inv.guestName)}"><i class="bi bi-eye"></i> Preview</button>
+        </div>
+      `;
       row.insertCell(3).innerHTML = inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('id') : '-';
       row.insertCell(4).innerHTML = `<button class="btn btn-sm btn-outline-danger rounded-pill deleteInvBtn" data-id="${id}"><i class="bi bi-trash3"></i> Hapus</button>`;
     }
@@ -1378,6 +1509,15 @@
     document.querySelectorAll('.copyInvLink').forEach(btn => {
       btn.addEventListener('click', () => { navigator.clipboard.writeText(btn.dataset.link); showToast('Link disalin!'); });
     });
+    
+    document.querySelectorAll('.preview-invite-link').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const linkId = btn.dataset.linkId;
+        const guestName = btn.dataset.guestName;
+        openInvitationPreview(linkId, guestName);
+      });
+    });
+    
     document.querySelectorAll('.deleteInvBtn').forEach(btn => {
       btn.addEventListener('click', async () => {
         if (confirm('Hapus undangan ini?')) {
@@ -1399,7 +1539,57 @@
       createdAt: Date.now(),
       linkId: id
     });
-    return `${window.location.origin}${window.location.pathname}?invite=${id}`;
+    const fullLink = `${window.location.origin}${window.location.pathname}?invite=${id}`;
+    currentInviteLink = fullLink;
+    return fullLink;
+  }
+  
+  // OPEN INVITATION PREVIEW (PAGE BARU)
+  function openInvitationPreview(linkId, guestName) {
+    const previewUrl = `invitation-preview.html?id=${linkId}&name=${encodeURIComponent(guestName)}`;
+    window.open(previewUrl, '_blank', 'width=400,height=700,scrollbars=yes');
+  }
+  
+  function updatePreview(guestName, phone, note) {
+    const previewDiv = document.getElementById('invitePreview');
+    if (!previewDiv) return;
+    
+    if (guestName) {
+      previewDiv.innerHTML = `
+        <div class="text-center p-3 rounded-4" style="background: linear-gradient(145deg, #fdf2f8, #fff);">
+          <i class="bi bi-envelope-heart-fill fs-1 text-danger"></i>
+          <h5 class="fw-bold mt-2">Undangan untuk ${escapeHtml(guestName)}</h5>
+          <p class="small">💌 Dengan hormat, kami mengundang Anda...</p>
+          <hr>
+          <div class="text-start small">
+            <p><i class="bi bi-calendar-heart text-danger me-2"></i> <strong>Acara:</strong> Pernikahan Fachmi & Azizah</p>
+            <p><i class="bi bi-clock me-2"></i> <strong>Waktu:</strong> 10:00 WIB - selesai</p>
+            <p><i class="bi bi-geo-alt me-2"></i> <strong>Tempat:</strong> Gedung Serbaguna, Jakarta</p>
+            ${phone ? `<p><i class="bi bi-whatsapp me-2"></i> <strong>Konfirmasi:</strong> ${escapeHtml(phone)}</p>` : ''}
+            ${note ? `<p><i class="bi bi-chat-heart me-2"></i> <strong>Catatan:</strong> ${escapeHtml(note)}</p>` : ''}
+          </div>
+          <div class="mt-3">
+            <small class="text-muted">✨ "This invitation saves paper and reduces carbon footprint"</small>
+          </div>
+          <button class="btn btn-sm btn-outline-primary rounded-pill mt-3" id="openFullPreviewBtn">
+            <i class="bi bi-eye me-1"></i> Lihat Preview Lengkap
+          </button>
+        </div>
+      `;
+      
+      const openFullBtn = document.getElementById('openFullPreviewBtn');
+      if (openFullBtn) {
+        openFullBtn.addEventListener('click', () => {
+          const fakeLinkId = 'preview_' + Date.now();
+          openInvitationPreview(fakeLinkId, guestName);
+        });
+      }
+    } else {
+      previewDiv.innerHTML = `
+        <i class="bi bi-envelope-paper-heart fs-1 text-muted"></i>
+        <p class="mt-2">Isi nama tamu untuk pratinjau</p>
+      `;
+    }
   }
   
   function showSection(sectionId) {
@@ -1422,7 +1612,6 @@
   window.addEventListener('DOMContentLoaded', async () => {
     console.log("Admin panel starting...");
     
-    // Initialize Bootstrap Modals
     const modalElement = document.getElementById('registerUserModal');
     if (modalElement) {
       registerModal = new bootstrap.Modal(modalElement);
@@ -1433,20 +1622,16 @@
       editLevelModal = new bootstrap.Modal(levelModalElement);
     }
     
-    // Check session
     checkAdminSession();
     
-    // Login button
     document.getElementById('adminLoginBtn')?.addEventListener('click', handleAdminLogin);
     document.getElementById('adminPassword')?.addEventListener('keypress', (e) => { if(e.key === 'Enter') handleAdminLogin(); });
     
-    // Logout button
     document.getElementById('adminLogoutBtn')?.addEventListener('click', handleAdminLogout);
     document.getElementById('backToAppBtn')?.addEventListener('click', () => { 
       window.location.href = window.location.pathname.replace('admin.html', 'index.html'); 
     });
     
-    // Refresh dashboard button - FIXED
     const refreshBtn = document.getElementById('refreshDashboardBtn');
     if (refreshBtn) {
       refreshBtn.addEventListener('click', async () => {
@@ -1459,7 +1644,6 @@
       });
     }
     
-    // OPEN REGISTER MODAL
     const openModalBtn = document.getElementById('openRegisterModalBtn');
     if (openModalBtn) {
       openModalBtn.addEventListener('click', async (e) => {
@@ -1476,13 +1660,11 @@
       });
     }
     
-    // Confirm level change button
     const confirmLevelBtn = document.getElementById('confirmLevelChangeBtn');
     if (confirmLevelBtn) {
       confirmLevelBtn.addEventListener('click', saveLevelChange);
     }
     
-    // Register User Button
     document.getElementById('confirmRegisterBtn')?.addEventListener('click', async () => {
       const username = document.getElementById('regUsername').value;
       const fullname = document.getElementById('regFullname').value;
@@ -1506,28 +1688,36 @@
     });
     
     // Generate Invitation
-    document.getElementById('generateInviteBtn')?.addEventListener('click', async () => {
-      const name = document.getElementById('guestName').value.trim();
-      const phone = document.getElementById('guestPhone').value;
-      const note = document.getElementById('guestNote').value;
-      if (!name) return showToast("Nama tamu harus diisi", 'error');
-      try {
-        const fullLink = await generateInvitationLink(name, phone, note);
-        document.getElementById('generatedLinkContainer').style.display = 'block';
-        document.getElementById('inviteLinkText').innerText = fullLink;
-        const previewDiv = document.getElementById('invitePreview');
-        previewDiv.innerHTML = `
-          <div class="text-center p-3 rounded-4" style="background: linear-gradient(145deg, #fdf2f8, #fff);">
-            <i class="bi bi-envelope-heart-fill fs-1 text-danger"></i>
-            <h5 class="fw-bold mt-2">Undangan untuk ${escapeHtml(name)}</h5>
-            <p class="small">💌 Dengan hormat, kami mengundang Anda...</p>
-            <button class="btn btn-sm btn-outline-primary rounded-pill copyPreviewLink">Salin Link</button>
-          </div>`;
-        previewDiv.querySelector('.copyPreviewLink')?.addEventListener('click',()=>{navigator.clipboard.writeText(fullLink); showToast("Link disalin");});
-        showToast("Link undangan berhasil dibuat!", 'success');
-        if (currentSection === 'invite-list') loadInvitations();
-      } catch(err) { showToast(err.message, 'error'); }
-    });
+    const generateBtn = document.getElementById('generateInviteBtn');
+    if (generateBtn) {
+      generateBtn.addEventListener('click', async () => {
+        const name = document.getElementById('guestName').value.trim();
+        const phone = document.getElementById('guestPhone').value;
+        const note = document.getElementById('guestNote').value;
+        if (!name) return showToast("Nama tamu harus diisi", 'error');
+        try {
+          const fullLink = await generateInvitationLink(name, phone, note);
+          document.getElementById('generatedLinkContainer').style.display = 'block';
+          document.getElementById('inviteLinkText').innerText = fullLink;
+          updatePreview(name, phone, note);
+          showToast("Link undangan berhasil dibuat!", 'success');
+          if (currentSection === 'invite-list') loadInvitations();
+        } catch(err) { showToast(err.message, 'error'); }
+      });
+    }
+    
+    // Preview Invitation button
+    const previewBtn = document.getElementById('previewInviteBtn');
+    if (previewBtn) {
+      previewBtn.addEventListener('click', () => {
+        const guestName = document.getElementById('guestName').value.trim();
+        if (!guestName) {
+          showToast("Masukkan nama tamu terlebih dahulu", 'error');
+          return;
+        }
+        openInvitationPreview('preview_' + Date.now(), guestName);
+      });
+    }
     
     document.getElementById('copyLinkBtn')?.addEventListener('click', () => {
       const link = document.getElementById('inviteLinkText')?.innerText;
@@ -1535,6 +1725,19 @@
     });
     
     document.getElementById('refreshInvitesBtn')?.addEventListener('click', () => loadInvitations());
+    
+    // Real-time preview update
+    const guestNameInput = document.getElementById('guestName');
+    const guestPhoneInput = document.getElementById('guestPhone');
+    const guestNoteInput = document.getElementById('guestNote');
+    if (guestNameInput) {
+      const updatePreviewFromInputs = () => {
+        updatePreview(guestNameInput.value, guestPhoneInput?.value || '', guestNoteInput?.value || '');
+      };
+      guestNameInput.addEventListener('input', updatePreviewFromInputs);
+      if (guestPhoneInput) guestPhoneInput.addEventListener('input', updatePreviewFromInputs);
+      if (guestNoteInput) guestNoteInput.addEventListener('input', updatePreviewFromInputs);
+    }
     
     // Navigation
     document.querySelectorAll('.admin-sidebar .nav-link').forEach(link => {
@@ -1549,21 +1752,33 @@
     const darkFab = document.getElementById('darkModeFab');
     const isDark = localStorage.getItem('adminDark') === 'true';
     if(isDark) document.body.classList.add('dark');
-    darkFab?.addEventListener('click', () => {
-      document.body.classList.toggle('dark');
-      localStorage.setItem('adminDark', document.body.classList.contains('dark'));
-      darkFab.innerHTML = document.body.classList.contains('dark') ? '<i class="bi bi-brightness-high-fill"></i>' : '<i class="bi bi-moon-stars"></i>';
-    });
+    if (darkFab) {
+      darkFab.addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        localStorage.setItem('adminDark', document.body.classList.contains('dark'));
+        darkFab.innerHTML = document.body.classList.contains('dark') ? '<i class="bi bi-brightness-high-fill"></i>' : '<i class="bi bi-moon-stars"></i>';
+      });
+    }
     
     // Mobile hamburger
     const hamburger = document.getElementById('hamburgerBtn');
     const sidebar = document.getElementById('adminSidebar');
     const overlay = document.getElementById('sidebarOverlay');
-    function closeSidebar() { sidebar.classList.remove('open'); overlay.style.display = 'none'; }
-    function openSidebar() { sidebar.classList.add('open'); overlay.style.display = 'block'; }
+    function closeSidebar() { 
+      if (sidebar) sidebar.classList.remove('open'); 
+      if (overlay) overlay.classList.remove('active');
+    }
+    function openSidebar() { 
+      if (sidebar) sidebar.classList.add('open'); 
+      if (overlay) overlay.classList.add('active');
+    }
     if (hamburger) hamburger.addEventListener('click', openSidebar);
     if (overlay) overlay.addEventListener('click', closeSidebar);
-    window.addEventListener('resize', () => { if(window.innerWidth > 768) { closeSidebar(); overlay.style.display = 'none'; } });
+    window.addEventListener('resize', () => { 
+      if(window.innerWidth > 768) { 
+        closeSidebar(); 
+      } 
+    });
     
     if (document.body.classList.contains('logged-in')) {
       showSection('dashboard');
