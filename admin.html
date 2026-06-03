@@ -4,13 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
   <title>Admin Panel - GrowthTogether</title>
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%237009b4'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
@@ -187,13 +185,13 @@
       border-radius: 20px;
       border: none;
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: transform 0.2s;
       overflow: hidden;
       height: 100%;
       min-height: 130px;
     }
     body.dark .stat-card { background: #3d1f3d; }
-    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 24px rgba(112,9,180,0.12); }
+    .stat-card:hover { transform: translateY(-3px); }
     .stat-icon {
       width: 48px;
       height: 48px;
@@ -284,6 +282,25 @@
       z-index: 1040;
       display: none;
     }
+    
+    /* Form styles */
+    .form-control, .form-select {
+      border-radius: 12px;
+      border: 1.5px solid #e9d5ff;
+      padding: 10px 14px;
+    }
+    .form-control:focus {
+      border-color: #7009b4;
+      box-shadow: 0 0 0 3px rgba(112,9,180,0.1);
+      outline: none;
+    }
+    .story-item, .bank-item {
+      background: #faf5ff;
+      border-radius: 16px;
+    }
+    body.dark .story-item, body.dark .bank-item {
+      background: #3d1f3d;
+    }
   </style>
 </head>
 <body>
@@ -322,12 +339,6 @@
       <a class="nav-link" data-section="dashboard">
         <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
       </a>
-      <a class="nav-link" data-section="users">
-        <i class="bi bi-people-fill"></i> <span>Kelola Pengguna</span>
-      </a>
-      <a class="nav-link" data-section="offers">
-        <i class="bi bi-tags-fill"></i> <span>Penawaran & Paket</span>
-      </a>
       <a class="nav-link" data-section="wedding-settings">
         <i class="bi bi-sliders2"></i> <span>Pengaturan Undangan</span>
       </a>
@@ -353,96 +364,28 @@
     <div id="dashboardSection" style="display: none;">
       <h4 class="fw-bold mb-4">Dashboard GrowthTogether</h4>
       <div class="row g-4">
-        <div class="col-md-3">
-          <div class="stat-card p-3">
-            <div class="d-flex justify-content-between">
-              <div><small class="text-muted">Total Momen</small><h2 class="fw-bold mt-1" id="totalMoments">0</h2></div>
-              <div class="stat-icon bg-danger bg-opacity-10"><i class="bi bi-calendar-heart fs-3 text-danger"></i></div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="stat-card p-3">
-            <div class="d-flex justify-content-between">
-              <div><small class="text-muted">Total Pengguna</small><h2 class="fw-bold mt-1" id="totalUsers">0</h2></div>
-              <div class="stat-icon bg-primary bg-opacity-10"><i class="bi bi-people-fill fs-3 text-primary"></i></div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
           <div class="stat-card p-3">
             <div class="d-flex justify-content-between">
               <div><small class="text-muted">Total Undangan</small><h2 class="fw-bold mt-1" id="totalInvites">0</h2></div>
-              <div class="stat-icon bg-warning bg-opacity-10"><i class="bi bi-envelope-heart-fill fs-3 text-warning"></i></div>
+              <div class="stat-icon bg-primary bg-opacity-10"><i class="bi bi-envelope-heart-fill fs-3 text-primary"></i></div>
             </div>
           </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
           <div class="stat-card p-3">
             <div class="d-flex justify-content-between">
-              <div><small class="text-muted">Total Doa/Ucapan</small><h2 class="fw-bold mt-1" id="totalMessages">0</h2></div>
-              <div class="stat-icon bg-success bg-opacity-10"><i class="bi bi-chat-heart-fill fs-3 text-success"></i></div>
+              <div><small class="text-muted">Total Pengguna</small><h2 class="fw-bold mt-1" id="totalUsers">0</h2></div>
+              <div class="stat-icon bg-success bg-opacity-10"><i class="bi bi-people-fill fs-3 text-success"></i></div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- Kelola Pengguna Section -->
-    <div id="usersSection" style="display: none;">
-      <h4 class="fw-bold mb-4">Kelola Pengguna</h4>
-      <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead class="bg-light">
-                <tr><th>Username</th><th>Nama</th><th>Level</th><th>Aksi</th></tr>
-              </thead>
-              <tbody id="usersTableBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Penawaran & Paket Section -->
-    <div id="offersSection" style="display: none;">
-      <h4 class="fw-bold mb-4">Paket Berlangganan</h4>
-      <div class="row g-4">
         <div class="col-md-4">
-          <div class="card p-4 text-center h-100">
-            <span class="badge bg-warning mx-auto mb-3 px-3 py-2">TRIAL</span>
-            <h3 class="fw-bold">Rp 0</h3>
-            <p class="text-muted">/7 hari</p>
-            <ul class="list-unstyled text-start">
-              <li><i class="bi bi-check text-success me-2"></i> 5 Transaksi</li>
-              <li><i class="bi bi-check text-success me-2"></i> 5 Item Checklist</li>
-              <li class="text-muted"><i class="bi bi-x text-danger me-2"></i> Tanpa Momen</li>
-            </ul>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card p-4 text-center h-100 border-primary">
-            <span class="badge bg-primary mx-auto mb-3 px-3 py-2">BASIC</span>
-            <h3 class="fw-bold">Rp 25.000</h3>
-            <p class="text-muted">/bulan</p>
-            <ul class="list-unstyled text-start">
-              <li><i class="bi bi-check text-success me-2"></i> 50 Momen</li>
-              <li><i class="bi bi-check text-success me-2"></i> 50 Transaksi</li>
-              <li><i class="bi bi-check text-success me-2"></i> 50 Item Checklist</li>
-            </ul>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card p-4 text-center h-100" style="background: linear-gradient(135deg, #7009b4, #4000C6); color: white;">
-            <span class="badge bg-light text-dark mx-auto mb-3 px-3 py-2">PRO</span>
-            <h3 class="fw-bold">Rp 50.000</h3>
-            <p class="opacity-75">/bulan</p>
-            <ul class="list-unstyled text-start">
-              <li><i class="bi bi-infinity me-2"></i> Tanpa Batas Momen</li>
-              <li><i class="bi bi-infinity me-2"></i> Tanpa Batas Transaksi</li>
-              <li><i class="bi bi-infinity me-2"></i> Tanpa Batas Checklist</li>
-            </ul>
+          <div class="stat-card p-3">
+            <div class="d-flex justify-content-between">
+              <div><small class="text-muted">Total Momen</small><h2 class="fw-bold mt-1" id="totalMoments">0</h2></div>
+              <div class="stat-icon bg-warning bg-opacity-10"><i class="bi bi-calendar-heart fs-3 text-warning"></i></div>
+            </div>
           </div>
         </div>
       </div>
@@ -458,7 +401,7 @@
       </div>
       
       <div class="row g-4">
-        <!-- Pengaturan Pasangan Pengantin -->
+        <!-- Pasangan Pengantin -->
         <div class="col-md-6">
           <div class="setting-card p-4">
             <h5 class="fw-bold mb-3"><i class="bi bi-people-fill me-2 text-primary"></i>Pasangan Pengantin</h5>
@@ -478,6 +421,22 @@
               <label class="form-label fw-semibold">Nama Panggilan Wanita</label>
               <input type="text" id="brideNickname" class="form-control rounded-pill" placeholder="Contoh: Azizah">
             </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Nama Ayah Pria</label>
+              <input type="text" id="groomFather" class="form-control rounded-pill" placeholder="Contoh: H. Sumarmo">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Nama Ibu Pria</label>
+              <input type="text" id="groomMother" class="form-control rounded-pill" placeholder="Contoh: Hj. Kantun">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Nama Ayah Wanita</label>
+              <input type="text" id="brideFather" class="form-control rounded-pill" placeholder="Contoh: H. Ahmad">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Nama Ibu Wanita</label>
+              <input type="text" id="brideMother" class="form-control rounded-pill" placeholder="Contoh: Hj. Siti">
+            </div>
             <div class="row">
               <div class="col-md-6">
                 <label class="form-label fw-semibold">Foto Pria</label>
@@ -493,7 +452,7 @@
           </div>
         </div>
         
-        <!-- Pengaturan Waktu & Lokasi -->
+        <!-- Waktu & Lokasi -->
         <div class="col-md-6">
           <div class="setting-card p-4">
             <h5 class="fw-bold mb-3"><i class="bi bi-calendar-heart me-2 text-primary"></i>Waktu & Lokasi</h5>
@@ -524,31 +483,22 @@
           </div>
         </div>
         
-        <!-- Pengaturan Cerita & Galeri -->
+        <!-- Cerita Cinta -->
         <div class="col-md-6">
           <div class="setting-card p-4">
             <h5 class="fw-bold mb-3"><i class="bi bi-chat-heart-fill me-2 text-primary"></i>Cerita Cinta</h5>
-            <div id="storyList">
-              <div class="story-item mb-3 p-3 border rounded-3">
-                <input type="text" class="form-control story-title mb-2" placeholder="Judul Cerita">
-                <textarea class="form-control story-desc" rows="2" placeholder="Deskripsi cerita"></textarea>
-                <input type="date" class="form-control story-date mt-2" placeholder="Tanggal">
-                <button class="btn btn-sm btn-outline-danger mt-2 remove-story">Hapus</button>
-              </div>
-            </div>
+            <div id="storyList"></div>
             <button class="btn btn-sm btn-outline-primary rounded-pill" id="addStoryBtn">
               <i class="bi bi-plus-lg me-1"></i> Tambah Cerita
             </button>
           </div>
         </div>
         
-        <!-- Pengaturan Galeri -->
+        <!-- Galeri Foto -->
         <div class="col-md-6">
           <div class="setting-card p-4">
             <h5 class="fw-bold mb-3"><i class="bi bi-images me-2 text-primary"></i>Galeri Foto</h5>
-            <div id="galleryList" class="row g-2">
-              <!-- Gallery images will be added here -->
-            </div>
+            <div id="galleryList" class="row g-2"></div>
             <div class="mt-3">
               <input type="file" id="galleryPhotoInput" accept="image/*" class="form-control mb-2">
               <button class="btn btn-sm btn-outline-primary rounded-pill w-100" id="addGalleryBtn">
@@ -558,18 +508,11 @@
           </div>
         </div>
         
-        <!-- Pengaturan Bank & Kado -->
+        <!-- Rekening Bank -->
         <div class="col-md-12">
           <div class="setting-card p-4">
             <h5 class="fw-bold mb-3"><i class="bi bi-bank me-2 text-primary"></i>Rekening Bank</h5>
-            <div id="bankList">
-              <div class="bank-item mb-3 p-3 border rounded-3">
-                <input type="text" class="form-control bank-name mb-2" placeholder="Nama Bank">
-                <input type="text" class="form-control bank-number mb-2" placeholder="Nomor Rekening">
-                <input type="text" class="form-control bank-owner mb-2" placeholder="Atas Nama">
-                <button class="btn btn-sm btn-outline-danger remove-bank">Hapus</button>
-              </div>
-            </div>
+            <div id="bankList"></div>
             <button class="btn btn-sm btn-outline-primary rounded-pill" id="addBankBtn">
               <i class="bi bi-plus-lg me-1"></i> Tambah Rekening
             </button>
@@ -672,7 +615,7 @@
   const db = getDatabase(app);
   
   const INVITATION_BASE_URL = "https://growthogethers.github.io/growthogether/undangan.html";
-  let currentSection = 'dashboard';
+  let currentAdminUser = null;
   
   // ============ AUTH FUNCTIONS ============
   async function hashPassword(password) {
@@ -702,13 +645,15 @@
       const inputHash = await hashPassword(password);
       
       if (inputHash === authSnap.val()) {
+        currentAdminUser = username;
         sessionStorage.setItem('admin_logged_in', 'true');
+        sessionStorage.setItem('admin_user', username);
         document.body.classList.add('logged-in');
         await loadDashboardStats();
-        await loadUsersList();
         await loadInvitations();
         await loadWeddingSettings();
         showSection('dashboard');
+        Swal.fire('Berhasil!', `Selamat datang ${username}`, 'success');
       } else {
         errorDiv.style.display = 'block';
       }
@@ -722,17 +667,49 @@
   
   function handleAdminLogout() {
     sessionStorage.removeItem('admin_logged_in');
+    sessionStorage.removeItem('admin_user');
+    currentAdminUser = null;
     document.body.classList.remove('logged-in');
+    Swal.fire('Logout', 'Anda telah keluar dari admin panel', 'info');
   }
   
   function checkAdminSession() {
     if (sessionStorage.getItem('admin_logged_in') === 'true') {
       document.body.classList.add('logged-in');
       loadDashboardStats();
-      loadUsersList();
       loadInvitations();
       loadWeddingSettings();
+      showSection('dashboard');
     }
+  }
+  
+  // ============ COMPRESS IMAGE ============
+  function compressImage(file, maxSizeMB = 1) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (e) => {
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width, height = img.height;
+          const maxDim = 300;
+          if (width > height && width > maxDim) {
+            height = (height * maxDim) / width;
+            width = maxDim;
+          } else if (height > maxDim) {
+            width = (width * maxDim) / height;
+            height = maxDim;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.8));
+        };
+      };
+    });
   }
   
   // ============ LOAD WEDDING SETTINGS ============
@@ -741,17 +718,21 @@
       const settingsSnap = await get(ref(db, "data/wedding_settings"));
       const settings = settingsSnap.val() || {};
       
-      // Load pasangan
+      // Pasangan
       document.getElementById('groomName').value = settings.groomName || 'Fachmi';
       document.getElementById('brideName').value = settings.brideName || 'Azizah';
       document.getElementById('groomNickname').value = settings.groomNickname || 'Fachmi';
       document.getElementById('brideNickname').value = settings.brideNickname || 'Azizah';
+      document.getElementById('groomFather').value = settings.groomFather || 'H. Sumarmo';
+      document.getElementById('groomMother').value = settings.groomMother || 'Hj. Kantun';
+      document.getElementById('brideFather').value = settings.brideFather || 'H. Ahmad';
+      document.getElementById('brideMother').value = settings.brideMother || 'Hj. Siti';
       
-      // Load foto
+      // Foto
       if (settings.groomPhoto) document.getElementById('groomPhotoPreview').src = settings.groomPhoto;
       if (settings.bridePhoto) document.getElementById('bridePhotoPreview').src = settings.bridePhoto;
       
-      // Load waktu & lokasi
+      // Waktu & Lokasi
       document.getElementById('weddingDate').value = settings.weddingDate || '2025-06-15';
       document.getElementById('akadTime').value = settings.akadTime || '09:00';
       document.getElementById('receptionTime').value = settings.receptionTime || '12:00';
@@ -759,15 +740,15 @@
       document.getElementById('venueAddress').value = settings.venueAddress || 'Jalan Kebahagiaan No. 123, Jakarta';
       document.getElementById('mapsLink').value = settings.mapsLink || 'https://maps.google.com/maps?q=-6.8778538795485575,107.52693846630785';
       
-      // Load cerita
+      // Cerita
       const stories = settings.stories || [
-        { title: "Pertama Kali Berjumpa", desc: "Bertemu di acara pernikahan teman.", date: "2020-02-14" },
-        { title: "Prosesi Lamaran", desc: "Momen sakral lamaran.", date: "2022-03-10" },
-        { title: "Hari Pernikahan", desc: "Puncak kebahagiaan.", date: "2025-06-15" }
+        { title: "Pertama Kali Berjumpa", desc: "Bertemu di acara pernikahan teman, takdir mempertemukan kami.", date: "2020-02-14" },
+        { title: "Prosesi Lamaran", desc: "Momen sakral ketika keluarga kami bersatu dan lamaran berlangsung.", date: "2022-03-10" },
+        { title: "Hari Pernikahan", desc: "Puncak kebahagiaan kami bersatu dalam ikatan pernikahan.", date: "2025-06-15" }
       ];
       renderStories(stories);
       
-      // Load galeri
+      // Galeri
       const galleries = settings.galleries || [
         "https://picsum.photos/id/20/400/400",
         "https://picsum.photos/id/21/400/400",
@@ -775,7 +756,7 @@
       ];
       renderGalleries(galleries);
       
-      // Load bank
+      // Bank
       const banks = settings.banks || [
         { name: "Bank Mandiri", number: "1230012345678", owner: "Fachmi & Azizah" },
         { name: "Bank Syariah Indonesia", number: "7890123456789", owner: "Fachmi & Azizah" }
@@ -874,6 +855,10 @@
         brideName: document.getElementById('brideName').value,
         groomNickname: document.getElementById('groomNickname').value,
         brideNickname: document.getElementById('brideNickname').value,
+        groomFather: document.getElementById('groomFather').value,
+        groomMother: document.getElementById('groomMother').value,
+        brideFather: document.getElementById('brideFather').value,
+        brideMother: document.getElementById('brideMother').value,
         groomPhoto: document.getElementById('groomPhotoPreview').src,
         bridePhoto: document.getElementById('bridePhotoPreview').src,
         weddingDate: document.getElementById('weddingDate').value,
@@ -897,35 +882,7 @@
     }
   }
   
-  // ============ UPLOAD FOTO ============
-  function compressImage(file, maxSizeMB = 1) {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (e) => {
-        const img = new Image();
-        img.src = e.target.result;
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width, height = img.height;
-          const maxDim = 300;
-          if (width > height && width > maxDim) {
-            height = (height * maxDim) / width;
-            width = maxDim;
-          } else if (height > maxDim) {
-            width = (width * maxDim) / height;
-            height = maxDim;
-          }
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL('image/jpeg', 0.8));
-        };
-      };
-    });
-  }
-  
+  // ============ UPLOAD FOTO HANDLERS ============
   document.getElementById('groomPhotoInput')?.addEventListener('change', async (e) => {
     if (e.target.files[0]) {
       const compressed = await compressImage(e.target.files[0]);
@@ -953,91 +910,7 @@
     }
   });
   
-  // ============ INVITATION FUNCTIONS ============
-  async function generateInvitationLink(guestName, phone, note) {
-    if (!guestName.trim()) throw new Error("Nama tamu wajib diisi");
-    const id = Date.now().toString() + Math.random().toString(36).substring(2, 8);
-    await set(ref(db, `data/invitations/${id}`), {
-      guestName: guestName.trim(),
-      phone: phone || '',
-      note: note || '',
-      createdAt: Date.now()
-    });
-    return `${INVITATION_BASE_URL}?invite=${id}`;
-  }
-  
-  async function loadInvitations() {
-    const snap = await get(ref(db, "data/invitations"));
-    const invites = snap.val() || {};
-    const tbody = document.getElementById('inviteTableBody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-    
-    Object.entries(invites).reverse().forEach(([id, inv]) => {
-      const fullLink = `${INVITATION_BASE_URL}?invite=${id}`;
-      const row = tbody.insertRow();
-      row.insertCell(0).innerHTML = `<strong>${escapeHtml(inv.guestName)}</strong>`;
-      row.insertCell(1).innerHTML = inv.phone || '-';
-      row.insertCell(2).innerHTML = `<small>${fullLink.substring(0,40)}...</small>`;
-      row.insertCell(3).innerHTML = inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('id') : '-';
-      row.insertCell(4).innerHTML = `<button class="btn btn-sm btn-outline-danger rounded-pill delete-invite" data-id="${id}">Hapus</button>`;
-    });
-    
-    document.querySelectorAll('.delete-invite').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        if (confirm('Hapus undangan ini?')) {
-          await remove(ref(db, `data/invitations/${btn.dataset.id}`));
-          loadInvitations();
-        }
-      });
-    });
-  }
-  
-  // ============ DASHBOARD STATS ============
-  async function loadDashboardStats() {
-    const usersSnap = await get(ref(db, "data/users"));
-    const invitesSnap = await get(ref(db, "data/invitations"));
-    const momentsSnap = await get(ref(db, "data/moments"));
-    
-    document.getElementById('totalMoments').innerText = Object.keys(momentsSnap.val() || {}).length;
-    document.getElementById('totalUsers').innerText = Object.keys(usersSnap.val() || {}).length;
-    document.getElementById('totalInvites').innerText = Object.keys(invitesSnap.val() || {}).length;
-  }
-  
-  async function loadUsersList() {
-    const snapshot = await get(ref(db, "data/users"));
-    const users = snapshot.val() || {};
-    const tbody = document.getElementById('usersTableBody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-    Object.entries(users).forEach(([username, userData]) => {
-      const row = tbody.insertRow();
-      row.insertCell(0).innerHTML = `<strong>${username}</strong>`;
-      row.insertCell(1).innerHTML = userData.fullname || '-';
-      row.insertCell(2).innerHTML = `<span class="badge ${userData.level === 'pro' ? 'bg-success' : userData.level === 'basic' ? 'bg-primary' : 'bg-warning'}">${userData.level || 'trial'}</span>`;
-      row.insertCell(3).innerHTML = `<button class="btn btn-sm btn-outline-primary">Edit</button>`;
-    });
-  }
-  
-  function showSection(sectionId) {
-    document.getElementById('dashboardSection').style.display = sectionId === 'dashboard' ? 'block' : 'none';
-    document.getElementById('usersSection').style.display = sectionId === 'users' ? 'block' : 'none';
-    document.getElementById('offersSection').style.display = sectionId === 'offers' ? 'block' : 'none';
-    document.getElementById('wedding-settings-section').style.display = sectionId === 'wedding-settings' ? 'block' : 'none';
-    document.getElementById('undanganSection').style.display = sectionId === 'undangan' ? 'block' : 'none';
-    document.getElementById('inviteListSection').style.display = sectionId === 'invite-list' ? 'block' : 'none';
-    
-    document.querySelectorAll('.admin-sidebar .nav-link').forEach(link => link.classList.remove('active'));
-    document.querySelector(`.admin-sidebar .nav-link[data-section="${sectionId}"]`)?.classList.add('active');
-    currentSection = sectionId;
-  }
-  
-  function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ return m==='&'?'&amp;':m==='<'?'&lt;':'&gt;';}); }
-  
-  // ============ EVENT LISTENERS ============
-  document.getElementById('adminLoginBtn')?.addEventListener('click', handleAdminLogin);
-  document.getElementById('adminLogoutBtn')?.addEventListener('click', handleAdminLogout);
-  document.getElementById('saveWeddingSettingsBtn')?.addEventListener('click', saveWeddingSettings);
+  // ============ ADD BUTTONS ============
   document.getElementById('addStoryBtn')?.addEventListener('click', () => {
     const container = document.getElementById('storyList');
     const storyDiv = document.createElement('div');
@@ -1080,6 +953,108 @@
     }
   });
   
+  // ============ INVITATION FUNCTIONS ============
+  async function generateInvitationLink(guestName, phone, note) {
+    if (!guestName.trim()) throw new Error("Nama tamu wajib diisi");
+    const id = Date.now().toString() + Math.random().toString(36).substring(2, 8);
+    await set(ref(db, `data/invitations/${id}`), {
+      guestName: guestName.trim(),
+      phone: phone || '',
+      note: note || '',
+      createdAt: Date.now()
+    });
+    return `${INVITATION_BASE_URL}?invite=${id}`;
+  }
+  
+  async function loadInvitations() {
+    const snap = await get(ref(db, "data/invitations"));
+    const invites = snap.val() || {};
+    const tbody = document.getElementById('inviteTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    
+    Object.entries(invites).reverse().forEach(([id, inv]) => {
+      const fullLink = `${INVITATION_BASE_URL}?invite=${id}`;
+      const row = tbody.insertRow();
+      row.insertCell(0).innerHTML = `<strong>${escapeHtml(inv.guestName)}</strong>`;
+      row.insertCell(1).innerHTML = inv.phone || '-';
+      row.insertCell(2).innerHTML = `<small class="text-truncate d-inline-block" style="max-width: 200px;">${fullLink}</small>`;
+      row.insertCell(3).innerHTML = inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('id') : '-';
+      row.insertCell(4).innerHTML = `<button class="btn btn-sm btn-outline-danger rounded-pill delete-invite" data-id="${id}">Hapus</button>`;
+    });
+    
+    document.querySelectorAll('.delete-invite').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (confirm('Hapus undangan ini?')) {
+          await remove(ref(db, `data/invitations/${btn.dataset.id}`));
+          loadInvitations();
+          loadDashboardStats();
+        }
+      });
+    });
+  }
+  
+  // ============ DASHBOARD STATS ============
+  async function loadDashboardStats() {
+    const usersSnap = await get(ref(db, "data/users"));
+    const invitesSnap = await get(ref(db, "data/invitations"));
+    const momentsSnap = await get(ref(db, "data/moments"));
+    
+    document.getElementById('totalInvites').innerText = Object.keys(invitesSnap.val() || {}).length;
+    document.getElementById('totalUsers').innerText = Object.keys(usersSnap.val() || {}).length;
+    document.getElementById('totalMoments').innerText = Object.keys(momentsSnap.val() || {}).length;
+  }
+  
+  // ============ UI FUNCTIONS ============
+  function showSection(sectionId) {
+    document.getElementById('dashboardSection').style.display = sectionId === 'dashboard' ? 'block' : 'none';
+    document.getElementById('wedding-settings-section').style.display = sectionId === 'wedding-settings' ? 'block' : 'none';
+    document.getElementById('undanganSection').style.display = sectionId === 'undangan' ? 'block' : 'none';
+    document.getElementById('inviteListSection').style.display = sectionId === 'invite-list' ? 'block' : 'none';
+    
+    document.querySelectorAll('.admin-sidebar .nav-link').forEach(link => link.classList.remove('active'));
+    document.querySelector(`.admin-sidebar .nav-link[data-section="${sectionId}"]`)?.classList.add('active');
+  }
+  
+  function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ return m==='&'?'&amp;':m==='<'?'&lt;':'&gt;';}); }
+  
+  function updatePreview(guestName, phone, note) {
+    const previewDiv = document.getElementById('invitePreview');
+    if (!previewDiv) return;
+    
+    if (guestName) {
+      previewDiv.innerHTML = `
+        <div class="text-center p-3 rounded-4" style="background: linear-gradient(145deg, #fdf2f8, #fff);">
+          <i class="bi bi-envelope-heart-fill fs-1 text-danger"></i>
+          <h5 class="fw-bold mt-2">Undangan untuk ${escapeHtml(guestName)}</h5>
+          <p class="small">💌 Dengan hormat, kami mengundang Anda...</p>
+          <hr>
+          <div class="text-start small">
+            <p><i class="bi bi-calendar-heart text-danger me-2"></i> <strong>Acara:</strong> Pernikahan Fachmi & Azizah</p>
+            <p><i class="bi bi-clock me-2"></i> <strong>Waktu:</strong> 09:00 WIB - selesai</p>
+            <p><i class="bi bi-geo-alt me-2"></i> <strong>Tempat:</strong> Aula Serbaguna, Jakarta</p>
+            ${phone ? `<p><i class="bi bi-whatsapp me-2"></i> <strong>Konfirmasi:</strong> ${escapeHtml(phone)}</p>` : ''}
+            ${note ? `<p><i class="bi bi-chat-heart me-2"></i> <strong>Catatan:</strong> ${escapeHtml(note)}</p>` : ''}
+          </div>
+          <div class="mt-3">
+            <small class="text-muted">✨ Undangan digital ini menghemat kertas dan mengurangi jejak karbon</small>
+          </div>
+        </div>
+      `;
+    } else {
+      previewDiv.innerHTML = `
+        <i class="bi bi-envelope-paper-heart fs-1 text-muted"></i>
+        <p class="mt-2">Isi nama tamu untuk pratinjau</p>
+      `;
+    }
+  }
+  
+  // ============ EVENT LISTENERS ============
+  document.getElementById('adminLoginBtn')?.addEventListener('click', handleAdminLogin);
+  document.getElementById('adminLogoutBtn')?.addEventListener('click', handleAdminLogout);
+  document.getElementById('saveWeddingSettingsBtn')?.addEventListener('click', saveWeddingSettings);
+  document.getElementById('refreshInvitesBtn')?.addEventListener('click', loadInvitations);
+  
   document.getElementById('generateInviteBtn')?.addEventListener('click', async () => {
     const name = document.getElementById('guestName').value.trim();
     const phone = document.getElementById('guestPhone').value;
@@ -1092,6 +1067,7 @@
       document.getElementById('inviteLinkText').innerText = link;
       Swal.fire('Berhasil!', 'Link undangan telah dibuat', 'success');
       loadInvitations();
+      loadDashboardStats();
     } catch(err) {
       Swal.fire('Error', err.message, 'error');
     }
@@ -1108,8 +1084,17 @@
     window.open(`${INVITATION_BASE_URL}?preview=true&name=${encodeURIComponent(guestName)}`, '_blank');
   });
   
-  document.getElementById('refreshInvitesBtn')?.addEventListener('click', loadInvitations);
+  // Real-time preview update
+  const guestNameInput = document.getElementById('guestName');
+  const guestPhoneInput = document.getElementById('guestPhone');
+  const guestNoteInput = document.getElementById('guestNote');
+  if (guestNameInput) {
+    guestNameInput.addEventListener('input', () => updatePreview(guestNameInput.value, guestPhoneInput?.value || '', guestNoteInput?.value || ''));
+    if (guestPhoneInput) guestPhoneInput.addEventListener('input', () => updatePreview(guestNameInput.value, guestPhoneInput.value, guestNoteInput?.value || ''));
+    if (guestNoteInput) guestNoteInput.addEventListener('input', () => updatePreview(guestNameInput.value, guestPhoneInput?.value || '', guestNoteInput.value));
+  }
   
+  // Navigation
   document.querySelectorAll('.admin-sidebar .nav-link').forEach(link => {
     link.addEventListener('click', () => {
       const section = link.dataset.section;
@@ -1121,7 +1106,7 @@
     });
   });
   
-  // Dark mode & hamburger
+  // Dark mode
   const darkFab = document.getElementById('darkModeFab');
   darkFab?.addEventListener('click', () => {
     document.body.classList.toggle('dark');
@@ -1129,6 +1114,7 @@
   });
   if (localStorage.getItem('adminDark') === 'true') document.body.classList.add('dark');
   
+  // Hamburger menu
   const hamburger = document.getElementById('hamburgerBtn');
   const sidebar = document.getElementById('adminSidebar');
   const overlay = document.getElementById('sidebarOverlay');
