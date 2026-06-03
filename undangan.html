@@ -1,327 +1,43 @@
+
+
 <!doctype html>
-<html lang="id">
+<html lang="en">
 
 <head>
   <!-- Required meta tags -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="Undangan Pernikahan Fachmi & Azizah - Kami mengundang Anda untuk hadir dan memberikan doa restu pada hari bahagia kami" />
-  <meta name="keywords" content="Pernikahan Fachmi, Pernikahan Azizah, Growthogether, Undangan Online" />
+  <meta name="description" content="Website ini merupakan website Pernikahan  Adi Sumaryadi dan Siti Salamah Azzahra yang akan segera melakukan resepsi pernikahan. Silahkan berikan doa dan harapan untuk kami berdua" />
+  <meta name="keywords" content="Pernikahan Adi Sumaryadi, Pernikahan Siti Salamah Azzahra, Iis, Webnikah, Nikah Online Undangan Online" />
   <meta name="language" content="in,en" />
   <meta name="distribution" content="Global" />
   <meta name="rating" content="General" />
   <meta name="robots" content="index,follow" />
-  <meta name="title" property="og:title" content="Undangan Pernikahan Fachmi & Azizah" />
-  <meta name="description" property="og:description" content="Kami mengundang Anda untuk hadir dan memberikan doa restu pada pernikahan Fachmi & Azizah" />
+  <meta name="googlebot" content="index,follow" />
+  <meta name="google-site-verification" content="qcKcc9CU_-SX2hZoCUN7_MlGNoY72kZgnD-GMzX59oI" />
+  <meta name="revisit-after" content="20 minutes" />
+  <meta name="expires" content="never" />
+  <meta name="verifikasi" content="27nicrz043" />
+  <meta name="title" property="og:title" content="Website Pernikahan Adi Sumaryadi dan Siti Salamah Azzahra" />
+  <meta name="keywords" content="Pernikahan Adi Sumaryadi, Pernikahan Siti Salamah Azzahra, Iis, Webnikah, Nikah Online Undangan Online,WebNikah" />
+  <meta name="description" property="og:description" content="Website ini merupakan website Pernikahan  Adi Sumaryadi dan Siti Salamah Azzahra yang akan segera melakukan resepsi pernikahan. Silahkan berikan doa dan harapan untuk kami berdua" />
+  <meta name="image" property="og:image" content="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/slide-1-2373-202102060609.jpg" />
   
   <!-- Bootstrap CSS -->
+  <!-- <link rel="stylesheet" type="text/css" href="/template/assettemplate/fontawesome-pro/css/font-awesome.min.css"> -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css">
+  <link rel="stylesheet" href="/template/assettemplate/css/bootstrap.min.css">
+  <link href="/template/assettemplate/css/aos.css" rel="stylesheet">
+  <link rel="stylesheet" href="/template/assettemplate/css/owl.carousel.min.css">
+  <link rel="stylesheet" href="/template/assettemplate/css/owl.theme.default.min.css">
+  <link rel="stylesheet" href="/template/nikah-rose-red/assets/main.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-  
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: 'Segoe UI', 'Inter', sans-serif;
-      background: #faf5ff;
-      overflow-x: hidden;
-    }
-    
-    /* Loading Screen */
-    #loading {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, #7009b4, #4000C6);
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: opacity 0.5s ease;
-    }
-    
-    .loadingspinner {
-      display: flex;
-      gap: 8px;
-    }
-    
-    .loadingspinner div {
-      width: 12px;
-      height: 12px;
-      background: white;
-      border-radius: 4px;
-      animation: loadingAnim 1.2s ease-in-out infinite;
-    }
-    
-    #square1 { animation-delay: 0s; }
-    #square2 { animation-delay: 0.1s; }
-    #square3 { animation-delay: 0.2s; }
-    #square4 { animation-delay: 0.3s; }
-    #square5 { animation-delay: 0.4s; }
-    
-    @keyframes loadingAnim {
-      0%, 100% { transform: scaleY(1); opacity: 0.5; }
-      50% { transform: scaleY(2); opacity: 1; }
-    }
-    
-    /* Background Cover Slideshow */
-    .bg-cover {
-      position: relative;
-      min-height: 100vh;
-      overflow: hidden;
-    }
-    
-    .bgcov {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0;
-      transition: opacity 1.5s ease;
-    }
-    
-    .bgcov.active {
-      opacity: 1;
-    }
-    
-    .cover {
-      position: relative;
-      z-index: 2;
-      min-height: 100vh;
-      background: rgba(0,0,0,0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 60px 20px;
-    }
-    
-    .text-dark {
-      color: white !important;
-    }
-    
-    .btn-primary {
-      background: linear-gradient(135deg, #7009b4, #4000C6);
-      border: none;
-      border-radius: 60px;
-      padding: 12px 32px;
-      font-weight: 600;
-      transition: transform 0.2s;
-    }
-    
-    .btn-primary:hover, .btn-primary:active {
-      background: linear-gradient(135deg, #8b20d4, #5a00e6);
-      transform: scale(0.98);
-    }
-    
-    .card {
-      border-radius: 20px;
-      border: none;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-    }
-    
-    .bg-light {
-      background: #faf5ff !important;
-    }
-    
-    .text-primary {
-      color: #7009b4 !important;
-    }
-    
-    .fonts {
-      font-family: 'Dancing Script', cursive;
-      font-size: 2rem;
-    }
-    
-    .bulat {
-      border-radius: 50%;
-      object-fit: cover;
-      border: 4px solid #7009b4;
-    }
-    
-    .c-profile {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      right: 20px;
-    }
-    
-    .c-profile .card {
-      background: rgba(255,255,255,0.95);
-      backdrop-filter: blur(10px);
-    }
-    
-    .position-relative {
-      position: relative;
-    }
-    
-    /* Timeline */
-    .timeline {
-      position: relative;
-      padding: 20px 0;
-      list-style: none;
-    }
-    
-    .timeline > li {
-      position: relative;
-      margin-bottom: 30px;
-      display: flex;
-      gap: 20px;
-    }
-    
-    .timeline-badge {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background-size: cover;
-      background-position: center;
-      flex-shrink: 0;
-      border: 3px solid #7009b4;
-    }
-    
-    .timeline-panel {
-      flex: 1;
-      background: white;
-      padding: 15px;
-      border-radius: 15px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    }
-    
-    .timeline-title {
-      font-weight: 700;
-      margin-bottom: 5px;
-    }
-    
-    .date {
-      font-size: 12px;
-      color: #7009b4;
-    }
-    
-    /* Button Menu Bottom */
-    .button-menu {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(255,255,255,0.95);
-      backdrop-filter: blur(10px);
-      padding: 10px;
-      border-top: 1px solid #e9d5ff;
-      z-index: 100;
-    }
-    
-    .button-menu-item {
-      display: flex;
-      justify-content: space-around;
-    }
-    
-    .button-menu-item a {
-      color: #6b21a5;
-      text-align: center;
-      font-size: 12px;
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-    
-    .button-menu-item a i {
-      font-size: 20px;
-      display: block;
-      margin-bottom: 4px;
-    }
-    
-    .button-menu-item a:active {
-      transform: scale(0.95);
-    }
-    
-    /* Mute Button */
-    .mute {
-      position: fixed;
-      bottom: 80px;
-      right: 16px;
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: white;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 101;
-      transition: transform 0.2s;
-    }
-    
-    .mute:active {
-      transform: scale(0.95);
-    }
-    
-    .mute i {
-      font-size: 24px;
-      color: #7009b4;
-    }
-    
-    /* Guest Name Display */
-    .guest-name-display {
-      background: linear-gradient(135deg, #7009b4, #4000C6);
-      color: white;
-      padding: 8px 20px;
-      border-radius: 50px;
-      display: inline-block;
-      margin-top: 10px;
-      font-weight: 600;
-    }
-    
-    /* Responsive */
-    @media (max-width: 768px) {
-      .fonts {
-        font-size: 1.5rem;
-      }
-      
-      .timeline > li {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-      }
-      
-      .timeline-badge {
-        width: 60px;
-        height: 60px;
-      }
-      
-      .c-profile {
-        position: relative;
-        bottom: auto;
-        left: auto;
-        right: auto;
-        margin-top: -30px;
-      }
-      
-      .button-menu-item a {
-        font-size: 10px;
-      }
-      
-      .button-menu-item a i {
-        font-size: 18px;
-      }
-    }
-  </style>
+  <title>Website Pernikahan Adi Sumaryadi dan Siti Salamah Azzahra</title>
 </head>
 
 <body>
   
-  <script>
+    <script>
     function music() {
       $(".hidden").css("display", "block");
       $(".navbar").css("display", "block");
@@ -333,55 +49,57 @@
     }
   </script>
   <audio id="audio" style="width:0px; height:0px;">
-    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
-  </audio>
+    <source src="https://adirara.webnikah.com/medias/audio/member-1-20220307113754.mp3" type="audio/mpeg"></audio>
   
   <section class="isi">
-    <!-- Preview Design Bar (Opsional, bisa dihapus) -->
-    <div class="text-center bg-black py-2 fixed-top" style="z-index: 1000;">
-      <div class="m-0 text-white"><i class="bi bi-envelope-heart-fill me-2"></i>Undangan Pernikahan <strong>Fachmi & Azizah</strong></div>
+
+        <div class="text-center bg-black py-2 fixed-top">
+      <div class="m-0 text-white"><img src="/template/assettemplate/css/logo-icon.png" height="16" alt="WebNikah" class="me-2">Preview Design <strong>Rose Red</strong></div>
+    </div>
+    <div class="text-center bg-black py-2">
+      <div class="m-0 text-white">Preview Design <strong>Dark Gold 2</strong></div>
     </div>
         
     <div class="bg-cover">
-      <img src="https://picsum.photos/id/104/1200/800" alt="Background" class="img-fluid w-100 bgcov active">
-      <img src="https://picsum.photos/id/106/1200/800" alt="Background" class="img-fluid w-100 bgcov">
-      <img src="https://picsum.photos/id/107/1200/800" alt="Background" class="img-fluid w-100 bgcov">
-      
-      <div class="cover">
+            <img src="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/slide-1-2373-l-202102060609.jpg"  alt="Asset WebNikah" class="img-fluid w-100 bgcov">
+            <img src="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/slide-1-2374-l-202102060609.jpg"  alt="Asset WebNikah" class="img-fluid w-100 bgcov">
+            <img src="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/slide-1-2372-l-202102060607.jpg"  alt="Asset WebNikah" class="img-fluid w-100 bgcov">
+            <div class="cover">
         <div data-aos="zoom-in" data-aos-duration="2000">
+          <img src="/template/nikah-rose-red/assets/img/atas.png" class="w-100 h-none" data-aos="fade-up" data-aos-duration="2000" alt="Asset WebNikah">
           <div class="container text-center">
             <div class="mb-4">
-              <div class="mb-3">
-                <i class="bi bi-arrow-through-heart-fill text-white fs-1"></i>
+                                          <img src="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/slide-1-2373-l-202102060609.jpg"  alt="Asset WebNikah" class="rounded-circle bulat mb-1 top-none" width="130">
+              <div>
+                <img src="/template/nikah-rose-red/assets/img/tengah.png" alt="#" class="mb-4" width="100">
               </div>
-              <h6 class="text-white">Pernikahan</h6>
-              <h4 class="mb-0 text-white fonts">Fachmi <span class="text-warning">&</span> Azizah</h4>
-            </div>
-            
-            <!-- Countdown -->
+                                                                                                  <h6 class="text-dark">Pernikahan</h6>
+                            <h4 class="mb-0 text-dark fonts">Rara <span class="text-primary">&</span> Adi</h4>
+                          </div>
+            <!-- <h6 class="mb-0 text-dark"><i class="bi bi-calendar3 me-2"></i>Senin, 31 Agustus 2026 </h6> -->
             <div class="my-3">
-              <div class="row gx-2 justify-content-center">
-                <div class="col-3">
-                  <div class="card card-body bg-white bg-opacity-25 text-white border-0">
-                    <h6 class="text-white mb-2" id="hari">0</h6>
+              <div class="row gx-2">
+                <div class="col-3 border-end">
+                  <div class="card card-body">
+                    <h6 class="text-dark mb-2" id="hari"></h6>
                     <div class="small">Hari</div>
                   </div>
                 </div>
-                <div class="col-3">
-                  <div class="card card-body bg-white bg-opacity-25 text-white border-0">
-                    <h6 class="text-white mb-2" id="jam">0</h6>
+                <div class="col-3 border-end">
+                  <div class="card card-body">
+                    <h6 class="text-dark mb-2" id="jam"></h6>
                     <div class="small">Jam</div>
                   </div>
                 </div>
-                <div class="col-3">
-                  <div class="card card-body bg-white bg-opacity-25 text-white border-0">
-                    <h6 class="text-white mb-2" id="menit">0</h6>
+                <div class="col-3 border-end">
+                  <div class="card card-body">
+                    <h6 class="text-dark mb-2" id="menit"></h6>
                     <div class="small">Menit</div>
                   </div>
                 </div>
                 <div class="col-3">
-                  <div class="card card-body bg-white bg-opacity-25 text-white border-0">
-                    <h6 class="text-white mb-2" id="detik">0</h6>
+                  <div class="card card-body">
+                    <h6 class="text-dark mb-2" id="detik"></h6>
                     <div class="small">Detik</div>
                   </div>
                 </div>
@@ -389,16 +107,18 @@
             </div>
             
             <div class="text-center mb-4">
-              <div class="text-center mb-0 text-white mt-4">
-                Kepada Yth.<br>
-                <strong class="guest-name-display" id="guestNameDisplay">Tamu Undangan</strong>
+                            <div class="text-center mb-0 text-dark mt-4">
+                Kepada<br>
+                <strong>Budi dan Ani</strong>
+                <br> di Bandung
               </div>
-              <div class="btn-undangan">
+                            <div class="btn-undangan">
                 <a href="#mempelai" class="link btn btn-primary mt-4"><i class="bi bi-envelope-heart me-2"></i>Buka Undangan</a>
               </div>
             </div>
           </div>
         </div>
+        <img src="/template/nikah-rose-red/assets/img/bawah.png" class="w-100" data-aos="fade-up" data-aos-duration="2000" alt="Asset WebNikah">
       </div>
     </div>
 
@@ -407,109 +127,121 @@
         <div class="text-center" data-aos="fade-up" data-aos-duration="2000">
           <i class="bi bi-arrow-through-heart-fill fs-5 text-primary"></i>
           <h3>Assalamu'alaikum Warahmatullah</h3>
-          <p>Dengan Rahmat Allah yang Maha Kuasa InsyaAllah kami akan melangsungkan pernikahan pada:</p>
+          Dengan Rahmat Allah yang Maha Kuasa InsyaAllah kami akan melangsungkan pernikahan pada:
           <div class="card card-body text-center bg-light mt-3">
-            <h5 class="text-dark"><i class="bi bi-calendar3 me-2"></i>Minggu, 15 Juni 2025</h5>
-            <p class="mb-0">di Aula Serbaguna - Jalan Kebahagiaan No. 123, Jakarta</p>
+            <h5 class="text-dark"><i class="bi bi-calendar3 me-2"></i>Senin, 31 Agustus 2026 </h5>
+            di Aula Masjid ABRI Cimahi - Jalan Gatot Subroto Kota Cimahi
           </div>
         </div>
-        
-        <!-- Mempelai Wanita -->
-        <div class="mt-4" data-aos="fade-up" data-aos-duration="2000">
+                <div class="mt-4" data-aos="fade-up" data-aos-duration="2000">
           <div class="position-relative">
-            <img src="https://randomuser.me/api/portraits/women/68.jpg" class="img-fluid w-100 bulat rounded-2" style="height: 300px; object-fit: cover;" loading="lazy">
-            <div class="c-profile">
+             <img src="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/wanita-1-210627044705-l.jpg" class="img-fluid w-100 bulat rounded-2" loading="lazy">            <div class="c-profile">
               <div class="card">
-                <div class="card-body text-center">
-                  <h5>Azizah</h5>
-                  <div>Putri dari</div>
-                  <h6 class="text-dark m-0">Bpk. H. Ahmad & Ibu Hj. Siti</h6>
-                  <div class="mt-2">
-                    <a href="#" class="text-primary me-2"><i class="bi bi-instagram"></i></a>
-                    <a href="#" class="text-primary"><i class="bi bi-facebook"></i></a>
+                <div class="card-body">
+                  <h5>Siti Salamah Azzahra</h5>
+                  <!-- <p>Maha kuasa Allah yang telah mempertemukan kami dalam sebuah moment yang tak direncanakan bertemu pada awal tahun 2012 lalu, wajah cantik Siti Salamah Azzahra dan pribadi yang santun itu masih teringat jelas dalam ingatan Adi. Sayang, tak sempat berbincang saat itu, dan waktupun berganti hari, berganti bulan dan berganti tahun, tidak ada komunikasi diantara kami, karena memang kami tak tau kabar masing-masing dan bisa dibilang belum begitu kenal.</p>
+ -->
+                  <div>
+                  Putri dari
                   </div>
+                  <h6 class="text-dark m-0">Maman & Imas</h6>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        
         <div class="divider-text my-4" data-aos="fade-up" data-aos-duration="2000">
-          <div class="text text-center">
-            <i class="bi bi-heart-fill text-danger fs-3"></i>
+          <div class="text">
+            <i class="bi bi-arrow-through-heart-fill fs-5 text-primary"></i>
           </div>
         </div>
-        
-        <!-- Mempelai Pria -->
         <div data-aos="fade-up" data-aos-duration="2000">
           <div class="position-relative">
-            <img src="https://randomuser.me/api/portraits/men/32.jpg" class="img-fluid w-100 bulat rounded-2" style="height: 300px; object-fit: cover;" loading="lazy">
-            <div class="c-profile">
+             <img src="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/pria-1-240421071848-l.jpg" class="img-fluid w-100 bulat rounded-2" loading="lazy">            <div class="c-profile">
               <div class="card">
-                <div class="card-body text-center">
-                  <h5>Fachmi</h5>
-                  <div>Putra dari</div>
-                  <h6 class="text-dark m-0">Bpk. H. Sumarmo & Ibu Hj. Kantun</h6>
-                  <div class="mt-2">
-                    <a href="#" class="text-primary me-2"><i class="bi bi-instagram"></i></a>
-                    <a href="#" class="text-primary"><i class="bi bi-facebook"></i></a>
+                <div class="card-body">
+                  <h5>Adi Sumaryadi</h5>
+                  <!-- <p>Fasilitas ini digunakan untuk memberikan informasi yang lengkap tentang profile dari Mempelai Pria, silahkan masukan dengan lengkap dan jelas berikut dengan foto yang berkualitas bagus.&nbsp;Fasilitas ini digunakan untuk memberikan informasi yang lengkap tentang profile dari Mempelai Pria, silahkan masukan dengan lengkap dan jelas berikut dengan foto yang berkualitas bagus.</p>
+ -->
+                  <div>
+                    Putra dari
                   </div>
+                  <h6 class="text-dark m-0">Sumarmo & Kantun</h6>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 20'%3E%3Cpath fill='%23e9d5ff' d='M0,0 L100,0 L100,5 Q50,20 0,5 Z'/%3E%3C/svg%3E" class="w-100 mt-4">
+              </div>
+      <img src="/template/nikah-rose-red/assets/img/bawah.png" class="w-100 mt-4" data-aos="fade-up" data-aos-duration="2000" alt="Asset WebNikah">
     </div>
 
-    <div class="bg-light pt-4" id="cerita">
+        <div class="bg-light pt-4" id="cerita">
       <div class="container">
         <div class="text-center" data-aos="fade-up" data-aos-duration="2000">
           <i class="bi bi-arrow-through-heart-fill fs-5 text-primary"></i>
           <h3 class="text-dark">Cerita Cinta</h3>
-          <p>Banyak cerita yang kami lalui sehingga akhirnya kami bisa bersatu, cerita yang akan kami kenang selalu.</p>
+          Banyak cerita yang kami lalui sehingga akhirnya kami bisa bersatu, cerita yang akan kami kenang selalu, dan cerita itu kami bagi untuk anda.
         </div>
         <ul class="timeline animate-box mt-4">
-          <li class="animate-box" data-aos="fade-up" data-aos-duration="2000">
-            <div class="timeline-badge" style="background-image:url('https://picsum.photos/id/64/200/200');"></div>
+                    <li class="animate-box" data-aos="fade-up" data-aos-duration="2000">
+            <div class="timeline-badge" style="background-image:url('https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/cerita-1-6.jpg');"></div>
             <div class="timeline-panel">
               <div class="timeline-heading">
                 <h5 class="timeline-title">Pertama Kali Berjumpa</h5>
-                <span class="date"><i class="bi bi-calendar3 me-2"></i>14 Februari 2020</span>
+                <span class="date"><i class="bi bi-calendar3 me-2"></i>Kamis, 16 Oktober 2014 </span>
               </div>
               <div class="timeline-body">
-                <p>Bertemu di acara pernikahan teman, takdir mempertemukan kami dalam momen yang indah.</p>
+                <p>Pertama kali berjumpa&nbsp;Fasilitas ini digunakan untuk memberikan informasi yang lengkap tentang profile dari Mempelai Pria, silahkan masukan dengan lengkap dan jelas berikut dengan foto yang berkualitas bagus.</p>
+
+<p>&nbsp;</p>
+
               </div>
             </div>
           </li>
-          <li class="animate-box" data-aos="fade-up" data-aos-duration="2000">
-            <div class="timeline-badge" style="background-image:url('https://picsum.photos/id/65/200/200');"></div>
+                    <li class="animate-box" data-aos="fade-up" data-aos-duration="2000">
+            <div class="timeline-badge" style="background-image:url('https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/cerita-1-2-.jpg');"></div>
+            <div class="timeline-panel">
+              <div class="timeline-heading">
+                <h5 class="timeline-title">Adi Mengunjungi Rumah Rara Pertama Kali</h5>
+                <span class="date"><i class="bi bi-calendar3 me-2"></i>Minggu, 14 Desember 2014 </span>
+              </div>
+              <div class="timeline-body">
+                <p>Fasilitas ini digunakan untuk memberikan informasi yang lengkap tentang profile dari Mempelai Pria, silahkan masukan dengan lengkap dan jelas berikut dengan foto yang berkualitas bagus.</p>
+
+              </div>
+            </div>
+          </li>
+                    <li class="animate-box" data-aos="fade-up" data-aos-duration="2000">
+            <div class="timeline-badge" style="background-image:url('https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/cerita-1-3-.jpg');"></div>
             <div class="timeline-panel">
               <div class="timeline-heading">
                 <h5 class="timeline-title">Prosesi Lamaran</h5>
-                <span class="date"><i class="bi bi-calendar3 me-2"></i>10 Maret 2022</span>
+                <span class="date"><i class="bi bi-calendar3 me-2"></i>Minggu, 15 Maret 2015 </span>
               </div>
               <div class="timeline-body">
-                <p>Momen sakral ketika keluarga kami bersatu dan lamaran berlangsung dengan khidmat.</p>
+                <p>Fasilitas ini digunakan untuk memberikan informasi yang lengkap tentang profile dari Mempelai Pria, silahkan masukan dengan lengkap dan jelas berikut dengan foto yang berkualitas bagus.</p>
+
               </div>
             </div>
           </li>
-          <li class="animate-box" data-aos="fade-up" data-aos-duration="2000">
-            <div class="timeline-badge" style="background-image:url('https://picsum.photos/id/66/200/200');"></div>
+                    <li class="animate-box" data-aos="fade-up" data-aos-duration="2000">
+            <div class="timeline-badge" style="background-image:url('https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/cerita-1-7-.jpg');"></div>
             <div class="timeline-panel">
               <div class="timeline-heading">
-                <h5 class="timeline-title">Hari Pernikahan</h5>
-                <span class="date"><i class="bi bi-calendar3 me-2"></i>15 Juni 2025</span>
+                <h5 class="timeline-title">Kami Dipingit Satu Sama Lain</h5>
+                <span class="date"><i class="bi bi-calendar3 me-2"></i>Kamis, 11 Juni 2015 </span>
               </div>
               <div class="timeline-body">
-                <p>Puncak kebahagiaan kami bersatu dalam ikatan pernikahan yang suci.</p>
+                <p>Fasilitas ini digunakan untuk memberikan informasi yang lengkap tentang profile dari Mempelai Pria, silahkan masukan dengan lengkap dan jelas berikut dengan foto yang berkualitas bagus.</p>
+
               </div>
             </div>
           </li>
-        </ul>
+                  </ul>
+
       </div>
-      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 20'%3E%3Cpath fill='%23e9d5ff' d='M0,0 L100,0 L100,5 Q50,20 0,5 Z'/%3E%3C/svg%3E" class="w-100 mt-4">
+      <img src="/template/nikah-rose-red/assets/img/bawah.png" class="w-100 mt-4" data-aos="fade-up" data-aos-duration="2000" alt="Asset WebNikah">
     </div>
     
     <div class="pt-4" id="undangan">
@@ -517,153 +249,321 @@
         <div class="text-center" data-aos="fade-up" data-aos-duration="2000">
           <i class="bi bi-arrow-through-heart-fill fs-5 text-primary"></i>
           <h3>Undangan dan Acara</h3>
-          <p>Bahagia rasanya apabila anda berkenan hadir dan memberikan doa restu kepada kami.</p>
+          Bahagia rasanya apabila anda berkenan hadir dan memberikan doa restu kepada kami. Kami mengundang anda untuk hadir dalam acara resepsi pernikahan kami berikut ini
+        </div>
+                <div class="p-4 card text-center radius-10 mt-4" data-aos="fade-up" data-aos-duration="2000">
+          <h6 class="mb-0">Akad Nikah</h6>
+          <hr class="my-4">
+          <h5 class="mb-0">12:00 - selesai </h5>
+          <div>Senin, 31 Agustus 2026 </div>
+          <div class="mt-4">Aula Masjid ABRI Cimahi - Jalan Gatot Subroto Kota Cimahi</div>
+          <div class="mt-4"><a href="http://www.google.com/calendar/event?action=TEMPLATE&text=Akad Nikah 1+Adi Sumaryadi&Siti Salamah Azzahra&dates=20260831T120000%2F20260831T235900&location=Aula Masjid ABRI Cimahi - Jalan Gatot Subroto Kota Cimahi" class="btn btn-primary btn-sm" target="_blank"><i
+                class="bi bi-calendar3 me-2"></i> Add To Calendar</a></div>
+        </div>
+                        <div class="p-4 card text-center radius-10 mt-4" data-aos="fade-up" data-aos-duration="2000">
+          <h6 class="mb-0">Resepsi Pernikahan</h6>
+          <hr class="my-4">
+          <h5 class="mb-0">12:00 - selesai </h5>
+          <div>Senin, 31 Agustus 2026 </div>
+          <div class="mt-4">Aula Masjid ABRI Cimahi - Jalan Gatot Subroto Kota Cimahi</div>
+          <div class="mt-4"><a href="http://www.google.com/calendar/event?action=TEMPLATE&text=Resepsi Pernikahan+Adi Sumaryadi&Siti Salamah Azzahra&dates=20260831T120000%2F20260831T235900&location=Aula Masjid ABRI Cimahi - Jalan Gatot Subroto Kota Cimahi" class="btn btn-primary btn-sm" target="_blank"><i
+                class="bi bi-calendar3 me-2"></i> Add To Calendar</a></div>
         </div>
         
-        <div class="p-4 card text-center radius-10 mt-4" data-aos="fade-up" data-aos-duration="2000">
-          <i class="bi bi-ring-fill fs-2 text-primary"></i>
-          <h6 class="mb-0 mt-2">Akad Nikah</h6>
+                        <div class="p-4 card text-center radius-10 mt-4" data-aos="fade-up" data-aos-duration="2000">
+          <h5 class="mb-0">Turut Mengundang</h5>
           <hr class="my-4">
-          <h5 class="mb-0">09:00 - 11:00 WIB</h5>
-          <div>Minggu, 15 Juni 2025</div>
-          <div class="mt-4">Aula Serbaguna - Jalan Kebahagiaan No. 123, Jakarta</div>
-          <div class="mt-4">
-            <a href="https://maps.google.com/maps?q=-6.8778538795485575,107.52693846630785" class="btn btn-primary btn-sm" target="_blank">
-              <i class="bi bi-geo-alt me-2"></i> Buka di Google Maps
-            </a>
+          <div>
+            <p>Fasilitas ini digunakan untuk memberikan informasi yang lengkap tentang profile dari Mempelai Pria, silahkan masukan dengan lengkap dan jelas berikut dengan foto yang berkualitas bagus.&nbsp;Fasilitas ini digunakan untuk memberikan informasi yang lengkap tentang profile dari Mempelai Pria, silahkan masukan dengan lengkap dan jelas berikut dengan foto yang berkualitas bagus.</p>
+
           </div>
         </div>
-        
-        <div class="p-4 card text-center radius-10 mt-4" data-aos="fade-up" data-aos-duration="2000">
-          <i class="bi bi-cake2-fill fs-2 text-primary"></i>
-          <h6 class="mb-0 mt-2">Resepsi Pernikahan</h6>
-          <hr class="my-4">
-          <h5 class="mb-0">12:00 - Selesai WIB</h5>
-          <div>Minggu, 15 Juni 2025</div>
-          <div class="mt-4">Aula Serbaguna - Jalan Kebahagiaan No. 123, Jakarta</div>
-          <div class="mt-4">
-            <a href="https://maps.google.com/maps?q=-6.8778538795485575,107.52693846630785" class="btn btn-primary btn-sm" target="_blank">
-              <i class="bi bi-geo-alt me-2"></i> Buka di Google Maps
-            </a>
-          </div>
-        </div>
-        
-        <div class="p-4 card text-center radius-10 mt-4" data-aos="fade-up" data-aos-duration="2000">
-          <i class="bi bi-info-circle-fill fs-2 text-primary"></i>
+                        <div class="p-4 card text-center radius-10 mt-4" data-aos="fade-up" data-aos-duration="2000">
           <h5 class="mb-0">Catatan</h5>
           <hr class="my-4">
           <div>
-            <p>Mohon maaf apabila ada kata yang kurang berkenan. Kami mengucapkan terima kasih atas doa dan restu yang diberikan.</p>
-            <p class="mb-0"><strong>🌱 Undangan digital ini menghemat kertas dan mengurangi jejak karbon</strong></p>
+            <p>Fasilitas ini digunakan untuk memberikan informasi yang lengkap tentang profile dari Mempelai Pria, silahkan masukan dengan lengkap dan jelas berikut dengan foto yang berkualitas bagus.&nbsp;Fasilitas ini digunakan untuk memberikan informasi yang lengkap tentang profile dari Mempelai Pria, silahkan masukan dengan lengkap dan jelas berikut dengan foto yang berkualitas bagus.</p>
+
           </div>
         </div>
+        
       </div>
-      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 20'%3E%3Cpath fill='%23e9d5ff' d='M0,0 L100,0 L100,5 Q50,20 0,5 Z'/%3E%3C/svg%3E" class="w-100 mt-4">
+      <img src="/template/nikah-rose-red/assets/img/bawah.png" class="w-100 mt-4" data-aos="fade-up" data-aos-duration="2000" alt="Asset WebNikah">
     </div>
 
-    <div class="pt-4 bg-light" id="galeri">
+         <div class="pt-4 bg-light" id="peta">
       <div class="container">
         <div class="text-center" data-aos="fade-up" data-aos-duration="2000">
           <i class="bi bi-arrow-through-heart-fill fs-5 text-primary"></i>
-          <h3 class="text-dark">Galeri Foto</h3>
-          <p>Foto-foto kebahagiaan kami yang kami kenang selalu.</p>
+          <h3 data-aos="fade-up" class="text-dark">Peta Lokasi Pernikahan</h3>
+          <p>Anda dapat menuju lokasi pernikahan kami dengan bantuan peta dibawah ini. Atau anda bisa buka di</p>
+          <a href="http://maps.google.com/maps?q=-6.8778538795485575,107.52693846630785" class="btn btn-primary">Buka Di Google Maps</a>
+        </div>
+        
+        <div class="mt-4" data-aos="fade-up" data-aos-duration="2000">
+              
+                      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
+            <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+            <div id="map" class="ratio ratio-1x1 rounded-2" loading="lazy"></div>
+            
+            <script>
+              var osmUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+              osmAttrib = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+              osm = L.tileLayer(osmUrl, {maxZoom: 18, attribution: osmAttrib});
+              var map = L.map('map').setView([-6.8778538795485575,107.52693846630785], 15).addLayer(osm);
+              L.marker([-6.8778538795485575,107.52693846630785])
+              .addTo(map)
+              .bindPopup('Lokasi Acara<br /><b class="mempelai">Rara & Adi </b>')
+              .openPopup();
+            </script>
+            
+            <style>
+              .leaflet-popup-content{
+                text-align: center;
+              }
+
+              .leaflet-popup-content .mempelai{
+                font-weight: 600 !important;
+                color: #1a1a1a !important;
+              }
+            </style>
+          
+                  </div>
+
+      </div>
+      <img src="/template/nikah-rose-red/assets/img/bawah.png" class="w-100 mt-4" data-aos="fade-up" data-aos-duration="2000" alt="Asset WebNikah">
+    </div>
+    
+        <div class="pt-4 bg-light" id="peta">
+      <div class="container">
+        <div class="text-center" data-aos="fade-up" data-aos-duration="2000">
+          <i class="bi bi-arrow-through-heart-fill fs-5 text-primary"></i>
+          <h3 data-aos="fade-up" class="text-dark">Peta Lokasi</h3>
+          <p>Anda dapat menuju lokasi acara kami dengan bantuan peta dibawah ini. Atau anda bisa buka di</p>
+          <a href="http://maps.google.com/maps?q=-6.864107887907841,107.54282384919856" class="btn btn-primary">Buka Di Google Maps</a>
+        </div>
+        
+        <div class="mt-4" data-aos="fade-up" data-aos-duration="2000">
+              
+                      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
+            <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+            <div id="map_wedding" class="ratio ratio-1x1 rounded-2" loading="lazy"></div>
+            
+            <script>
+              var osmUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+              osmAttrib = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+              osm = L.tileLayer(osmUrl, {maxZoom: 18, attribution: osmAttrib});
+              var map = L.map('map_wedding').setView([-6.864107887907841,107.54282384919856], 15).addLayer(osm);
+              L.marker([-6.864107887907841,107.54282384919856])
+              .addTo(map_wedding)
+              .bindPopup('Lokasi Acara<br /><b class="mempelai">Rara & Adi </b>')
+              .openPopup();
+            </script>
+            
+            <style>
+              .leaflet-popup-content{
+                text-align: center;
+              }
+
+              .leaflet-popup-content .mempelai{
+                font-weight: 600 !important;
+                color: #1a1a1a !important;
+              }
+            </style>
+          
+                  </div>
+
+      </div>
+      <img src="/template/nikah-rose-red/assets/img/bawah.png" class="w-100 mt-4" data-aos="fade-up" data-aos-duration="2000" alt="Asset WebNikah">
+    </div>
+    
+        <div class="pt-4" id="galeri">
+      <div class="container">
+        <div class="text-center">
+          <h3 class="text-dark">Galeri Photo</h3>
+          Photo-photo kebahagian kami yang kami kenang selalu.
         </div>
         <div class="row">
-          <div class="col-6 col-md-4 mt-3">
-            <img src="https://picsum.photos/id/20/400/400" class="img-fluid w-100 rounded-3" style="height: 200px; object-fit: cover;" loading="lazy">
+                    <div class="col-6 mt-3">
+            <img src="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/photo-1-47-l.jpg" class="img-fluid w-100 bulat" alt="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/photo-1-47-l.jpg" loading="lazy">
           </div>
-          <div class="col-6 col-md-4 mt-3">
-            <img src="https://picsum.photos/id/21/400/400" class="img-fluid w-100 rounded-3" style="height: 200px; object-fit: cover;" loading="lazy">
+                    <div class="col-6 mt-3">
+            <img src="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/photo-1-48-l.jpg" class="img-fluid w-100 bulat" alt="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/photo-1-48-l.jpg" loading="lazy">
           </div>
-          <div class="col-6 col-md-4 mt-3">
-            <img src="https://picsum.photos/id/22/400/400" class="img-fluid w-100 rounded-3" style="height: 200px; object-fit: cover;" loading="lazy">
+                    <div class="col-6 mt-3">
+            <img src="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/photo-1-49-l.jpg" class="img-fluid w-100 bulat" alt="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/photo-1-49-l.jpg" loading="lazy">
           </div>
-          <div class="col-6 col-md-4 mt-3">
-            <img src="https://picsum.photos/id/23/400/400" class="img-fluid w-100 rounded-3" style="height: 200px; object-fit: cover;" loading="lazy">
+                    <div class="col-6 mt-3">
+            <img src="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/photo-1-50-l.jpg" class="img-fluid w-100 bulat" alt="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/photo-1-50-l.jpg" loading="lazy">
           </div>
-          <div class="col-6 col-md-4 mt-3">
-            <img src="https://picsum.photos/id/24/400/400" class="img-fluid w-100 rounded-3" style="height: 200px; object-fit: cover;" loading="lazy">
+                    <div class="col-6 mt-3">
+            <img src="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/photo-1-51-l.jpg" class="img-fluid w-100 bulat" alt="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/photo-1-51-l.jpg" loading="lazy">
           </div>
-          <div class="col-6 col-md-4 mt-3">
-            <img src="https://picsum.photos/id/25/400/400" class="img-fluid w-100 rounded-3" style="height: 200px; object-fit: cover;" loading="lazy">
+                    <div class="col-6 mt-3">
+            <img src="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/photo-1-52-l.jpg" class="img-fluid w-100 bulat" alt="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/photo-1-52-l.jpg" loading="lazy">
           </div>
-        </div>
+                    <div class="col-6 mt-3">
+            <img src="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/photo-1-53-l.jpg" class="img-fluid w-100 bulat" alt="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/photo-1-53-l.jpg" loading="lazy">
+          </div>
+                  </div>
       </div>
-      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 20'%3E%3Cpath fill='%23e9d5ff' d='M0,0 L100,0 L100,5 Q50,20 0,5 Z'/%3E%3C/svg%3E" class="w-100 mt-4">
+      <img src="/template/nikah-rose-red/assets/img/bawah.png" class="w-100 mt-4" data-aos="fade-up" data-aos-duration="2000" alt="Asset WebNikah">
     </div>
+    
+        <div class="pt-4 bg-light" id="video">
+      <div class="container">
+        <div class="text-center" data-aos="fade-up" data-aos-duration="2000">
+          <i class="bi bi-arrow-through-heart-fill fs-5 text-primary"></i>
+          <h3 class="text-dark">Video</h3>
+          <p>Sudi sejenak melihat kebahagiaan kami melalui video dibawah ini</p>
+        </div>
+                <div class="card p-3 mt-4" data-aos="fade-up" data-aos-duration="2000">
+          <div class="position-relative ratio ratio-16x9" id="video-container-0">
+            <img id="video-thumbnail-0" alt="Thumbnail" class="w-100" style="cursor: pointer;">
+            <div class="position-absolute top-50 start-50 translate-middle d-flex align-items-center justify-content-center" style="cursor: pointer;" id="icon-play-0">
+              <i class="text-danger bi bi-youtube fs-1"></i>
+            </div>
+          </div>
+          <h5 class="text-dark mt-3">Prewedding Adi dan Rara</h5>
+          Upload banyak video untuk lebih mempercantik website anda, ceritakan kebahagiaan anda melalui video kepada saudara, kerabat dan teman-teman anda.
+        </div>
 
-    <div class="pt-4" id="kado">
+        <script>
+          var youtubeurl = "https://www.youtube.com/embed/hE-1XnJs61w";
+          var videoId = youtubeurl.match(/embed\/([a-zA-Z0-9_-]+)/)[1];
+          var thumbnailUrl = "https://img.youtube.com/vi/" + videoId + "/hqdefault.jpg";
+          document.getElementById('video-thumbnail-0').src = thumbnailUrl;
+          document.getElementById('video-container-0').addEventListener('click', function() {
+              this.innerHTML = '<iframe src="' + youtubeurl + '?autoplay=1" title="YouTube video" allowfullscreen class="w-100 h-100"></iframe>';
+          });
+        </script>
+
+        
+      </div>
+      <img src="/template/nikah-rose-red/assets/img/bawah.png" class="w-100 mt-4" data-aos="fade-up" data-aos-duration="2000" alt="Asset WebNikah">
+    </div>
+    
+
+        <div class="pt-4" id="kado">
       <div class="container">
         <div class="text-center" data-aos="fade-up" data-aos-duration="2000">
           <i class="bi bi-arrow-through-heart-fill fs-5 text-primary"></i>
           <h3>Kirim Kado</h3>
-          <p>Terima kasih atas doa dan restu yang telah anda berikan. Jika ingin mengirimkan kado, silahkan kirim melalui rekening berikut:</p>
+          <div>Terima kasih atas doa dan restu yang telah anda berikan, jika anda ingin mengirimkan kado nikah, silahkan kirim dengan cara dibawah ini. Sebelumnya, kami mengucapkan banyak terima kasih.</div>
         </div>
-        
-        <div class="card p-3 text-center radius-10 mt-4" data-aos="fade-up" data-aos-duration="2000">
-          <div class="text-center">
-            <i class="bi bi-bank fs-1 text-primary"></i>
-            <strong class="text-dark d-block mt-2">Bank Mandiri</strong>
-            <p class="text-center fs-5 fw-bold text-primary">123-00-1234567-8</p>
-            <p class="small text-muted">a.n. Fachmi & Azizah</p>
-            <button class="btn btn-primary copyRekeningBtn" data-rekening="1230012345678">
-              <i class="bi bi-copy me-2"></i> Copy Rekening
-            </button>
+        <div class="">
+                              <div class="card p-3 text-center radius-10 mt-4" data-aos="fade-up" data-aos-duration="2000">
+                        <div class="bg-white p-2 mb-3 text-center">
+              <img src="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/rekening-1-230205022445.png" class="img-fluid"  alt="Asset WebNikah" width="200" loading="lazy">
+            </div>
+            
+                        <input type="text" value="12345678910" id="myInput2" hidden>
+
+            <div class="text-center">
+              <strong class="text-dark">Nama Bank</strong>
+              <p class="text-center">Bank Syariah Indonesia</p>
+              <strong class="text-dark">Nomor Rekening</strong>
+              <p class="text-center">12345678910</p>
+              <button class="btn btn-primary" onclick="myFunction2()"><i class="bi bi-copy"></i> Copy
+                Rekening</button>
+            </div>
+                        <script type="text/javascript">
+              function myFunction2(){
+
+                var isi = $("#myInput2").val();
+                var $temp = $("<input>");
+                $("body").append($temp);
+                $temp.val(isi).select();
+                document.execCommand("copy");
+                $temp.remove();
+
+                alert("Nomor Rekening Tersalin :" + isi);
+              }
+            </script>
           </div>
-        </div>
-        
-        <div class="card p-3 text-center radius-10 mt-4" data-aos="fade-up" data-aos-duration="2000">
-          <div class="text-center">
-            <i class="bi bi-bank fs-1 text-primary"></i>
-            <strong class="text-dark d-block mt-2">Bank Syariah Indonesia</strong>
-            <p class="text-center fs-5 fw-bold text-primary">789-01-2345678-9</p>
-            <p class="small text-muted">a.n. Fachmi & Azizah</p>
-            <button class="btn btn-primary copyRekeningBtn" data-rekening="7890123456789">
-              <i class="bi bi-copy me-2"></i> Copy Rekening
-            </button>
+                    <div class="card p-3 text-center radius-10 mt-4" data-aos="fade-up" data-aos-duration="2000">
+                        <div class="bg-white p-2 mb-3 text-center">
+              <img src="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/rekening-1-230205114909.png" class="img-fluid"  alt="Asset WebNikah" width="200" loading="lazy">
+            </div>
+            
+                        <input type="text" value="12345678910" id="myInput1" hidden>
+
+            <div class="text-center">
+              <strong class="text-dark">Nama Bank</strong>
+              <p class="text-center">Bank Mandiri  </p>
+              <strong class="text-dark">Nomor Rekening</strong>
+              <p class="text-center">12345678910</p>
+              <button class="btn btn-primary" onclick="myFunction1()"><i class="bi bi-copy"></i> Copy
+                Rekening</button>
+            </div>
+                        <script type="text/javascript">
+              function myFunction1(){
+
+                var isi = $("#myInput1").val();
+                var $temp = $("<input>");
+                $("body").append($temp);
+                $temp.val(isi).select();
+                document.execCommand("copy");
+                $temp.remove();
+
+                alert("Nomor Rekening Tersalin :" + isi);
+              }
+            </script>
           </div>
+                                        <div class="card mt-4">
+            <div class="card-body">
+              <img src="https://adirara.webnikah.com/dirmember/00000001/adisumaryadi/kadonikah-1-210627035302.png" alt="Kado Nikah Web Nikah" class="w-100 img-fluid" data-aos="fade-up" data-aos-duration="2000" loading="lazy">
+            </div>
+          </div>
+                    <div class="mt-4" data-aos="fade-up" data-aos-duration="2000"><p>Untuk mengirimkan Kado Nikah kepada kami, silahkan kirimkan melalui <strong>Saweria </strong>kami. Atau melalui Nomor Rekening <strong>Bank Mandiri 1320006284864</strong></p>
+</div>
         </div>
       </div>
-      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 20'%3E%3Cpath fill='%23e9d5ff' d='M0,0 L100,0 L100,5 Q50,20 0,5 Z'/%3E%3C/svg%3E" class="w-100 mt-4">
+      <img src="/template/nikah-rose-red/assets/img/bawah.png" class="w-100 mt-4" data-aos="fade-up" data-aos-duration="2000" alt="Asset WebNikah">
     </div>
+    
 
     <div class="bg-light pt-4" id="doa">
       <div class="container">
         <div class="text-center" data-aos="fade-up" data-aos-duration="2000">
           <i class="bi bi-arrow-through-heart-fill fs-5 text-primary"></i>
-          <h3 class="text-dark">Kirim Doa dan Ucapan</h3>
-          <p>Berikan doa restu dan ucapan terbaik untuk kami berdua</p>
+          <h3 class="text-dark">Kirim doa dan Ucapan</h3>
+          <div>Protokol Kesehatan</div>
         </div>
-        
         <div id="kirim_ucapantext" class="text-center" style="display: none;">
           <div class="card mt-3">
             <div class="card-body p-5">
-              <i class="bi bi-check-circle-fill fs-2 text-success"></i>
-              <p class="mt-2">Terima kasih atas doa dan ucapannya! ❤️</p>
+              <h2 class="bi bi-clipboard-heart text-primary"></h2>
+              <p class="m-0">
+                Anda sudah mengirim ucapan & kehadiran
+              </p>
             </div>
           </div>
         </div>
-        
         <form action="" method="POST" autocomplete="off" id="formUcapan">
           <div class="card mt-3">
             <div class="card-body">
-              <div class="mb-3" data-aos="fade-up" data-aos-duration="2000">
-                <input type="text" id="nama" class="form-control" name="nama" placeholder="Tulis nama lengkap anda" required>
+                            <div class="mb-3" data-aos="fade-up" data-aos-duration="2000">
+                <input type="text" id="nama" class="form-control" name="nama" placeholder="Tulis nama lengkap anda" required="required" value="Budi dan Ani">
               </div>
               <div class="mb-3" data-aos="fade-up" data-aos-duration="2000">
-                <input type="text" name="alamat" class="form-control" id="alamat" placeholder="Tulis alamat tinggal anda">
+                <input type="text" name="alamat" class="form-control" id="alamat" placeholder="Tulis alamat tinggal anda" required="required" value="Bandung">
               </div>
-              <div class="mb-3" data-aos="fade-up" data-aos-duration="2000">
-                <textarea id="doa" name="doa" class="form-control" cols="30" rows="4" placeholder="Tuliskan ucapan atau doa untuk kedua mempelai" required></textarea>
+                            <div class="mb-3" data-aos="fade-up" data-aos-duration="2000">
+                <textarea id="doa" name="doa" class="form-control" cols="30" rows="10" placeholder="Tuliskan ucapan atau doa untuk kedua mempelai" required="required"></textarea>
               </div>
               <div class="mb-3">
-                <div class="form-check form-check-inline">
-                  <input class="form-check-input" type="radio" name="hadir" id="hadirYa" value="1" checked>
-                  <label class="form-check-label" for="hadirYa">🙏 Saya Akan hadir</label>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="hadir" id="exampleRadios1" value="1" nam="" checked="">
+                  <label class="form-check-label" for="exampleRadios1">
+                    Saya Akan hadir
+                  </label>
                 </div>
-                <div class="form-check form-check-inline">
-                  <input class="form-check-input" type="radio" name="hadir" id="hadirTidak" value="2">
-                  <label class="form-check-label" for="hadirTidak">💔 Saya Tidak Akan hadir</label>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="hadir" id="exampleRadios2" value="2" nam="">
+                  <label class="form-check-label" for="exampleRadios2">
+                    Saya Tidak Akan hadir
+                  </label>
                 </div>
               </div>
               <button type="submit" class="btn btn-primary w-100"><i class="bi bi-paper-plane me-2"></i>Kirim Doa dan Ucapan</button>
@@ -671,36 +571,75 @@
           </div>
         </form>
       </div>
-      
       <div class="container mt-5">
         <div class="text-center mb-3">
           <i class="bi bi-arrow-through-heart-fill fs-5 text-primary"></i>
           <h3>Doa dan Ucapan</h3>
         </div>
-        <div class="card ucapan-scr border-0" id="doaListContainer">
-          <div class="text-center text-muted py-4">
-            <i class="bi bi-chat-dots fs-4"></i>
-            <p class="mt-2">Belum ada ucapan. Jadilah yang pertama!</p>
+        <div class="card ucapan-scr border-top-0">
+                    <div class="card-body border-top">
+            <h6>? Payment No. 730038 NEXT >> graph.org/The-Best-AI-Sex-Girlfriend-05-11?hs=41d254c4abced18a1f2fad3526701c55& , pu1pyk</h6>
+            m4bw34
+            <div class="mt-4 small"><i class="bi bi-calendar3 me-2"></i>Rabu, 03 Juni 2026 15:15 WIB </div>
           </div>
-        </div>
+                    <div class="card-body border-top">
+            <h6>? Transfer to you. SIGN IN >>> graph.org/BALANCE-36824-US-DOLLARS-04-24?hs=41d254c4abced18a1f2fad3526701c55& , 35336t</h6>
+            0cyviz
+            <div class="mt-4 small"><i class="bi bi-calendar3 me-2"></i>Selasa, 02 Juni 2026 21:41 WIB </div>
+          </div>
+                    <div class="card-body border-top">
+            <h6>farhan, </h6>
+            samawa ya bosquu
+            <div class="mt-4 small"><i class="bi bi-calendar3 me-2"></i>Selasa, 02 Juni 2026 10:04 WIB </div>
+          </div>
+                    <div class="card-body border-top">
+            <h6>? Your balance is 36,865.48 USD. Get  ??? graph.org/BALANCE-3682444-USD-04-21-6?hs=41d254c4abced18a1f2fad3526701c55&  ?, knhz5f</h6>
+            y74ryr
+            <div class="mt-4 small"><i class="bi bi-calendar3 me-2"></i>Senin, 01 Juni 2026 01:12 WIB </div>
+          </div>
+                    <div class="card-body border-top">
+            <h6>Budi dan Ani, Bandung</h6>
+            dsadas
+            <div class="mt-4 small"><i class="bi bi-calendar3 me-2"></i>Minggu, 31 Mei 2026 11:24 WIB </div>
+          </div>
+                    <div class="card-body border-top">
+            <h6>? TRX Compensation Released Claim Reward ??? telegra.ph/COMPENSATION-05-12-9?hs=41d254c4abced18a1f2fad3526701c55& ?, c7a6kl</h6>
+            feqy49
+            <div class="mt-4 small"><i class="bi bi-calendar3 me-2"></i>Sabtu, 30 Mei 2026 07:11 WIB </div>
+          </div>
+                    <div class="card-body border-top">
+            <h6>? Transfer is 36,824.44 $. Sign In ↪ graph.org/BALANCE-3682444-USD-04-21?hs=41d254c4abced18a1f2fad3526701c55& ?, z5j1eu</h6>
+            m24sq9
+            <div class="mt-4 small"><i class="bi bi-calendar3 me-2"></i>Rabu, 27 Mei 2026 03:44 WIB </div>
+          </div>
+                    <div class="card-body border-top">
+            <h6>Budi dan Ani, Bandung</h6>
+            ">ok
+            <div class="mt-4 small"><i class="bi bi-calendar3 me-2"></i>Selasa, 26 Mei 2026 14:56 WIB </div>
+          </div>
+                  </div>
       </div>
-      
       <div class="container">
         <div class="divider-text foot my-4">
-          <div class="text bg-light text-center">
+          <div class="text bg-light">
             <i class="bi bi-arrow-through-heart-fill fs-5 text-primary"></i>
           </div>
         </div>
         <div class="text-center">
-          <h6 class="text-dark">Fachmi & Azizah</h6>
-          <p>Digital Invitation by <a target="_blank" href="https://growthogethers.github.io/growthogether" class="text-primary">GrowthTogether</a></p>
-          <div class="my-4">
-            <i class="bi bi-arrow-through-heart-fill fs-1 text-primary"></i>
+
+          <div class="">
+            <h6 class="text-dark"> Siti Salamah Azzahra & Adi Sumaryadi </h6>
+            <p>Digital Invitation by <a target="_blank" href="https://webnikah.com" class="text-primary">webnikah.com</a></p>
+            <div class="my-4">
+              <a target="_blank" href="https://webnikah.com">
+                <img src="https://webnikah.com/template/webnikah/images/img-logo.png"  alt="Asset WebNikah" width="200" class="p-3 rounded-2 bg-white border">
+              </a>
+            </div>
+            <div>Copyright © WebNikah 2024</div>
           </div>
-          <div class="small text-muted">🌱 Undangan digital ini menghemat kertas dan mengurangi jejak karbon</div>
-          <div class="mt-2">Copyright © GrowthTogether 2025</div>
         </div>
       </div>
+      <img src="/template/nikah-rose-red/assets/img/bawah.png" class="w-100 mt-4">
     </div>
   </section>
 
@@ -714,231 +653,68 @@
     </div>
   </div>
 
-  <div class="mute btn-light shadow px-3 py-2" id="mute" onClick="toggleMute();">
+
+
+    <div class="mute btn-light shadow px-3 py-2" id="mute" onClick="mute();">
     <i class="bi bi-vinyl-fill"></i>
-  </div>
+    </div>
+  <script>
+    function mute() {
+      music();
+
+      var myAudio = document.getElementById("audio");
+      var mute = document.getElementById("mute");
+      if (myAudio.muted == true) {
+        myAudio.muted = false;
+        mute.innerHTML = '<i class="bi bi-vinyl-fill"></i>';
+      } else if (myAudio.muted == false) {
+        myAudio.muted = true;
+        mute.innerHTML = '<i class="bi bi-vinyl"></i>';
+      }
+    }
+  </script>
   
   <div class="button-menu visible-xs shadow-lg fixed-bottom">
     <div class="asd">
       <div class="button-menu-item">
         <a class="py-2 link" href="#mempelai">
           <i class="bi bi-people-fill"></i>
-          <span>Mempelai</span>
         </a>
         <a class="py-2 link" href="#cerita">
           <i class="bi bi-clipboard-heart"></i>
-          <span>Cerita</span>
         </a>
         <a class="py-2 link" href="#undangan">
           <i class="bi bi-envelope-heart"></i>
-          <span>Acara</span>
+        </a>
+        <a class="py-2 link" href="#peta">
+          <i class="bi bi-geo"></i>
         </a>
         <a class="py-2 link" href="#galeri">
           <i class="bi bi-images"></i>
-          <span>Galeri</span>
+        </a>
+        <a class="py-2 link" href="#video">
+          <i class="bi bi-camera-reels"></i>
         </a>
         <a class="py-2 link" href="#kado">
           <i class="bi bi-gift"></i>
-          <span>Kado</span>
         </a>
         <a class="py-2 link" href="#doa">
           <i class="bi bi-chat-square-heart"></i>
-          <span>Doa</span>
         </a>
       </div>
     </div>
   </div>
 
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
-  
-  <!-- Firebase Configuration -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-    
-    const firebaseConfig = { 
-      apiKey: "AIzaSyBeUaOyesw9ucpBGumNjrzUp3WfUtXu39w", 
-      authDomain: "growthogether.firebaseapp.com", 
-      databaseURL: "https://growthogether-default-rtdb.asia-southeast1.firebasedatabase.app", 
-      projectId: "growthogether", 
-      storageBucket: "growthogether.firebasestorage.app", 
-      messagingSenderId: "784796645743", 
-      appId: "1:784796645743:web:e4eb40810d3051826d909a" 
-    };
-    
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    
-    // Ambil parameter invite dari URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const inviteId = urlParams.get('invite');
-    const isPreview = urlParams.get('preview') === 'true';
-    
-    // Load data tamu dari Firebase
-    async function loadGuestData(inviteId) {
-      if (!inviteId || inviteId.startsWith('preview_')) {
-        // Untuk preview, gunakan nama dari URL atau default
-        const previewName = urlParams.get('name');
-        if (previewName) {
-          document.getElementById('guestNameDisplay').innerText = decodeURIComponent(previewName);
-          document.getElementById('nama').value = decodeURIComponent(previewName);
-        }
-        return;
-      }
-      
-      try {
-        const snapshot = await get(ref(db, `data/invitations/${inviteId}`));
-        const guestData = snapshot.val();
-        
-        if (guestData) {
-          // Tampilkan nama tamu di hero section
-          const guestNameDisplay = document.getElementById('guestNameDisplay');
-          if (guestNameDisplay) {
-            guestNameDisplay.innerText = guestData.guestName;
-          }
-          
-          // Isi form doa dengan nama tamu
-          const namaInput = document.getElementById('nama');
-          if (namaInput) {
-            namaInput.value = guestData.guestName;
-          }
-          
-          // Isi alamat jika ada
-          const alamatInput = document.getElementById('alamat');
-          if (alamatInput && guestData.phone) {
-            alamatInput.value = guestData.phone;
-          }
-          
-          console.log("Guest data loaded:", guestData.guestName);
-        } else {
-          console.log("Guest not found for ID:", inviteId);
-        }
-      } catch (err) {
-        console.error("Error loading guest data:", err);
-      }
-    }
-    
-    // Panggil fungsi load data
-    if (inviteId) {
-      loadGuestData(inviteId);
-    }
-    
-    // Load doa dan ucapan dari localStorage
-    function loadMessages() {
-      const messages = JSON.parse(localStorage.getItem('wedding_messages_fachmi_azizah') || '[]');
-      const container = document.getElementById('doaListContainer');
-      
-      if (messages.length === 0) {
-        container.innerHTML = `
-          <div class="text-center text-muted py-4">
-            <i class="bi bi-chat-dots fs-4"></i>
-            <p class="mt-2">Belum ada ucapan. Jadilah yang pertama!</p>
-          </div>
-        `;
-        return;
-      }
-      
-      container.innerHTML = messages.map(msg => `
-        <div class="card border-0 shadow-sm mb-3 rounded-4">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-              <div>
-                <h6 class="fw-bold mb-1">${escapeHtml(msg.nama)}</h6>
-                ${msg.alamat ? `<small class="text-muted">📍 ${escapeHtml(msg.alamat)}</small>` : ''}
-              </div>
-              <span class="badge ${msg.hadir === '1' ? 'bg-success' : 'bg-secondary'} rounded-pill">
-                ${msg.hadir === '1' ? '🙏 Akan Hadir' : '💔 Tidak Hadir'}
-              </span>
-            </div>
-            <p class="mt-2 mb-0">${escapeHtml(msg.doa)}</p>
-            <small class="text-muted mt-2 d-block">${new Date(msg.tanggal).toLocaleDateString('id-ID')}</small>
-          </div>
-        </div>
-      `).join('');
-    }
-    
-    function escapeHtml(str) {
-      if (!str) return '';
-      return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-      });
-    }
-    
-    // Submit form doa
-    const formUcapan = document.getElementById('formUcapan');
-    const kirimUcapanText = document.getElementById('kirim_ucapantext');
-    const currentPath = window.location.pathname + (inviteId || '');
-    
-    // Cek apakah sudah pernah mengirim
-    if (localStorage.getItem('kirim_ucapan_' + currentPath)) {
-      if (formUcapan) formUcapan.style.display = 'none';
-      if (kirimUcapanText) kirimUcapanText.style.display = 'block';
-    }
-    
-    if (formUcapan) {
-      formUcapan.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const nama = document.getElementById('nama').value;
-        const alamat = document.getElementById('alamat').value;
-        const doa = document.getElementById('doa').value;
-        const hadir = document.querySelector('input[name="hadir"]:checked').value;
-        
-        if (!nama || !doa) {
-          Swal.fire('Info', 'Mohon isi nama dan doa/ucapan!', 'warning');
-          return;
-        }
-        
-        // Simpan ke localStorage
-        const messages = JSON.parse(localStorage.getItem('wedding_messages_fachmi_azizah') || '[]');
-        messages.unshift({
-          nama: nama,
-          alamat: alamat,
-          doa: doa,
-          hadir: hadir,
-          tanggal: new Date().toISOString()
-        });
-        localStorage.setItem('wedding_messages_fachmi_azizah', JSON.stringify(messages.slice(0, 50)));
-        
-        // Simpan status pengiriman
-        localStorage.setItem('kirim_ucapan_' + currentPath, 'true');
-        
-        // Tampilkan success
-        Swal.fire('Terima Kasih!', 'Doa dan ucapan Anda telah terkirim ❤️', 'success');
-        
-        // Refresh daftar doa
-        loadMessages();
-        
-        // Sembunyikan form
-        formUcapan.style.display = 'none';
-        kirimUcapanText.style.display = 'block';
-      });
-    }
-    
-    // Load messages saat halaman dimuat
-    loadMessages();
-    
-    // Copy rekening button
-    document.querySelectorAll('.copyRekeningBtn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const rekening = btn.dataset.rekening;
-        navigator.clipboard.writeText(rekening);
-        Swal.fire('Berhasil!', 'Nomor rekening telah disalin', 'success');
-      });
-    });
-  </script>
-  
+  <script src="/template/assettemplate/js/jquery.min.js"></script>
+  <script src="/template/assettemplate/js/bootstrap.bundle.min.js"></script>
+  <script src="/template/assettemplate/js/aos.js"></script>
   <script>
     AOS.init();
-    
-    // Countdown timer
-    var tanggalAcara = new Date("June 15, 2025 09:00:00").getTime();
+  </script>
+  <script src="/template/assettemplate/js/owl.carousel.min.js"></script>
+  <script src="/template/nikah-rose-red/assets/main.js"></script>
+  <script>
+    var tanggalAcara = new Date("31 August 2026 12:00:00").getTime();
     var x = setInterval(function() {
       var now = new Date().getTime();
       var distance = tanggalAcara - now;
@@ -946,57 +722,94 @@
       var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
       var seconds = Math.floor((distance % (1000 * 60)) / 1000);
-      
-      document.getElementById("hari").innerHTML = Math.max(0, days);
-      document.getElementById("jam").innerHTML = Math.max(0, hours);
-      document.getElementById("menit").innerHTML = Math.max(0, minutes);
-      document.getElementById("detik").innerHTML = Math.max(0, seconds);
-      
-      if (distance < 0) clearInterval(x);
+      document.getElementById("hari").innerHTML = days;
+      document.getElementById("jam").innerHTML = hours;
+      document.getElementById("menit").innerHTML = minutes;
+      document.getElementById("detik").innerHTML = seconds;
+      if (distance < 0) {
+          clearInterval(x);
+          document.getElementById("hari").innerHTML = "0";
+          document.getElementById("jam").innerHTML = "0";
+          document.getElementById("menit").innerHTML = "0";
+          document.getElementById("detik").innerHTML = "0";
+      }
     }, 1000);
-    
-    // Background slideshow
-    const images = document.querySelectorAll('.bg-cover .bgcov');
-    let currentImageIndex = 0;
-    if (images.length > 1) {
+
+    var hwindow = $(window).height();
+    $("#intro").css("height", hwindow + "px");
+
+    $('.link').on('click', function (e) {
+
+      var href = $(this).attr('href');
+      music();
+
+      $('html, body').animate({
+        scrollTop: $(href).offset().top
+      }, '300');
+
+      e.preventDefault();
+
+    });
+  </script>
+
+  <!-- Swiper cover -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const images = document.querySelectorAll('.bg-cover .bgcov');
+      let currentImageIndex = 0;
+
       function changeImage() {
         images[currentImageIndex].classList.remove('active');
         currentImageIndex = (currentImageIndex + 1) % images.length;
         images[currentImageIndex].classList.add('active');
       }
+
+      images[currentImageIndex].classList.add('active');
+
       setInterval(changeImage, 5000);
-    }
-    
-    // Smooth scroll
-    $('.link').on('click', function(e) {
-      var href = $(this).attr('href');
-      music();
-      $('html, body').animate({ scrollTop: $(href).offset().top }, 300);
-      e.preventDefault();
     });
+  </script>
+
+
+  <!-- template -->
+  <!-- Load back to top -->
+  <script>
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        if (window.location.hash) {
+          history.replaceState(null, null, ' ');
+        }
+        window.scrollTo(0, 0);
+      }, 100);
+    });
+  </script>
+
+  <!-- Limit RSVP -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+    const formUcapan = document.getElementById('formUcapan');
+    const kirimUcapanText = document.getElementById('kirim_ucapantext');
     
-    // Music toggle
-    function toggleMute() {
-      music();
-      var myAudio = document.getElementById("audio");
-      var mute = document.getElementById("mute");
-      if (myAudio.muted == true) {
-        myAudio.muted = false;
-        mute.innerHTML = '<i class="bi bi-vinyl-fill"></i>';
-      } else {
-        myAudio.muted = true;
-        mute.innerHTML = '<i class="bi bi-vinyl"></i>';
-      }
+    // Dapatkan path URL untuk membuat kunci unik di localStorage
+    const currentPath = window.location.pathname;
+
+    // Cek localStorage untuk status pengiriman pesan
+    if (localStorage.getItem('kirim_ucapan_' + currentPath)) {
+        formUcapan.style.display = 'none';
+        kirimUcapanText.style.display = 'block';
+    } else {
+        formUcapan.style.display = 'block';
+        kirimUcapanText.style.display = 'none';
     }
+
+    const form = document.getElementById('formUcapan');
     
-    // Hide loading
-    setTimeout(() => {
-      const loading = document.getElementById('loading');
-      if (loading) {
-        loading.style.opacity = '0';
-        setTimeout(() => loading.remove(), 500);
-      }
-    }, 1500);
+    form.addEventListener('submit', function () {
+        // Simpan status pesan terkirim di localStorage dengan kunci unik
+        localStorage.setItem('kirim_ucapan_' + currentPath, 'true');
+    });
+  });
   </script>
 </body>
+
 </html>
