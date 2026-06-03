@@ -1,4 +1,4 @@
-// js/dashboard.js - Dengan shared data per pasangan
+// js/dashboard.js - Dengan total tabungan per masing-masing user
 import { formatNumberRp, showNotif, escapeHtml, currentPartner, currentPairId,
   getSharedMoments, getSharedKeuangan } from './utils.js';
 import { db, ref, get } from './firebase-config.js';
@@ -14,47 +14,68 @@ export async function renderDashboard() {
   const moments = await getSharedMoments();
   const momentsArray = Object.values(moments);
   
-  // Get shared keuangan
-  const keuangan = await getSharedKeuangan();
-  const transaksiList = Object.values(keuangan.transaksi || {});
+  // Get keuangan untuk current user sendiri
+  const userKeuanganSnap = await get(ref(db, `data/keuangan/${currentUser}/transaksi`));
+  const userTransactions = userKeuanganSnap.val() || {};
+  const userTransaksiList = Object.values(userTransactions);
   
-  const pemasukan = transaksiList.filter(t => t.tipe === 'pemasukan').reduce((sum, t) => sum + (t.nominal || 0), 0);
-  const pengeluaran = transaksiList.filter(t => t.tipe === 'pengeluaran').reduce((sum, t) => sum + (t.nominal || 0), 0);
-  const saldo = pemasukan - pengeluaran;
+  const userPemasukan = userTransaksiList.filter(t => t.tipe === 'pemasukan').reduce((sum, t) => sum + (t.nominal || 0), 0);
+  const userPengeluaran = userTransaksiList.filter(t => t.tipe === 'pengeluaran').reduce((sum, t) => sum + (t.nominal || 0), 0);
+  const userSaldo = userPemasukan - userPengeluaran;
   
-  const partnerName = currentPartner === "FACHMI" ? "Fachmi" : currentPartner === "AZIZAH" ? "Azizah" : currentPartner;
+  // Get keuangan untuk partner
+  let partnerSaldo = 0;
+  let partnerPemasukan = 0;
+  let partnerPengeluaran = 0;
+  let partnerName = '';
   
-  // Render Ringkasan Keuangan Pasangan
+  if (currentPartner) {
+    partnerName = currentPartner === "FACHMI" ? "Fachmi" : currentPartner === "AZIZAH" ? "Azizah" : currentPartner;
+    const partnerKeuanganSnap = await get(ref(db, `data/keuangan/${currentPartner}/transaksi`));
+    const partnerTransactions = partnerKeuanganSnap.val() || {};
+    const partnerTransaksiList = Object.values(partnerTransactions);
+    partnerPemasukan = partnerTransaksiList.filter(t => t.tipe === 'pemasukan').reduce((sum, t) => sum + (t.nominal || 0), 0);
+    partnerPengeluaran = partnerTransaksiList.filter(t => t.tipe === 'pengeluaran').reduce((sum, t) => sum + (t.nominal || 0), 0);
+    partnerSaldo = partnerPemasukan - partnerPengeluaran;
+  }
+  
+  const currentUserName = currentUser === "FACHMI" ? "Fachmi" : currentUser === "AZIZAH" ? "Azizah" : currentUser;
+  
+  // Render Ringkasan Keuangan per User
   const keuanganContainer = document.getElementById('keuanganSummary');
   if (keuanganContainer) {
     keuanganContainer.innerHTML = `
       <div class="row g-3">
-        <div class="col-12">
+        <div class="col-md-6 col-12">
           <div class="card p-3" style="background: linear-gradient(135deg, #7009b4, #4000C6); color: white;">
             <div class="d-flex justify-content-between align-items-center">
               <div>
-                <small class="opacity-75">Total Saldo Pasangan</small>
-                <h4 class="fw-bold mb-0">${formatNumberRp(saldo)}</h4>
-                <small class="opacity-75">Total Pemasukan: ${formatNumberRp(pemasukan)}</small>
+                <small class="opacity-75">Saldo ${escapeHtml(currentUserName)}</small>
+                <h4 class="fw-bold mb-0">${formatNumberRp(userSaldo)}</h4>
+                <small class="opacity-75">Pemasukan: ${formatNumberRp(userPemasukan)}</small>
                 <br>
-                <small class="opacity-75">Total Pengeluaran: ${formatNumberRp(pengeluaran)}</small>
+                <small class="opacity-75">Pengeluaran: ${formatNumberRp(userPengeluaran)}</small>
               </div>
-              <i class="bi bi-people-fill fs-1 opacity-50"></i>
+              <i class="bi bi-person-circle fs-1 opacity-50"></i>
             </div>
           </div>
         </div>
-        <div class="col-12">
+        ${currentPartner ? `
+        <div class="col-md-6 col-12">
           <div class="card p-3" style="background: linear-gradient(135deg, #ec4899, #f43f5e); color: white;">
             <div class="d-flex justify-content-between align-items-center">
               <div>
-                <small class="opacity-75">ID Pasangan</small>
-                <h6 class="fw-bold mb-0">${currentPairId || '-'}</h6>
-                <small class="opacity-75">${partnerName ? `Pasangan: ${partnerName}` : 'Belum memiliki pasangan'}</small>
+                <small class="opacity-75">Saldo ${escapeHtml(partnerName)}</small>
+                <h4 class="fw-bold mb-0">${formatNumberRp(partnerSaldo)}</h4>
+                <small class="opacity-75">Pemasukan: ${formatNumberRp(partnerPemasukan)}</small>
+                <br>
+                <small class="opacity-75">Pengeluaran: ${formatNumberRp(partnerPengeluaran)}</small>
               </div>
-              <i class="bi bi-heart-fill fs-1 opacity-50"></i>
+              <i class="bi bi-person-circle fs-1 opacity-50"></i>
             </div>
           </div>
         </div>
+        ` : ''}
       </div>
     `;
   }
