@@ -42,7 +42,6 @@ function generateSessionToken(username, timestamp) {
   return btoa(`${username}|${timestamp}|${salt}`).substring(0, 32);
 }
 
-// DEFINE VALIDATE SESSION FIRST (sebelum dipanggil)
 export function validateSession() {
   const savedUser = sessionStorage.getItem("progrowth_user");
   const savedToken = sessionStorage.getItem("progrowth_token");
@@ -130,6 +129,52 @@ export async function forceRefreshProfile() {
   }
 }
 
+// Fungsi untuk render badge level di profile modal
+async function renderProfileLevelBadge() {
+  const currentUser = getCurrentSessionUser();
+  if (!currentUser) return;
+  
+  const modalHeader = document.querySelector('#profileModal .modal-header');
+  if (!modalHeader) return;
+  
+  try {
+    const userSnap = await get(ref(db, `data/users/${currentUser}`));
+    const userData = userSnap.val();
+    const level = userData?.level || 'trial';
+    
+    let levelText = '';
+    let levelColor = '';
+    switch(level) {
+      case 'pro': 
+        levelText = 'PRO'; 
+        levelColor = '#8b5cf6';
+        break;
+      case 'basic': 
+        levelText = 'BASIC'; 
+        levelColor = '#10b981';
+        break;
+      default: 
+        levelText = 'TRIAL'; 
+        levelColor = '#f59e0b';
+    }
+    
+    let levelBadgeElement = document.getElementById('profileModalLevelBadge');
+    if (!levelBadgeElement) {
+      levelBadgeElement = document.createElement('div');
+      levelBadgeElement.id = 'profileModalLevelBadge';
+      levelBadgeElement.style.position = 'absolute';
+      levelBadgeElement.style.top = '10px';
+      levelBadgeElement.style.right = '15px';
+      modalHeader.appendChild(levelBadgeElement);
+    }
+    
+    levelBadgeElement.innerHTML = `<span class="badge" style="background: ${levelColor}; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">${levelText}</span>`;
+    
+  } catch(err) {
+    console.error("Error rendering profile level badge:", err);
+  }
+}
+
 export function updateProfileUI() {
   const currentUser = getCurrentSessionUser();
   if (!currentUser || !validateSession()) {
@@ -188,6 +233,9 @@ export function updateProfileUI() {
     const email = `${currentUser.toLowerCase()}@growthogether.com`;
     modalEmail.innerText = email;
   }
+  
+  // Render badge level di profile modal
+  renderProfileLevelBadge();
   
   document.querySelectorAll('.status-badge').forEach(badge => {
     const status = badge.getAttribute('data-status');
@@ -713,7 +761,7 @@ export function setupAppSession(u) {
   }, 500);
 }
 
-// EXPORTS - semuanya ke window
+// EXPORTS
 window.handleLogin = handleLogin;
 window.updateCloudPassword = updateCloudPassword;
 window.confirmLogout = confirmLogout;
@@ -728,5 +776,4 @@ window.validateSession = validateSession;
 window.cleanupAuthListeners = cleanupAuthListeners;
 window.setupAppSession = setupAppSession;
 
-// JANGAN PANGGIL initProfile() LANGSUNG - biarkan app.js yang memanggil
 console.log("auth.js loaded successfully");
