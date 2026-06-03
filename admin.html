@@ -932,6 +932,9 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   
+  // ============ CONSTANTS ============
+  const INVITATION_BASE_URL = "https://growthogethers.github.io/growthogether/undangan.html";
+  
   let adminChart = null;
   let currentSection = 'dashboard';
   let currentAdminUser = null;
@@ -991,7 +994,7 @@
     console.log(`Partner relationship set: ${user1} <-> ${user2}`);
   }
   
-  // ADMIN LOGIN
+  // ============ ADMIN LOGIN ============
   async function handleAdminLogin() {
     const username = document.getElementById('adminUsername').value.trim().toUpperCase();
     const password = document.getElementById('adminPassword').value;
@@ -1120,7 +1123,7 @@
     console.log("✅ Partner relationship ensured");
   }
   
-  // DASHBOARD STATS
+  // ============ DASHBOARD STATS ============
   async function loadDashboardStats() {
     try {
       const snapshot = await get(ref(db, "data/"));
@@ -1214,7 +1217,7 @@
     }
   }
   
-  // LOAD USERS
+  // ============ LOAD USERS ============
   async function loadUsersList() {
     if (isLoadingUsers) return;
     isLoadingUsers = true;
@@ -1278,7 +1281,6 @@
         `;
       }
       
-      // Edit level buttons
       document.querySelectorAll('.edit-level-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
           e.stopPropagation();
@@ -1288,7 +1290,6 @@
         });
       });
       
-      // Delete user buttons
       document.querySelectorAll('.delete-user-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
           e.stopPropagation();
@@ -1423,7 +1424,7 @@
     statsContainer.innerHTML = html || '<div class="col-12 text-center text-muted">Belum ada data pengguna</div>';
   }
   
-  // REGISTER NEW USER
+  // ============ REGISTER NEW USER ============
   async function registerNewUser(username, fullname, password, level, partnerUsername) {
     const usersRef = ref(db, "data/users");
     const snapshot = await get(usersRef);
@@ -1476,7 +1477,36 @@
     select.innerHTML += `<option value="AZIZAH">AZIZAH (Azizah)</option>`;
   }
   
-  // INVITATIONS
+  // ============ INVITATIONS FUNCTIONS ============
+  // Generate link ke production URL
+  async function generateInvitationLink(guestName, phone, note) {
+    if (!guestName.trim()) throw new Error("Nama tamu wajib diisi");
+    
+    // Buat ID unik untuk undangan
+    const id = Date.now().toString() + Math.random().toString(36).substring(2, 6);
+    
+    // Simpan data undangan ke Firebase
+    await set(ref(db, `data/invitations/${id}`), {
+      guestName: guestName.trim(),
+      phone: phone || '',
+      note: note || '',
+      createdAt: Date.now(),
+      linkId: id
+    });
+    
+    // GENERATE LINK KE PRODUCTION URL
+    const fullLink = `${INVITATION_BASE_URL}?invite=${id}`;
+    currentInviteLink = fullLink;
+    return fullLink;
+  }
+  
+  // Preview undangan di tab baru
+  function openInvitationPreview(linkId, guestName) {
+    const previewUrl = `${INVITATION_BASE_URL}?invite=${linkId}&preview=true`;
+    window.open(previewUrl, '_blank', 'width=400,height=700,scrollbars=yes');
+  }
+  
+  // Load daftar undangan dari Firebase
   async function loadInvitations() {
     const snap = await get(ref(db, "data/invitations"));
     const invites = snap.val() || {};
@@ -1491,7 +1521,8 @@
     }
     
     for (let [id, inv] of entries.reverse()) {
-      const fullLink = `${window.location.origin}${window.location.pathname}?invite=${id}`;
+      // LINK KE PRODUCTION
+      const fullLink = `${INVITATION_BASE_URL}?invite=${id}`;
       const row = tbody.insertRow();
       row.insertCell(0).innerHTML = `<strong>${escapeHtml(inv.guestName || 'Tanpa Nama')}</strong>`;
       row.insertCell(1).innerHTML = inv.phone || '-';
@@ -1506,8 +1537,12 @@
       row.insertCell(4).innerHTML = `<button class="btn btn-sm btn-outline-danger rounded-pill deleteInvBtn" data-id="${id}"><i class="bi bi-trash3"></i> Hapus</button>`;
     }
     
+    // Event listeners untuk copy dan preview
     document.querySelectorAll('.copyInvLink').forEach(btn => {
-      btn.addEventListener('click', () => { navigator.clipboard.writeText(btn.dataset.link); showToast('Link disalin!'); });
+      btn.addEventListener('click', () => { 
+        navigator.clipboard.writeText(btn.dataset.link); 
+        showToast('Link disalin!'); 
+      });
     });
     
     document.querySelectorAll('.preview-invite-link').forEach(btn => {
@@ -1529,27 +1564,7 @@
     });
   }
   
-  async function generateInvitationLink(guestName, phone, note) {
-    if (!guestName.trim()) throw new Error("Nama tamu wajib diisi");
-    const id = Date.now().toString() + Math.random().toString(36).substring(2,6);
-    await set(ref(db, `data/invitations/${id}`), {
-      guestName: guestName.trim(),
-      phone: phone || '',
-      note: note || '',
-      createdAt: Date.now(),
-      linkId: id
-    });
-    const fullLink = `${window.location.origin}${window.location.pathname}?invite=${id}`;
-    currentInviteLink = fullLink;
-    return fullLink;
-  }
-  
-  // OPEN INVITATION PREVIEW (PAGE BARU)
-  function openInvitationPreview(linkId, guestName) {
-    const previewUrl = `invitation-preview.html?id=${linkId}&name=${encodeURIComponent(guestName)}`;
-    window.open(previewUrl, '_blank', 'width=400,height=700,scrollbars=yes');
-  }
-  
+  // Update preview di sidebar
   function updatePreview(guestName, phone, note) {
     const previewDiv = document.getElementById('invitePreview');
     if (!previewDiv) return;
@@ -1563,13 +1578,13 @@
           <hr>
           <div class="text-start small">
             <p><i class="bi bi-calendar-heart text-danger me-2"></i> <strong>Acara:</strong> Pernikahan Fachmi & Azizah</p>
-            <p><i class="bi bi-clock me-2"></i> <strong>Waktu:</strong> 10:00 WIB - selesai</p>
-            <p><i class="bi bi-geo-alt me-2"></i> <strong>Tempat:</strong> Gedung Serbaguna, Jakarta</p>
+            <p><i class="bi bi-clock me-2"></i> <strong>Waktu:</strong> 09:00 WIB - selesai</p>
+            <p><i class="bi bi-geo-alt me-2"></i> <strong>Tempat:</strong> Aula Serbaguna, Jakarta</p>
             ${phone ? `<p><i class="bi bi-whatsapp me-2"></i> <strong>Konfirmasi:</strong> ${escapeHtml(phone)}</p>` : ''}
             ${note ? `<p><i class="bi bi-chat-heart me-2"></i> <strong>Catatan:</strong> ${escapeHtml(note)}</p>` : ''}
           </div>
           <div class="mt-3">
-            <small class="text-muted">✨ "This invitation saves paper and reduces carbon footprint"</small>
+            <small class="text-muted">✨ Undangan digital ini menghemat kertas dan mengurangi jejak karbon</small>
           </div>
           <button class="btn btn-sm btn-outline-primary rounded-pill mt-3" id="openFullPreviewBtn">
             <i class="bi bi-eye me-1"></i> Lihat Preview Lengkap
@@ -1592,6 +1607,7 @@
     }
   }
   
+  // ============ SHOW SECTION ============
   function showSection(sectionId) {
     document.getElementById('dashboardSection').style.display = sectionId === 'dashboard' ? 'block' : 'none';
     document.getElementById('usersSection').style.display = sectionId === 'users' ? 'block' : 'none';
@@ -1624,14 +1640,17 @@
     
     checkAdminSession();
     
+    // Login event
     document.getElementById('adminLoginBtn')?.addEventListener('click', handleAdminLogin);
     document.getElementById('adminPassword')?.addEventListener('keypress', (e) => { if(e.key === 'Enter') handleAdminLogin(); });
     
+    // Logout event
     document.getElementById('adminLogoutBtn')?.addEventListener('click', handleAdminLogout);
     document.getElementById('backToAppBtn')?.addEventListener('click', () => { 
       window.location.href = window.location.pathname.replace('admin.html', 'index.html'); 
     });
     
+    // Refresh dashboard
     const refreshBtn = document.getElementById('refreshDashboardBtn');
     if (refreshBtn) {
       refreshBtn.addEventListener('click', async () => {
@@ -1644,6 +1663,7 @@
       });
     }
     
+    // Open register modal
     const openModalBtn = document.getElementById('openRegisterModalBtn');
     if (openModalBtn) {
       openModalBtn.addEventListener('click', async (e) => {
@@ -1660,11 +1680,13 @@
       });
     }
     
+    // Confirm level change
     const confirmLevelBtn = document.getElementById('confirmLevelChangeBtn');
     if (confirmLevelBtn) {
       confirmLevelBtn.addEventListener('click', saveLevelChange);
     }
     
+    // Confirm register user
     document.getElementById('confirmRegisterBtn')?.addEventListener('click', async () => {
       const username = document.getElementById('regUsername').value;
       const fullname = document.getElementById('regFullname').value;
@@ -1687,7 +1709,7 @@
       }
     });
     
-    // Generate Invitation
+    // Generate Invitation Link
     const generateBtn = document.getElementById('generateInviteBtn');
     if (generateBtn) {
       generateBtn.addEventListener('click', async () => {
@@ -1715,15 +1737,18 @@
           showToast("Masukkan nama tamu terlebih dahulu", 'error');
           return;
         }
-        openInvitationPreview('preview_' + Date.now(), guestName);
+        const fakeLinkId = 'preview_' + Date.now();
+        openInvitationPreview(fakeLinkId, guestName);
       });
     }
     
+    // Copy link button
     document.getElementById('copyLinkBtn')?.addEventListener('click', () => {
       const link = document.getElementById('inviteLinkText')?.innerText;
       if(link){ navigator.clipboard.writeText(link); showToast("Link disalin"); }
     });
     
+    // Refresh invites button
     document.getElementById('refreshInvitesBtn')?.addEventListener('click', () => loadInvitations());
     
     // Real-time preview update
@@ -1760,7 +1785,7 @@
       });
     }
     
-    // Mobile hamburger
+    // Mobile hamburger menu
     const hamburger = document.getElementById('hamburgerBtn');
     const sidebar = document.getElementById('adminSidebar');
     const overlay = document.getElementById('sidebarOverlay');
