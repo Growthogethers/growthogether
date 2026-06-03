@@ -4,22 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
   <title>Admin Panel - GrowthTogether</title>
-  <!-- Favicon / Logo Tab -->
+  <!-- Favicon -->
   <link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%237009b4'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%237009b4'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script type="importmap">
-    {
-      "imports": {
-        "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
-        "firebase/database": "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"
-      }
-    }
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #faf5ff; transition: background 0.2s; }
@@ -211,30 +203,6 @@
       justify-content: center;
     }
     
-    /* Subscription Card */
-    .subscription-card {
-      background: white;
-      border-radius: 20px;
-      border: 1px solid #e9d5ff;
-      transition: all 0.2s;
-      height: 100%;
-      cursor: pointer;
-    }
-    body.dark .subscription-card {
-      background: #2d1a3a;
-      border-color: #4c1d6e;
-    }
-    .subscription-card.pro {
-      background: linear-gradient(135deg, #7009b4, #4000C6);
-      color: white;
-      border: none;
-    }
-    .subscription-card.pro .text-muted { color: #d8b4fe !important; }
-    .subscription-card.selected {
-      border: 3px solid #10b981;
-      box-shadow: 0 0 0 2px rgba(16,185,129,0.3);
-    }
-    
     .btn-gradient {
       background: linear-gradient(135deg, #7009b4, #4000C6);
       border: none;
@@ -246,20 +214,22 @@
     }
     .btn-gradient:active { transform: scale(0.96); }
     
-    .invite-card {
+    .setting-card {
       background: white;
       border-radius: 24px;
       border: 1px solid #e9d5ff;
+      margin-bottom: 20px;
     }
-    body.dark .invite-card { background: #2d1a3a; border-color: #4c1d6e; }
-    .generated-link {
-      background: #f3e8ff;
-      padding: 12px;
-      border-radius: 18px;
-      font-size: 13px;
-      word-break: break-all;
+    body.dark .setting-card { background: #2d1a3a; border-color: #4c1d6e; }
+    
+    .image-preview {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #7009b4;
+      cursor: pointer;
     }
-    body.dark .generated-link { background: #1e1028; color: #d8b4fe; }
     
     .dark-mode-fab {
       position: fixed;
@@ -279,79 +249,7 @@
       z-index: 1050;
     }
     
-    .user-table th, .user-table td {
-      vertical-align: middle;
-      padding: 14px 12px;
-    }
-    .badge-pro { background: linear-gradient(135deg, #7009b4, #4000C6); color: white; }
-    .badge-basic { background: #3b82f6; color: white; }
-    .badge-free { background: #10b981; color: white; }
-    .badge-trial { background: #f59e0b; color: white; }
-    
-    /* Level Edit Modal */
-    .level-edit-modal .modal-content {
-      border-radius: 24px;
-    }
-    .level-option {
-      padding: 15px;
-      border-radius: 16px;
-      cursor: pointer;
-      transition: all 0.2s;
-      border: 2px solid transparent;
-    }
-    .level-option:hover {
-      background: var(--bg-light, #f3e8ff);
-      transform: translateX(5px);
-    }
-    .level-option.selected {
-      border-color: #7009b4;
-      background: rgba(112,9,180,0.1);
-    }
-    .level-option.pro.selected { border-color: #10b981; background: rgba(16,185,129,0.1); }
-    
-    .user-row { cursor: pointer; transition: background 0.2s; }
-    .user-row:hover { background: rgba(112,9,180,0.05); }
-    
-    /* Pairing Card */
-    .pair-card {
-      background: linear-gradient(135deg, #667eea15, #764ba215);
-      border-radius: 20px;
-      padding: 15px;
-      margin-bottom: 20px;
-    }
-    .partner-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: white;
-      border-radius: 50px;
-      padding: 5px 15px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    body.dark .partner-badge { background: #3d1f3d; }
-    
-    .custom-toast {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: white;
-      border-radius: 50px;
-      padding: 12px 24px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      z-index: 10000;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-      animation: slideUp 0.3s ease;
-    }
-    body.dark .custom-toast { background: #2d1a3a; color: white; }
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-      to { opacity: 1; transform: translateX(-50%) translateY(0); }
-    }
-    
-    /* RESPONSIVE STYLES - Mobile */
+    /* Responsive */
     @media (max-width: 768px) {
       .admin-sidebar {
         left: -280px;
@@ -359,11 +257,7 @@
         transition: left 0.3s ease;
       }
       .admin-sidebar.open { left: 0; }
-      .admin-content { 
-        margin-left: 0; 
-        padding: 1rem;
-        padding-top: 70px;
-      }
+      .admin-content { margin-left: 0; padding: 1rem; padding-top: 70px; }
       .hamburger {
         display: flex;
         position: fixed;
@@ -379,112 +273,8 @@
         color: white;
         border: none;
         cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      }
-      .hamburger:active { transform: scale(0.95); }
-      
-      .admin-content h4.fw-bold {
-        font-size: 1.25rem;
-      }
-      
-      .stat-card {
-        min-height: auto;
-      }
-      
-      .stat-card h2 {
-        font-size: 1.5rem;
-      }
-      
-      .stat-icon {
-        width: 36px;
-        height: 36px;
-      }
-      
-      .stat-icon i {
-        font-size: 1.25rem;
-      }
-      
-      .table-responsive {
-        font-size: 0.8rem;
-      }
-      
-      .user-table th, .user-table td {
-        padding: 10px 8px;
-      }
-      
-      .subscription-card {
-        margin-bottom: 1rem;
-      }
-      
-      .subscription-card h2 {
-        font-size: 1.5rem;
-      }
-      
-      .row.g-4 {
-        --bs-gutter-y: 1rem;
-      }
-      
-      .dark-mode-fab {
-        bottom: 16px;
-        right: 16px;
-        width: 42px;
-        height: 42px;
-      }
-      
-      .pair-card .d-flex {
-        flex-direction: column;
-        align-items: center !important;
-        text-align: center;
-      }
-      
-      .partner-badge {
-        width: 100%;
-        justify-content: center;
       }
     }
-    
-    /* Extra small devices */
-    @media (max-width: 480px) {
-      .admin-content {
-        padding: 0.75rem;
-        padding-top: 65px;
-      }
-      
-      .admin-login-card {
-        padding: 1.5rem;
-        margin: 0.75rem;
-      }
-      
-      .stat-card .d-flex {
-        flex-direction: column;
-        text-align: center;
-        gap: 8px;
-      }
-      
-      .stat-icon {
-        align-self: center;
-      }
-      
-      .btn-group {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-      
-      .btn-group .btn {
-        margin-right: 0 !important;
-        margin-bottom: 4px;
-      }
-      
-      .table-responsive {
-        font-size: 0.7rem;
-      }
-      
-      .user-table th, .user-table td {
-        padding: 6px 4px;
-      }
-    }
-    
     .hamburger { display: none; }
     .sidebar-overlay {
       position: fixed;
@@ -493,21 +283,6 @@
       background: rgba(0,0,0,0.5);
       z-index: 1040;
       display: none;
-      transition: opacity 0.3s ease;
-    }
-    .sidebar-overlay.active { display: block; }
-    .register-modal .modal-content {
-      border-radius: 28px;
-    }
-    
-    /* Preview button styles */
-    .preview-link-btn {
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .preview-link-btn:hover {
-      transform: scale(1.05);
-      color: #7009b4 !important;
     }
   </style>
 </head>
@@ -522,8 +297,8 @@
     <h2 class="admin-login-title">Admin Panel</h2>
     <p class="admin-login-sub">growthogether • Akses Khusus Administrator</p>
     
-    <input type="text" id="adminUsername" class="admin-login-input" placeholder="Username" autocomplete="off" value="">
-    <input type="password" id="adminPassword" class="admin-login-input" placeholder="Password" value="">
+    <input type="text" id="adminUsername" class="admin-login-input" placeholder="Username" autocomplete="off">
+    <input type="password" id="adminPassword" class="admin-login-input" placeholder="Password">
     
     <button class="admin-login-btn" id="adminLoginBtn">
       <i class="bi bi-box-arrow-in-right me-2"></i> Login
@@ -531,12 +306,6 @@
     
     <div id="adminLoginError" class="login-error">
       <i class="bi bi-exclamation-triangle-fill me-2"></i> <span id="errorText">Username atau password salah!</span>
-    </div>
-    
-    <div class="mt-4">
-      <small class="text-muted">
-        <i class="bi bi-info-circle"></i> Hanya FACHMI dan AZIZAH yang memiliki akses
-      </small>
     </div>
   </div>
 </div>
@@ -550,7 +319,7 @@
       <small class="text-muted">Admin Panel</small>
     </div>
     <nav class="nav flex-column">
-      <a class="nav-link active" data-section="dashboard">
+      <a class="nav-link" data-section="dashboard">
         <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
       </a>
       <a class="nav-link" data-section="users">
@@ -559,8 +328,11 @@
       <a class="nav-link" data-section="offers">
         <i class="bi bi-tags-fill"></i> <span>Penawaran & Paket</span>
       </a>
+      <a class="nav-link" data-section="wedding-settings">
+        <i class="bi bi-sliders2"></i> <span>Pengaturan Undangan</span>
+      </a>
       <a class="nav-link" data-section="undangan">
-        <i class="bi bi-envelope-heart-fill"></i> <span>Kelola Undangan</span>
+        <i class="bi bi-envelope-heart-fill"></i> <span>Buat Undangan</span>
       </a>
       <a class="nav-link" data-section="invite-list">
         <i class="bi bi-people-fill"></i> <span>Daftar Tamu</span>
@@ -570,86 +342,47 @@
       <button class="btn btn-sm btn-outline-danger rounded-pill w-100" id="adminLogoutBtn">
         <i class="bi bi-box-arrow-right me-2"></i> Keluar Admin
       </button>
-      <button class="btn btn-sm btn-outline-secondary rounded-pill w-100 mt-2" id="backToAppBtn">
-        <i class="bi bi-house-heart me-2"></i> Kembali ke App
-      </button>
     </div>
   </div>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
   <button class="hamburger" id="hamburgerBtn"><i class="bi bi-list fs-4"></i></button>
 
   <div class="admin-content" id="adminContent">
+    
     <!-- Dashboard Section -->
-    <div id="dashboardSection">
-      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-        <div>
-          <h4 class="fw-bold"><i class="bi bi-activity text-primary me-2"></i>Rangkuman GrowthTogether</h4>
-          <p class="text-muted small">Data realtime dari semua fitur pasangan</p>
-        </div>
-        <button id="refreshDashboardBtn" class="btn btn-sm btn-outline-primary rounded-pill"><i class="bi bi-arrow-repeat me-1"></i> Refresh</button>
-      </div>
-      
-      <!-- Info Pasangan -->
-      <div class="pair-card mb-4">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-          <div class="d-flex gap-3 flex-wrap justify-content-center">
-            <div class="partner-badge">
-              <i class="bi bi-person-circle text-primary"></i>
-              <span><strong>FACHMI</strong> (Fachmi)</span>
-            </div>
-            <i class="bi bi-heart-fill text-danger align-self-center"></i>
-            <div class="partner-badge">
-              <i class="bi bi-person-circle text-pink"></i>
-              <span><strong>AZIZAH</strong> (Azizah)</span>
-            </div>
-          </div>
-          <span class="badge bg-success">Pasangan Terhubung</span>
-        </div>
-        <small class="text-muted d-block mt-2 text-center">💡 Setiap user baru akan otomatis terhubung sebagai pasangan dari user yang dipilih</small>
-      </div>
-      
-      <!-- Stat Cards -->
-      <div class="row g-4 mb-5">
-        <div class="col-md-3 col-sm-6 col-6">
-          <div class="stat-card p-3 d-flex flex-column justify-content-between h-100">
-            <div class="d-flex justify-content-between align-items-start">
-              <div><small class="text-muted">Total Momen</small><h2 class="fw-bold mt-1 mb-0" id="totalMoments">0</h2></div>
+    <div id="dashboardSection" style="display: none;">
+      <h4 class="fw-bold mb-4">Dashboard GrowthTogether</h4>
+      <div class="row g-4">
+        <div class="col-md-3">
+          <div class="stat-card p-3">
+            <div class="d-flex justify-content-between">
+              <div><small class="text-muted">Total Momen</small><h2 class="fw-bold mt-1" id="totalMoments">0</h2></div>
               <div class="stat-icon bg-danger bg-opacity-10"><i class="bi bi-calendar-heart fs-3 text-danger"></i></div>
             </div>
           </div>
         </div>
-        <div class="col-md-3 col-sm-6 col-6">
-          <div class="stat-card p-3 d-flex flex-column justify-content-between h-100">
-            <div class="d-flex justify-content-between align-items-start">
-              <div><small class="text-muted">Total Rencana</small><h2 class="fw-bold mt-1 mb-0" id="totalPlanningItems">0</h2></div>
-              <div class="stat-icon bg-warning bg-opacity-10"><i class="bi bi-journal-bookmark-fill fs-3 text-warning"></i></div>
+        <div class="col-md-3">
+          <div class="stat-card p-3">
+            <div class="d-flex justify-content-between">
+              <div><small class="text-muted">Total Pengguna</small><h2 class="fw-bold mt-1" id="totalUsers">0</h2></div>
+              <div class="stat-icon bg-primary bg-opacity-10"><i class="bi bi-people-fill fs-3 text-primary"></i></div>
             </div>
           </div>
         </div>
-        <div class="col-md-3 col-sm-6 col-6">
-          <div class="stat-card p-3 d-flex flex-column justify-content-between h-100">
-            <div class="d-flex justify-content-between align-items-start">
-              <div><small class="text-muted">Total Saldo</small><h2 class="fw-bold mt-1 mb-0" id="totalBalance">Rp 0</h2></div>
-              <div class="stat-icon bg-success bg-opacity-10"><i class="bi bi-wallet2 fs-3 text-success"></i></div>
+        <div class="col-md-3">
+          <div class="stat-card p-3">
+            <div class="d-flex justify-content-between">
+              <div><small class="text-muted">Total Undangan</small><h2 class="fw-bold mt-1" id="totalInvites">0</h2></div>
+              <div class="stat-icon bg-warning bg-opacity-10"><i class="bi bi-envelope-heart-fill fs-3 text-warning"></i></div>
             </div>
           </div>
         </div>
-        <div class="col-md-3 col-sm-6 col-6">
-          <div class="stat-card p-3 d-flex flex-column justify-content-between h-100">
-            <div class="d-flex justify-content-between align-items-start">
-              <div><small class="text-muted">Total Pasangan</small><h2 class="fw-bold mt-1 mb-0" id="totalPairs">1</h2></div>
-              <div class="stat-icon bg-info bg-opacity-10"><i class="bi bi-people-fill fs-3 text-info"></i></div>
+        <div class="col-md-3">
+          <div class="stat-card p-3">
+            <div class="d-flex justify-content-between">
+              <div><small class="text-muted">Total Doa/Ucapan</small><h2 class="fw-bold mt-1" id="totalMessages">0</h2></div>
+              <div class="stat-icon bg-success bg-opacity-10"><i class="bi bi-chat-heart-fill fs-3 text-success"></i></div>
             </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Grafik -->
-      <div class="card border-0 shadow-sm mt-2">
-        <div class="card-body">
-          <h6 class="fw-bold"><i class="bi bi-graph-up me-2"></i>Trend Keuangan Gabungan</h6>
-          <div class="chart-container" style="position: relative; min-height: 200px;">
-            <canvas id="adminChart" style="width:100%; max-height: 260px;"></canvas>
           </div>
         </div>
       </div>
@@ -657,19 +390,13 @@
 
     <!-- Kelola Pengguna Section -->
     <div id="usersSection" style="display: none;">
-      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-        <h4 class="fw-bold"><i class="bi bi-people-fill text-primary me-2"></i>Kelola Pengguna GrowthTogether</h4>
-        <button class="btn btn-gradient rounded-pill" id="openRegisterModalBtn">
-          <i class="bi bi-person-plus-fill me-2"></i>Daftarkan Pengguna Baru
-        </button>
-      </div>
-      
+      <h4 class="fw-bold mb-4">Kelola Pengguna</h4>
       <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0 user-table">
+            <table class="table table-hover mb-0">
               <thead class="bg-light">
-                <tr><th>ID User</th><th>Username</th><th>Nama</th><th>Pasangan</th><th>Level</th><th>Limit Momen</th><th>Limit Transaksi</th><th>Status</th><th>Aksi</th></tr>
+                <tr><th>Username</th><th>Nama</th><th>Level</th><th>Aksi</th></tr>
               </thead>
               <tbody id="usersTableBody"></tbody>
             </table>
@@ -680,84 +407,186 @@
 
     <!-- Penawaran & Paket Section -->
     <div id="offersSection" style="display: none;">
-      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-        <h4 class="fw-bold"><i class="bi bi-tags-fill text-success me-2"></i>Penawaran & Paket Berlangganan</h4>
-      </div>
-      
+      <h4 class="fw-bold mb-4">Paket Berlangganan</h4>
       <div class="row g-4">
-        <!-- Paket Trial (Free Limited) -->
         <div class="col-md-4">
-          <div class="subscription-card p-4 text-center h-100" data-paket="trial">
-            <div class="mb-3">
-              <span class="badge bg-warning rounded-pill px-3 py-2">TRIAL (1 MINGGU)</span>
-            </div>
-            <h2 class="fw-bold mb-0">Rp 0</h2>
-            <p class="text-muted small">/7 hari pertama</p>
-            <hr>
-            <ul class="list-unstyled text-start mt-3">
-              <li class="mb-2"><i class="bi bi-check-circle-fill text-warning me-2"></i> Akses Terbatas</li>
-              <li class="mb-2"><i class="bi bi-check-circle-fill text-warning me-2"></i> Hanya Menu Keuangan & Catatan</li>
-              <li class="mb-2"><i class="bi bi-check-circle-fill text-warning me-2"></i> 5 Transaksi</li>
-              <li class="mb-2"><i class="bi bi-check-circle-fill text-warning me-2"></i> 5 Item Checklist</li>
-              <li class="text-muted"><i class="bi bi-x-circle-fill text-danger me-2"></i> Tanpa Momen & Impian</li>
+          <div class="card p-4 text-center h-100">
+            <span class="badge bg-warning mx-auto mb-3 px-3 py-2">TRIAL</span>
+            <h3 class="fw-bold">Rp 0</h3>
+            <p class="text-muted">/7 hari</p>
+            <ul class="list-unstyled text-start">
+              <li><i class="bi bi-check text-success me-2"></i> 5 Transaksi</li>
+              <li><i class="bi bi-check text-success me-2"></i> 5 Item Checklist</li>
+              <li class="text-muted"><i class="bi bi-x text-danger me-2"></i> Tanpa Momen</li>
             </ul>
           </div>
         </div>
-        
-        <!-- Paket Basic -->
         <div class="col-md-4">
-          <div class="subscription-card p-4 text-center h-100" data-paket="basic">
-            <div class="mb-3">
-              <span class="badge bg-primary rounded-pill px-3 py-2">BASIC</span>
-            </div>
-            <h2 class="fw-bold mb-0">Rp 25.000</h2>
-            <p class="text-muted small">/bulan</p>
-            <hr>
-            <ul class="list-unstyled text-start mt-3">
-              <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> 50 Momen</li>
-              <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> 50 Transaksi Keuangan</li>
-              <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> 50 Item Checklist</li>
-              <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> Semua Menu Aplikasi</li>
+          <div class="card p-4 text-center h-100 border-primary">
+            <span class="badge bg-primary mx-auto mb-3 px-3 py-2">BASIC</span>
+            <h3 class="fw-bold">Rp 25.000</h3>
+            <p class="text-muted">/bulan</p>
+            <ul class="list-unstyled text-start">
+              <li><i class="bi bi-check text-success me-2"></i> 50 Momen</li>
+              <li><i class="bi bi-check text-success me-2"></i> 50 Transaksi</li>
+              <li><i class="bi bi-check text-success me-2"></i> 50 Item Checklist</li>
             </ul>
           </div>
         </div>
-        
-        <!-- Paket Pro -->
         <div class="col-md-4">
-          <div class="subscription-card pro p-4 text-center h-100" data-paket="pro">
-            <div class="mb-3">
-              <span class="badge bg-light text-dark rounded-pill px-3 py-2">PRO</span>
-            </div>
-            <h2 class="fw-bold mb-0">Rp 50.000</h2>
-            <p class="small opacity-75">/bulan</p>
-            <hr class="border-light">
-            <ul class="list-unstyled text-start mt-3">
-              <li class="mb-2"><i class="bi bi-infinity-fill me-2"></i> Tanpa Batas Momen</li>
-              <li class="mb-2"><i class="bi bi-infinity-fill me-2"></i> Tanpa Batas Transaksi</li>
-              <li class="mb-2"><i class="bi bi-infinity-fill me-2"></i> Tanpa Batas Checklist</li>
-              <li><i class="bi bi-check-circle-fill me-2"></i> Semua Fitur Premium</li>
+          <div class="card p-4 text-center h-100" style="background: linear-gradient(135deg, #7009b4, #4000C6); color: white;">
+            <span class="badge bg-light text-dark mx-auto mb-3 px-3 py-2">PRO</span>
+            <h3 class="fw-bold">Rp 50.000</h3>
+            <p class="opacity-75">/bulan</p>
+            <ul class="list-unstyled text-start">
+              <li><i class="bi bi-infinity me-2"></i> Tanpa Batas Momen</li>
+              <li><i class="bi bi-infinity me-2"></i> Tanpa Batas Transaksi</li>
+              <li><i class="bi bi-infinity me-2"></i> Tanpa Batas Checklist</li>
             </ul>
           </div>
-        </div>
-      </div>
-      
-      <div class="card border-0 shadow-sm mt-4">
-        <div class="card-body">
-          <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-2"></i>Status Penggunaan Saat Ini</h6>
-          <div id="usageStats" class="row g-3"></div>
         </div>
       </div>
     </div>
 
-    <!-- Generate Undangan -->
+    <!-- PENGATURAN UNDANGAN Section -->
+    <div id="wedding-settings-section" style="display: none;">
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <h4 class="fw-bold"><i class="bi bi-sliders2 text-primary me-2"></i>Pengaturan Konten Undangan</h4>
+        <button class="btn btn-gradient rounded-pill" id="saveWeddingSettingsBtn">
+          <i class="bi bi-save me-2"></i> Simpan Pengaturan
+        </button>
+      </div>
+      
+      <div class="row g-4">
+        <!-- Pengaturan Pasangan Pengantin -->
+        <div class="col-md-6">
+          <div class="setting-card p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-people-fill me-2 text-primary"></i>Pasangan Pengantin</h5>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Nama Pria</label>
+              <input type="text" id="groomName" class="form-control rounded-pill" placeholder="Contoh: Fachmi">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Nama Wanita</label>
+              <input type="text" id="brideName" class="form-control rounded-pill" placeholder="Contoh: Azizah">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Nama Panggilan Pria</label>
+              <input type="text" id="groomNickname" class="form-control rounded-pill" placeholder="Contoh: Fachmi">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Nama Panggilan Wanita</label>
+              <input type="text" id="brideNickname" class="form-control rounded-pill" placeholder="Contoh: Azizah">
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Foto Pria</label>
+                <input type="file" id="groomPhotoInput" accept="image/*" class="form-control mb-2">
+                <img id="groomPhotoPreview" class="image-preview" src="https://randomuser.me/api/portraits/men/32.jpg" alt="Foto Pria">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Foto Wanita</label>
+                <input type="file" id="bridePhotoInput" accept="image/*" class="form-control mb-2">
+                <img id="bridePhotoPreview" class="image-preview" src="https://randomuser.me/api/portraits/women/68.jpg" alt="Foto Wanita">
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Pengaturan Waktu & Lokasi -->
+        <div class="col-md-6">
+          <div class="setting-card p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-calendar-heart me-2 text-primary"></i>Waktu & Lokasi</h5>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Tanggal Pernikahan</label>
+              <input type="date" id="weddingDate" class="form-control rounded-pill" value="2025-06-15">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Jam Akad Nikah</label>
+              <input type="time" id="akadTime" class="form-control rounded-pill" value="09:00">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Jam Resepsi</label>
+              <input type="time" id="receptionTime" class="form-control rounded-pill" value="12:00">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Nama Tempat</label>
+              <input type="text" id="venueName" class="form-control rounded-pill" placeholder="Nama Gedung/Venue" value="Aula Serbaguna">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Alamat Lengkap</label>
+              <textarea id="venueAddress" rows="2" class="form-control rounded-3" placeholder="Alamat lengkap venue">Jalan Kebahagiaan No. 123, Jakarta</textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Link Google Maps</label>
+              <input type="text" id="mapsLink" class="form-control rounded-pill" placeholder="https://maps.google.com/..." value="https://maps.google.com/maps?q=-6.8778538795485575,107.52693846630785">
+            </div>
+          </div>
+        </div>
+        
+        <!-- Pengaturan Cerita & Galeri -->
+        <div class="col-md-6">
+          <div class="setting-card p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-chat-heart-fill me-2 text-primary"></i>Cerita Cinta</h5>
+            <div id="storyList">
+              <div class="story-item mb-3 p-3 border rounded-3">
+                <input type="text" class="form-control story-title mb-2" placeholder="Judul Cerita">
+                <textarea class="form-control story-desc" rows="2" placeholder="Deskripsi cerita"></textarea>
+                <input type="date" class="form-control story-date mt-2" placeholder="Tanggal">
+                <button class="btn btn-sm btn-outline-danger mt-2 remove-story">Hapus</button>
+              </div>
+            </div>
+            <button class="btn btn-sm btn-outline-primary rounded-pill" id="addStoryBtn">
+              <i class="bi bi-plus-lg me-1"></i> Tambah Cerita
+            </button>
+          </div>
+        </div>
+        
+        <!-- Pengaturan Galeri -->
+        <div class="col-md-6">
+          <div class="setting-card p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-images me-2 text-primary"></i>Galeri Foto</h5>
+            <div id="galleryList" class="row g-2">
+              <!-- Gallery images will be added here -->
+            </div>
+            <div class="mt-3">
+              <input type="file" id="galleryPhotoInput" accept="image/*" class="form-control mb-2">
+              <button class="btn btn-sm btn-outline-primary rounded-pill w-100" id="addGalleryBtn">
+                <i class="bi bi-plus-lg me-1"></i> Tambah ke Galeri
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Pengaturan Bank & Kado -->
+        <div class="col-md-12">
+          <div class="setting-card p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-bank me-2 text-primary"></i>Rekening Bank</h5>
+            <div id="bankList">
+              <div class="bank-item mb-3 p-3 border rounded-3">
+                <input type="text" class="form-control bank-name mb-2" placeholder="Nama Bank">
+                <input type="text" class="form-control bank-number mb-2" placeholder="Nomor Rekening">
+                <input type="text" class="form-control bank-owner mb-2" placeholder="Atas Nama">
+                <button class="btn btn-sm btn-outline-danger remove-bank">Hapus</button>
+              </div>
+            </div>
+            <button class="btn btn-sm btn-outline-primary rounded-pill" id="addBankBtn">
+              <i class="bi bi-plus-lg me-1"></i> Tambah Rekening
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Generate Undangan Section -->
     <div id="undanganSection" style="display: none;">
       <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-        <h4 class="fw-bold"><i class="bi bi-envelope-heart-fill text-pink me-2"></i>Bagikan Undangan Digital</h4>
+        <h4 class="fw-bold"><i class="bi bi-envelope-heart-fill text-primary me-2"></i>Buat Link Undangan</h4>
       </div>
       <div class="row g-4">
-        <div class="col-lg-5">
-          <div class="invite-card p-4">
-            <h5 class="fw-bold mb-3"><i class="bi bi-person-plus me-2"></i>Buat Link Undangan</h5>
+        <div class="col-md-5">
+          <div class="setting-card p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-person-plus me-2"></i>Data Tamu</h5>
             <div class="mb-3">
               <label class="form-label fw-semibold">Nama Tamu *</label>
               <input type="text" id="guestName" class="form-control rounded-pill" placeholder="Contoh: Ahmad & Siti">
@@ -768,14 +597,18 @@
             </div>
             <div class="mb-3">
               <label class="form-label fw-semibold">Catatan Khusus</label>
-              <textarea id="guestNote" rows="2" class="form-control rounded-3" placeholder="Tambahan pesan untuk pasangan..."></textarea>
+              <textarea id="guestNote" rows="2" class="form-control rounded-3" placeholder="Tambahan pesan..."></textarea>
             </div>
-            <button class="btn btn-gradient w-100 rounded-pill" id="generateInviteBtn"><i class="bi bi-link-45deg me-2"></i> Generate Link</button>
+            <button class="btn btn-gradient w-100 rounded-pill" id="generateInviteBtn">
+              <i class="bi bi-link-45deg me-2"></i> Generate Link Undangan
+            </button>
             <div id="generatedLinkContainer" class="mt-3" style="display: none;">
               <label class="fw-semibold small">Link Undangan:</label>
-              <div class="generated-link d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div class="bg-light p-2 rounded-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <code id="inviteLinkText" class="small"></code>
-                <button class="btn btn-sm btn-outline-secondary rounded-pill" id="copyLinkBtn"><i class="bi bi-files"></i> Salin</button>
+                <button class="btn btn-sm btn-outline-secondary rounded-pill" id="copyLinkBtn">
+                  <i class="bi bi-files"></i> Salin
+                </button>
               </div>
               <div class="mt-2">
                 <button class="btn btn-sm btn-outline-primary rounded-pill w-100" id="previewInviteBtn">
@@ -785,10 +618,10 @@
             </div>
           </div>
         </div>
-        <div class="col-lg-7">
-          <div class="invite-card p-4 h-100">
+        <div class="col-md-7">
+          <div class="setting-card p-4 h-100">
             <h5 class="fw-bold mb-3"><i class="bi bi-grid-3x3-gap-fill"></i> Preview Undangan</h5>
-            <div class="preview-placeholder text-center p-4 bg-light rounded-4" id="invitePreview">
+            <div class="text-center p-4 bg-light rounded-4" id="invitePreview">
               <i class="bi bi-envelope-paper-heart fs-1 text-muted"></i>
               <p class="mt-2">Isi nama tamu untuk pratinjau</p>
             </div>
@@ -797,16 +630,18 @@
       </div>
     </div>
 
-    <!-- Daftar Tamu -->
+    <!-- Daftar Tamu Section -->
     <div id="inviteListSection" style="display: none;">
       <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <h4 class="fw-bold"><i class="bi bi-people-fill me-2"></i>Daftar Tamu & Undangan</h4>
-        <button id="refreshInvitesBtn" class="btn btn-sm btn-outline-secondary rounded-pill"><i class="bi bi-arrow-repeat"></i> Muat ulang</button>
+        <button id="refreshInvitesBtn" class="btn btn-sm btn-outline-secondary rounded-pill">
+          <i class="bi bi-arrow-repeat"></i> Muat ulang
+        </button>
       </div>
       <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover mb-0">
               <thead class="bg-light">
                 <tr><th>Nama Tamu</th><th>No Telepon</th><th>Link Undangan</th><th>Dibuat</th><th>Aksi</th></tr>
               </thead>
@@ -820,105 +655,9 @@
   <button class="dark-mode-fab" id="darkModeFab"><i class="bi bi-moon-stars fs-5"></i></button>
 </div>
 
-<!-- Modal Register User -->
-<div class="modal fade" id="registerUserModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-md">
-    <div class="modal-content rounded-4 register-modal">
-      <div class="modal-header border-0" style="background: linear-gradient(135deg, #7009b4, #4000C6); color: white;">
-        <h5 class="fw-bold mb-0"><i class="bi bi-person-plus-fill me-2"></i>Daftarkan Pengguna Baru</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body p-4">
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Username *</label>
-          <input type="text" id="regUsername" class="form-control rounded-3" placeholder="Contoh: BUDI">
-          <small class="text-muted">Huruf kapital, tanpa spasi (min 3 karakter)</small>
-        </div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Nama Lengkap *</label>
-          <input type="text" id="regFullname" class="form-control rounded-3" placeholder="Contoh: Budi Santoso">
-        </div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Password *</label>
-          <input type="password" id="regPassword" class="form-control rounded-3" placeholder="Minimal 4 karakter">
-        </div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Pasangan (Partner)</label>
-          <select id="regPartner" class="form-select rounded-3">
-            <option value="">Pilih pasangan (opsional)</option>
-          </select>
-          <small class="text-muted">Pilih user yang akan menjadi pasangan. Data akan terhubung bersama.</small>
-        </div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Level Awal</label>
-          <select id="regLevel" class="form-select rounded-3">
-            <option value="trial">Trial (1 minggu - akses terbatas)</option>
-            <option value="basic">Basic (Rp 25.000/bulan)</option>
-            <option value="pro">Pro (Rp 50.000/bulan)</option>
-          </select>
-        </div>
-        <div class="alert alert-info alert-sm py-2 mb-0">
-          <i class="bi bi-info-circle me-1"></i>
-          User baru akan terhubung dengan pasangan yang dipilih. Data seperti momen, keuangan, dan catatan akan dibagikan.
-        </div>
-      </div>
-      <div class="modal-footer border-0 pb-4">
-        <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-gradient rounded-pill px-4" id="confirmRegisterBtn">Daftarkan</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Edit Level -->
-<div class="modal fade" id="editLevelModal" tabindex="-1" data-bs-backdrop="static">
-  <div class="modal-dialog modal-dialog-centered modal-sm">
-    <div class="modal-content rounded-4 level-edit-modal">
-      <div class="modal-header border-0" style="background: linear-gradient(135deg, #7009b4, #4000C6); color: white;">
-        <h5 class="fw-bold mb-0"><i class="bi bi-pencil-square me-2"></i>Ubah Level Pengguna</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body p-4">
-        <p class="text-muted small mb-3" id="editLevelUserName">Mengubah level untuk: <strong>-</strong></p>
-        <div class="level-option mb-2" data-level="trial">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <span class="badge bg-warning">TRIAL</span>
-              <div class="small text-muted mt-1">1 minggu, akses terbatas (Keuangan & Catatan)</div>
-            </div>
-            <i class="bi bi-check-circle-fill text-success" style="display: none;"></i>
-          </div>
-        </div>
-        <div class="level-option mb-2" data-level="basic">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <span class="badge bg-primary">BASIC</span>
-              <div class="small text-muted mt-1">Rp 25.000/bulan, 50 limit</div>
-            </div>
-            <i class="bi bi-check-circle-fill text-success" style="display: none;"></i>
-          </div>
-        </div>
-        <div class="level-option mb-2" data-level="pro">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <span class="badge bg-success">PRO</span>
-              <div class="small text-muted mt-1">Rp 50.000/bulan, tanpa batas</div>
-            </div>
-            <i class="bi bi-check-circle-fill text-success" style="display: none;"></i>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer border-0 pb-4">
-        <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-gradient rounded-pill px-4" id="confirmLevelChangeBtn">Simpan Perubahan</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script type="module">
-  import { initializeApp } from "firebase/app";
-  import { getDatabase, ref, get, set, push, remove, update } from "firebase/database";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getDatabase, ref, get, set, push, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
   
   const firebaseConfig = { 
     apiKey: "AIzaSyBeUaOyesw9ucpBGumNjrzUp3WfUtXu39w", 
@@ -932,35 +671,10 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   
-  // ============ CONSTANTS ============
   const INVITATION_BASE_URL = "https://growthogethers.github.io/growthogether/undangan.html";
-  
-  let adminChart = null;
   let currentSection = 'dashboard';
-  let currentAdminUser = null;
-  let isLoadingUsers = false;
-  let registerModal = null;
-  let editLevelModal = null;
-  let currentEditUsername = null;
-  let currentEditLevel = null;
-  let currentInviteLink = null;
   
-  function formatRp(val) { return `Rp ${(val || 0).toLocaleString('id-ID')}`; }
-  function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
-  
-  function showToast(msg, type = 'success') {
-    const existingToast = document.querySelector('.custom-toast');
-    if (existingToast) existingToast.remove();
-    
-    const toast = document.createElement('div');
-    toast.className = 'custom-toast';
-    toast.style.background = type === 'success' ? '#10b981' : '#ef4444';
-    toast.style.color = 'white';
-    toast.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill'} me-2"></i> ${escapeHtml(msg)}`;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-  }
-  
+  // ============ AUTH FUNCTIONS ============
   async function hashPassword(password) {
     const encoder = new TextEncoder();
     const data = encoder.encode(password + "growthogether_salt_2024");
@@ -969,47 +683,13 @@
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   }
   
-  async function generateUserId() {
-    const usersRef = ref(db, "data/users");
-    const snapshot = await get(usersRef);
-    const users = snapshot.val() || {};
-    let maxId = 0;
-    Object.values(users).forEach(user => {
-      if (user.userId && parseInt(user.userId) > maxId) {
-        maxId = parseInt(user.userId);
-      }
-    });
-    return String(maxId + 1).padStart(3, '0');
-  }
-  
-  async function getUserPartner(username) {
-    const partnerRef = ref(db, `data/partners/${username}`);
-    const snapshot = await get(partnerRef);
-    return snapshot.val();
-  }
-  
-  async function setPartnerRelationship(user1, user2) {
-    await set(ref(db, `data/partners/${user1}`), user2);
-    await set(ref(db, `data/partners/${user2}`), user1);
-    console.log(`Partner relationship set: ${user1} <-> ${user2}`);
-  }
-  
-  // ============ ADMIN LOGIN ============
   async function handleAdminLogin() {
     const username = document.getElementById('adminUsername').value.trim().toUpperCase();
     const password = document.getElementById('adminPassword').value;
     const errorDiv = document.getElementById('adminLoginError');
-    const errorText = document.getElementById('errorText');
     const loginBtn = document.getElementById('adminLoginBtn');
     
-    if (!username || !password) {
-      errorText.innerText = "Username dan password harus diisi!";
-      errorDiv.style.display = 'block';
-      return;
-    }
-    
     if (username !== 'FACHMI' && username !== 'AZIZAH') {
-      errorText.innerText = "Akses ditolak! Hanya FACHMI atau AZIZAH yang dapat mengakses admin panel.";
       errorDiv.style.display = 'block';
       return;
     }
@@ -1019,494 +699,273 @@
     
     try {
       const authSnap = await get(ref(db, `data/auth/${username}`));
-      const storedHash = authSnap.val();
-      
-      if (!storedHash) {
-        errorText.innerText = "User tidak ditemukan!";
-        errorDiv.style.display = 'block';
-        return;
-      }
-      
       const inputHash = await hashPassword(password);
       
-      if (inputHash === storedHash) {
-        currentAdminUser = username;
+      if (inputHash === authSnap.val()) {
         sessionStorage.setItem('admin_logged_in', 'true');
-        sessionStorage.setItem('admin_user', username);
-        
         document.body.classList.add('logged-in');
-        
-        await ensureUsersHaveIdAndLevel();
-        await ensurePartnerRelationship();
         await loadDashboardStats();
         await loadUsersList();
-        
-        showToast(`Selamat datang, ${username === 'FACHMI' ? 'Fachmi' : 'Azizah'}!`, 'success');
+        await loadInvitations();
+        await loadWeddingSettings();
+        showSection('dashboard');
       } else {
-        errorText.innerText = "Password salah!";
         errorDiv.style.display = 'block';
       }
     } catch (err) {
-      console.error(err);
-      errorText.innerText = "Gagal terhubung ke database!";
       errorDiv.style.display = 'block';
     } finally {
       loginBtn.disabled = false;
-      loginBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i> Login sebagai Admin';
+      loginBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i> Login';
     }
   }
   
   function handleAdminLogout() {
     sessionStorage.removeItem('admin_logged_in');
-    sessionStorage.removeItem('admin_user');
-    currentAdminUser = null;
     document.body.classList.remove('logged-in');
-    showToast('Anda telah keluar dari admin panel', 'info');
   }
   
   function checkAdminSession() {
-    const isLoggedIn = sessionStorage.getItem('admin_logged_in') === 'true';
-    const savedUser = sessionStorage.getItem('admin_user');
-    
-    if (isLoggedIn && (savedUser === 'FACHMI' || savedUser === 'AZIZAH')) {
-      currentAdminUser = savedUser;
+    if (sessionStorage.getItem('admin_logged_in') === 'true') {
       document.body.classList.add('logged-in');
-      setTimeout(async () => {
-        await ensureUsersHaveIdAndLevel();
-        await ensurePartnerRelationship();
-        await loadDashboardStats();
-        await loadUsersList();
-      }, 100);
-      return true;
+      loadDashboardStats();
+      loadUsersList();
+      loadInvitations();
+      loadWeddingSettings();
     }
-    return false;
   }
   
-  async function ensureUsersHaveIdAndLevel() {
-    console.log("🔧 Memastikan semua user memiliki userId dan level...");
-    
-    await set(ref(db, `data/users/FACHMI`), {
-      userId: "001",
-      username: "FACHMI",
-      fullname: "Fachmi",
-      level: "pro",
-      active: true,
-      createdAt: Date.now(),
-      updatedAt: Date.now()
-    });
-    
-    await set(ref(db, `data/users/AZIZAH`), {
-      userId: "005",
-      username: "AZIZAH",
-      fullname: "Azizah",
-      level: "pro",
-      active: true,
-      createdAt: Date.now(),
-      updatedAt: Date.now()
-    });
-    
-    const authSnap = await get(ref(db, "data/auth"));
-    if (!authSnap.val()?.FACHMI) {
-      await set(ref(db, "data/auth/FACHMI"), await hashPassword("gokil223"));
-      await set(ref(db, "data/auth/AZIZAH"), await hashPassword("1234"));
-    }
-    
-    console.log("✅ Users updated");
-  }
-  
-  async function ensurePartnerRelationship() {
-    console.log("🔧 Memastikan partner relationship FACHMI-AZIZAH...");
-    const partnerFachmi = await get(ref(db, "data/partners/FACHMI"));
-    if (!partnerFachmi.val()) {
-      await setPartnerRelationship("FACHMI", "AZIZAH");
-    }
-    console.log("✅ Partner relationship ensured");
-  }
-  
-  // ============ DASHBOARD STATS ============
-  async function loadDashboardStats() {
+  // ============ LOAD WEDDING SETTINGS ============
+  async function loadWeddingSettings() {
     try {
-      const snapshot = await get(ref(db, "data/"));
-      const data = snapshot.val() || {};
-      const totalMoments = Object.keys(data.moments || {}).length;
+      const settingsSnap = await get(ref(db, "data/wedding_settings"));
+      const settings = settingsSnap.val() || {};
       
-      const catatanItems = data.catatan?.bersama?.items || {};
-      let totalPlanningItems = 0;
-      Object.values(catatanItems).forEach(katItems => {
-        if (katItems && typeof katItems === 'object') {
-          totalPlanningItems += Object.keys(katItems).filter(key => katItems[key] !== null).length;
-        }
-      });
+      // Load pasangan
+      document.getElementById('groomName').value = settings.groomName || 'Fachmi';
+      document.getElementById('brideName').value = settings.brideName || 'Azizah';
+      document.getElementById('groomNickname').value = settings.groomNickname || 'Fachmi';
+      document.getElementById('brideNickname').value = settings.brideNickname || 'Azizah';
       
-      const users = data.users || {};
-      const totalUsers = Object.keys(users).length;
+      // Load foto
+      if (settings.groomPhoto) document.getElementById('groomPhotoPreview').src = settings.groomPhoto;
+      if (settings.bridePhoto) document.getElementById('bridePhotoPreview').src = settings.bridePhoto;
       
-      const partners = data.partners || {};
-      const pairsSet = new Set();
-      Object.keys(partners).forEach(user => {
-        pairsSet.add(user);
-      });
-      const totalPairs = Math.floor(pairsSet.size / 2) + (pairsSet.size % 2);
+      // Load waktu & lokasi
+      document.getElementById('weddingDate').value = settings.weddingDate || '2025-06-15';
+      document.getElementById('akadTime').value = settings.akadTime || '09:00';
+      document.getElementById('receptionTime').value = settings.receptionTime || '12:00';
+      document.getElementById('venueName').value = settings.venueName || 'Aula Serbaguna';
+      document.getElementById('venueAddress').value = settings.venueAddress || 'Jalan Kebahagiaan No. 123, Jakarta';
+      document.getElementById('mapsLink').value = settings.mapsLink || 'https://maps.google.com/maps?q=-6.8778538795485575,107.52693846630785';
       
-      let totalBalance = 0;
-      for (const [username] of Object.entries(users)) {
-        const transSnap = await get(ref(db, `data/keuangan/${username}/transaksi`));
-        const trans = transSnap.val() || {};
-        let pemasukan = 0, pengeluaran = 0;
-        Object.values(trans).forEach(t => {
-          if (t.tipe === 'pemasukan') pemasukan += (t.nominal || 0);
-          else pengeluaran += (t.nominal || 0);
-        });
-        totalBalance += (pemasukan - pengeluaran);
-      }
+      // Load cerita
+      const stories = settings.stories || [
+        { title: "Pertama Kali Berjumpa", desc: "Bertemu di acara pernikahan teman.", date: "2020-02-14" },
+        { title: "Prosesi Lamaran", desc: "Momen sakral lamaran.", date: "2022-03-10" },
+        { title: "Hari Pernikahan", desc: "Puncak kebahagiaan.", date: "2025-06-15" }
+      ];
+      renderStories(stories);
       
-      document.getElementById('totalMoments').innerText = totalMoments;
-      document.getElementById('totalPlanningItems').innerText = totalPlanningItems;
-      document.getElementById('totalPairs').innerText = totalPairs || 1;
-      document.getElementById('totalBalance').innerHTML = formatRp(totalBalance);
+      // Load galeri
+      const galleries = settings.galleries || [
+        "https://picsum.photos/id/20/400/400",
+        "https://picsum.photos/id/21/400/400",
+        "https://picsum.photos/id/22/400/400"
+      ];
+      renderGalleries(galleries);
       
-      // Chart
-      const allTrans = [];
-      for (const [username] of Object.entries(users)) {
-        const transSnap = await get(ref(db, `data/keuangan/${username}/transaksi`));
-        const trans = transSnap.val() || {};
-        Object.values(trans).forEach(t => allTrans.push(t));
-      }
-      const last7Days = [];
-      const today = new Date();
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date(today);
-        d.setDate(today.getDate() - i);
-        last7Days.push(d.toISOString().slice(0,10));
-      }
-      const pemasukan7d = [], pengeluaran7d = [];
-      last7Days.forEach(dateStr => {
-        let pMasuk = 0, pKeluar = 0;
-        allTrans.forEach(t => {
-          if (!t.tanggal) return;
-          if (new Date(t.tanggal).toISOString().slice(0,10) === dateStr) {
-            if (t.tipe === 'pemasukan') pMasuk += t.nominal;
-            else pKeluar += t.nominal;
-          }
-        });
-        pemasukan7d.push(pMasuk);
-        pengeluaran7d.push(pKeluar);
-      });
-      if (adminChart) adminChart.destroy();
-      const ctx = document.getElementById('adminChart').getContext('2d');
-      adminChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: last7Days.map(d => d.slice(5)),
-          datasets: [
-            { label: 'Pemasukan', data: pemasukan7d, borderColor: '#10b981', fill: true, tension: 0.3 },
-            { label: 'Pengeluaran', data: pengeluaran7d, borderColor: '#ef4444', fill: true, tension: 0.3 }
-          ]
-        },
-        options: { responsive: true, maintainAspectRatio: true, plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: Rp ${ctx.raw.toLocaleString('id-ID')}` } } } }
-      });
-    } catch(e) { console.error(e); }
-  }
-  
-  function getLimitsForLevel(level) {
-    switch(level) {
-      case 'trial': return { moments: 0, transactions: 5, catatan: 5, hasImpian: false, hasMoment: false };
-      case 'basic': return { moments: 50, transactions: 50, catatan: 50, hasImpian: true, hasMoment: true };
-      case 'pro': return { moments: Infinity, transactions: Infinity, catatan: Infinity, hasImpian: true, hasMoment: true };
-      default: return { moments: 0, transactions: 5, catatan: 5, hasImpian: false, hasMoment: false };
+      // Load bank
+      const banks = settings.banks || [
+        { name: "Bank Mandiri", number: "1230012345678", owner: "Fachmi & Azizah" },
+        { name: "Bank Syariah Indonesia", number: "7890123456789", owner: "Fachmi & Azizah" }
+      ];
+      renderBanks(banks);
+      
+    } catch (err) {
+      console.error("Error loading wedding settings:", err);
     }
   }
   
-  // ============ LOAD USERS ============
-  async function loadUsersList() {
-    if (isLoadingUsers) return;
-    isLoadingUsers = true;
-    
-    try {
-      const snapshot = await get(ref(db, "data/users"));
-      const users = snapshot.val() || {};
-      const partners = await get(ref(db, "data/partners"));
-      const partnersData = partners.val() || {};
-      
-      const tbody = document.getElementById('usersTableBody');
-      if (!tbody) return;
-      
-      while (tbody.firstChild) {
-        tbody.removeChild(tbody.firstChild);
-      }
-      
-      const entries = Object.entries(users);
-      if (entries.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">Belum ada pengguna terdaftar</td></tr>';
-        return;
-      }
-      
-      for (let [username, userData] of entries) {
-        const momentsSnap = await get(ref(db, "data/moments"));
-        const moments = momentsSnap.val() || {};
-        const userMoments = Object.values(moments).filter(m => m.author === username).length;
-        
-        const transSnap = await get(ref(db, `data/keuangan/${username}/transaksi`));
-        const trans = transSnap.val() || {};
-        const userTrans = Object.keys(trans).length;
-        
-        const limits = getLimitsForLevel(userData.level || 'trial');
-        const level = userData.level || 'trial';
-        let levelBadge = 'badge-trial', levelText = 'TRIAL';
-        if (level === 'pro') { levelBadge = 'badge-pro'; levelText = 'PRO'; }
-        else if (level === 'basic') { levelBadge = 'badge-basic'; levelText = 'BASIC'; }
-        
-        const partner = partnersData[username] || '-';
-        
-        const row = tbody.insertRow();
-        row.insertCell(0).innerHTML = `<code>${userData.userId || '-'}</code>`;
-        row.insertCell(1).innerHTML = `<strong>${escapeHtml(username)}</strong>`;
-        row.insertCell(2).innerHTML = escapeHtml(userData.fullname || '-');
-        row.insertCell(3).innerHTML = partner !== '-' ? `<span class="badge bg-info">${escapeHtml(partner)}</span>` : '<span class="text-muted">-</span>';
-        row.insertCell(4).innerHTML = `<span class="badge ${levelBadge}">${levelText}</span>`;
-        row.insertCell(5).innerHTML = limits.moments === Infinity ? '∞' : `${userMoments}/${limits.moments}`;
-        row.insertCell(6).innerHTML = limits.transactions === Infinity ? '∞' : `${userTrans}/${limits.transactions}`;
-        row.insertCell(7).innerHTML = userData.active !== false ? '<span class="badge bg-success">Aktif</span>' : '<span class="badge bg-secondary">Nonaktif</span>';
-        row.insertCell(8).innerHTML = `
-          <div class="btn-group btn-group-sm d-flex flex-wrap gap-1">
-            <button class="btn btn-outline-primary rounded-pill edit-level-btn" data-username="${username}" data-level="${level}">
-              <i class="bi bi-pencil"></i> Ubah Level
-            </button>
-            ${username !== 'FACHMI' && username !== 'AZIZAH' ? `
-            <button class="btn btn-outline-danger rounded-pill delete-user-btn" data-username="${username}">
-              <i class="bi bi-trash3"></i> Hapus
-            </button>
-            ` : '<span class="text-muted small">(Admin)</span>'}
-          </div>
-        `;
-      }
-      
-      document.querySelectorAll('.edit-level-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-          e.stopPropagation();
-          const username = btn.dataset.username;
-          const currentLevel = btn.dataset.level;
-          openEditLevelModal(username, currentLevel);
-        });
-      });
-      
-      document.querySelectorAll('.delete-user-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-          e.stopPropagation();
-          const username = btn.dataset.username;
-          if (confirm(`Hapus pengguna ${username}? Semua data akan terhapus.`)) {
-            await remove(ref(db, `data/users/${username}`));
-            await remove(ref(db, `data/auth/${username}`));
-            await remove(ref(db, `data/keuangan/${username}`));
-            await remove(ref(db, `data/impian/${username}`));
-            await remove(ref(db, `data/profiles/${username}`));
-            await remove(ref(db, `data/partners/${username}`));
-            showToast(`Pengguna ${username} dihapus`, 'warning');
-            loadUsersList();
-            loadDashboardStats();
-          }
-        });
-      });
-      
-    } catch(err) {
-      console.error("Error loading users:", err);
-    } finally {
-      isLoadingUsers = false;
-    }
-  }
-  
-  function openEditLevelModal(username, currentLevel) {
-    currentEditUsername = username;
-    currentEditLevel = currentLevel;
-    
-    const modalElement = document.getElementById('editLevelModal');
-    const userNameSpan = document.getElementById('editLevelUserName');
-    if (userNameSpan) userNameSpan.innerHTML = `Mengubah level untuk: <strong>${escapeHtml(username)}</strong>`;
-    
-    const options = modalElement.querySelectorAll('.level-option');
-    options.forEach(opt => {
-      const level = opt.dataset.level;
-      const checkIcon = opt.querySelector('.bi-check-circle-fill');
-      if (checkIcon) checkIcon.style.display = 'none';
-      if (level === currentLevel) {
-        opt.classList.add('selected');
-        if (checkIcon) checkIcon.style.display = 'block';
-      } else {
-        opt.classList.remove('selected');
-      }
+  function renderStories(stories) {
+    const container = document.getElementById('storyList');
+    container.innerHTML = '';
+    stories.forEach((story, index) => {
+      const storyDiv = document.createElement('div');
+      storyDiv.className = 'story-item mb-3 p-3 border rounded-3';
+      storyDiv.innerHTML = `
+        <input type="text" class="form-control story-title mb-2" value="${escapeHtml(story.title)}" placeholder="Judul Cerita">
+        <textarea class="form-control story-desc mb-2" rows="2" placeholder="Deskripsi cerita">${escapeHtml(story.desc)}</textarea>
+        <input type="date" class="form-control story-date" value="${story.date || ''}" placeholder="Tanggal">
+        <button class="btn btn-sm btn-outline-danger mt-2 remove-story">Hapus</button>
+      `;
+      container.appendChild(storyDiv);
     });
-    
-    options.forEach(opt => {
-      opt.onclick = () => {
-        options.forEach(o => {
-          o.classList.remove('selected');
-          const icon = o.querySelector('.bi-check-circle-fill');
-          if (icon) icon.style.display = 'none';
-        });
-        opt.classList.add('selected');
-        const icon = opt.querySelector('.bi-check-circle-fill');
-        if (icon) icon.style.display = 'block';
-        currentEditLevel = opt.dataset.level;
-      };
-    });
-    
-    if (editLevelModal) {
-      editLevelModal.show();
-    }
   }
   
-  async function saveLevelChange() {
-    if (!currentEditUsername || !currentEditLevel) {
-      showToast("Gagal: data tidak lengkap", 'error');
-      return;
-    }
-    
-    try {
-      await update(ref(db, `data/users/${currentEditUsername}/level`), currentEditLevel);
-      showToast(`Level ${currentEditUsername} diubah ke ${currentEditLevel.toUpperCase()}`, 'success');
-      
-      if (editLevelModal) editLevelModal.hide();
-      
-      await loadUsersList();
-      await loadUsageStats();
-    } catch(err) {
-      console.error(err);
-      showToast("Gagal mengubah level", 'error');
-    }
-  }
-  
-  async function loadUsageStats() {
-    const snapshot = await get(ref(db, "data/users"));
-    const users = snapshot.val() || {};
-    const statsContainer = document.getElementById('usageStats');
-    if (!statsContainer) return;
-    
-    let html = '';
-    for (let [username, userData] of Object.entries(users)) {
-      const momentsSnap = await get(ref(db, "data/moments"));
-      const moments = momentsSnap.val() || {};
-      const userMoments = Object.values(moments).filter(m => m.author === username).length;
-      
-      const transSnap = await get(ref(db, `data/keuangan/${username}/transaksi`));
-      const trans = transSnap.val() || {};
-      const userTrans = Object.keys(trans).length;
-      
-      const limits = getLimitsForLevel(userData.level || 'trial');
-      const level = userData.level || 'trial';
-      let levelBadge = 'badge-trial', levelText = 'TRIAL';
-      if (level === 'pro') { levelBadge = 'badge-pro'; levelText = 'PRO'; }
-      else if (level === 'basic') { levelBadge = 'badge-basic'; levelText = 'BASIC'; }
-      
-      html += `
-        <div class="col-md-6">
-          <div class="card border-0 shadow-sm">
-            <div class="card-body">
-              <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                <div>
-                  <strong>${escapeHtml(username)}</strong>
-                  <small class="text-muted d-block">ID: ${userData.userId || '-'}</small>
-                </div>
-                <span class="badge ${levelBadge}">${levelText}</span>
-              </div>
-              <div class="mb-2">
-                <small>Momen: ${userMoments}${limits.moments !== Infinity ? '/' + limits.moments : ' (∞)'}</small>
-                ${limits.moments !== Infinity ? `<div class="progress mt-1" style="height: 4px;"><div class="progress-bar bg-danger" style="width: ${limits.moments > 0 ? Math.min(100, (userMoments / limits.moments) * 100) : 0}%"></div></div>` : ''}
-              </div>
-              <div>
-                <small>Keuangan: ${userTrans}${limits.transactions !== Infinity ? '/' + limits.transactions : ' (∞)'}</small>
-                ${limits.transactions !== Infinity ? `<div class="progress mt-1" style="height: 4px;"><div class="progress-bar bg-warning" style="width: ${limits.transactions > 0 ? Math.min(100, (userTrans / limits.transactions) * 100) : 0}%"></div></div>` : ''}
-              </div>
-            </div>
-          </div>
+  function renderGalleries(galleries) {
+    const container = document.getElementById('galleryList');
+    container.innerHTML = '';
+    galleries.forEach((url, index) => {
+      const col = document.createElement('div');
+      col.className = 'col-4';
+      col.innerHTML = `
+        <div class="position-relative">
+          <img src="${url}" class="w-100 rounded-3" style="height: 100px; object-fit: cover;">
+          <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle remove-gallery" data-index="${index}" style="width: 25px; height: 25px; padding: 0;">✕</button>
         </div>
       `;
-    }
-    statsContainer.innerHTML = html || '<div class="col-12 text-center text-muted">Belum ada data pengguna</div>';
-  }
-  
-  // ============ REGISTER NEW USER ============
-  async function registerNewUser(username, fullname, password, level, partnerUsername) {
-    const usersRef = ref(db, "data/users");
-    const snapshot = await get(usersRef);
-    const users = snapshot.val() || {};
-    
-    const usernameUpper = username.toUpperCase().trim();
-    if (users[usernameUpper]) throw new Error("Username sudah terdaftar!");
-    if (usernameUpper.length < 3) throw new Error("Username minimal 3 karakter!");
-    if (password.length < 4) throw new Error("Password minimal 4 karakter!");
-    
-    const userId = await generateUserId();
-    const hashedPassword = await hashPassword(password);
-    
-    await set(ref(db, `data/auth/${usernameUpper}`), hashedPassword);
-    await set(ref(db, `data/users/${usernameUpper}`), {
-      userId: userId,
-      username: usernameUpper,
-      fullname: fullname,
-      level: level,
-      active: true,
-      createdAt: Date.now()
+      container.appendChild(col);
     });
-    await set(ref(db, `data/profiles/${usernameUpper}`), { status: 'merencanakan', photo: null });
-    await set(ref(db, `data/keuangan/${usernameUpper}`), { transaksi: {} });
-    await set(ref(db, `data/impian/${usernameUpper}`), {});
-    
-    if (partnerUsername) {
-      const partnerUpper = partnerUsername.toUpperCase().trim();
-      if (users[partnerUpper]) {
-        await setPartnerRelationship(usernameUpper, partnerUpper);
-      }
-    }
-    
-    return { username: usernameUpper, userId };
   }
   
-  async function loadPartnerOptions() {
-    const snapshot = await get(ref(db, "data/users"));
-    const users = snapshot.val() || {};
-    const select = document.getElementById('regPartner');
-    if (!select) return;
-    
-    select.innerHTML = '<option value="">Pilih pasangan (opsional)</option>';
-    for (const [username, userData] of Object.entries(users)) {
-      if (username !== 'FACHMI' && username !== 'AZIZAH') {
-        select.innerHTML += `<option value="${escapeHtml(username)}">${escapeHtml(username)} (${escapeHtml(userData.fullname || username)})</option>`;
-      }
-    }
-    select.innerHTML += `<option value="FACHMI">FACHMI (Fachmi)</option>`;
-    select.innerHTML += `<option value="AZIZAH">AZIZAH (Azizah)</option>`;
+  function renderBanks(banks) {
+    const container = document.getElementById('bankList');
+    container.innerHTML = '';
+    banks.forEach((bank, index) => {
+      const bankDiv = document.createElement('div');
+      bankDiv.className = 'bank-item mb-3 p-3 border rounded-3';
+      bankDiv.innerHTML = `
+        <input type="text" class="form-control bank-name mb-2" value="${escapeHtml(bank.name)}" placeholder="Nama Bank">
+        <input type="text" class="form-control bank-number mb-2" value="${escapeHtml(bank.number)}" placeholder="Nomor Rekening">
+        <input type="text" class="form-control bank-owner mb-2" value="${escapeHtml(bank.owner)}" placeholder="Atas Nama">
+        <button class="btn btn-sm btn-outline-danger remove-bank">Hapus</button>
+      `;
+      container.appendChild(bankDiv);
+    });
   }
   
-  // ============ INVITATIONS FUNCTIONS ============
-  // Generate link ke production URL
+  // ============ SAVE WEDDING SETTINGS ============
+  async function saveWeddingSettings() {
+    Swal.fire({
+      title: 'Menyimpan Pengaturan...',
+      text: 'Mohon tunggu sebentar',
+      allowOutsideClick: false,
+      didOpen: () => { Swal.showLoading(); }
+    });
+    
+    try {
+      // Kumpulkan data cerita
+      const stories = [];
+      document.querySelectorAll('.story-item').forEach(item => {
+        const title = item.querySelector('.story-title')?.value || '';
+        const desc = item.querySelector('.story-desc')?.value || '';
+        const date = item.querySelector('.story-date')?.value || '';
+        if (title) stories.push({ title, desc, date });
+      });
+      
+      // Kumpulkan data galeri
+      const galleries = [];
+      document.querySelectorAll('#galleryList .col-4 img').forEach(img => {
+        galleries.push(img.src);
+      });
+      
+      // Kumpulkan data bank
+      const banks = [];
+      document.querySelectorAll('.bank-item').forEach(item => {
+        const name = item.querySelector('.bank-name')?.value || '';
+        const number = item.querySelector('.bank-number')?.value || '';
+        const owner = item.querySelector('.bank-owner')?.value || '';
+        if (name && number) banks.push({ name, number, owner });
+      });
+      
+      const settings = {
+        groomName: document.getElementById('groomName').value,
+        brideName: document.getElementById('brideName').value,
+        groomNickname: document.getElementById('groomNickname').value,
+        brideNickname: document.getElementById('brideNickname').value,
+        groomPhoto: document.getElementById('groomPhotoPreview').src,
+        bridePhoto: document.getElementById('bridePhotoPreview').src,
+        weddingDate: document.getElementById('weddingDate').value,
+        akadTime: document.getElementById('akadTime').value,
+        receptionTime: document.getElementById('receptionTime').value,
+        venueName: document.getElementById('venueName').value,
+        venueAddress: document.getElementById('venueAddress').value,
+        mapsLink: document.getElementById('mapsLink').value,
+        stories: stories,
+        galleries: galleries,
+        banks: banks,
+        updatedAt: Date.now()
+      };
+      
+      await set(ref(db, "data/wedding_settings"), settings);
+      
+      Swal.fire('Berhasil!', 'Pengaturan undangan telah disimpan', 'success');
+    } catch (err) {
+      console.error(err);
+      Swal.fire('Error!', 'Gagal menyimpan pengaturan', 'error');
+    }
+  }
+  
+  // ============ UPLOAD FOTO ============
+  function compressImage(file, maxSizeMB = 1) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (e) => {
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width, height = img.height;
+          const maxDim = 300;
+          if (width > height && width > maxDim) {
+            height = (height * maxDim) / width;
+            width = maxDim;
+          } else if (height > maxDim) {
+            width = (width * maxDim) / height;
+            height = maxDim;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.8));
+        };
+      };
+    });
+  }
+  
+  document.getElementById('groomPhotoInput')?.addEventListener('change', async (e) => {
+    if (e.target.files[0]) {
+      const compressed = await compressImage(e.target.files[0]);
+      document.getElementById('groomPhotoPreview').src = compressed;
+    }
+  });
+  
+  document.getElementById('bridePhotoInput')?.addEventListener('change', async (e) => {
+    if (e.target.files[0]) {
+      const compressed = await compressImage(e.target.files[0]);
+      document.getElementById('bridePhotoPreview').src = compressed;
+    }
+  });
+  
+  document.getElementById('galleryPhotoInput')?.addEventListener('change', async (e) => {
+    if (e.target.files[0]) {
+      const compressed = await compressImage(e.target.files[0], 0.5);
+      const galleries = [];
+      document.querySelectorAll('#galleryList .col-4 img').forEach(img => {
+        galleries.push(img.src);
+      });
+      galleries.push(compressed);
+      renderGalleries(galleries);
+      e.target.value = '';
+    }
+  });
+  
+  // ============ INVITATION FUNCTIONS ============
   async function generateInvitationLink(guestName, phone, note) {
     if (!guestName.trim()) throw new Error("Nama tamu wajib diisi");
-    
-    // Buat ID unik untuk undangan
-    const id = Date.now().toString() + Math.random().toString(36).substring(2, 6);
-    
-    // Simpan data undangan ke Firebase
+    const id = Date.now().toString() + Math.random().toString(36).substring(2, 8);
     await set(ref(db, `data/invitations/${id}`), {
       guestName: guestName.trim(),
       phone: phone || '',
       note: note || '',
-      createdAt: Date.now(),
-      linkId: id
+      createdAt: Date.now()
     });
-    
-    // GENERATE LINK KE PRODUCTION URL
-    const fullLink = `${INVITATION_BASE_URL}?invite=${id}`;
-    currentInviteLink = fullLink;
-    return fullLink;
+    return `${INVITATION_BASE_URL}?invite=${id}`;
   }
   
-  // Preview undangan di tab baru
-  function openInvitationPreview(linkId, guestName) {
-    const previewUrl = `${INVITATION_BASE_URL}?invite=${linkId}&preview=true`;
-    window.open(previewUrl, '_blank', 'width=400,height=700,scrollbars=yes');
-  }
-  
-  // Load daftar undangan dari Firebase
   async function loadInvitations() {
     const snap = await get(ref(db, "data/invitations"));
     const invites = snap.val() || {};
@@ -1514,301 +973,170 @@
     if (!tbody) return;
     tbody.innerHTML = '';
     
-    const entries = Object.entries(invites);
-    if (entries.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Belum ada undangan</td></tr>';
-      return;
-    }
-    
-    for (let [id, inv] of entries.reverse()) {
-      // LINK KE PRODUCTION
+    Object.entries(invites).reverse().forEach(([id, inv]) => {
       const fullLink = `${INVITATION_BASE_URL}?invite=${id}`;
       const row = tbody.insertRow();
-      row.insertCell(0).innerHTML = `<strong>${escapeHtml(inv.guestName || 'Tanpa Nama')}</strong>`;
+      row.insertCell(0).innerHTML = `<strong>${escapeHtml(inv.guestName)}</strong>`;
       row.insertCell(1).innerHTML = inv.phone || '-';
-      row.insertCell(2).innerHTML = `
-        <span class="small text-truncate d-inline-block" style="max-width: 180px;">${fullLink.substring(0,40)}...</span>
-        <div class="mt-1">
-          <button class="btn btn-sm btn-link copyInvLink p-0 me-2" data-link="${fullLink}"><i class="bi bi-copy"></i> Salin</button>
-          <button class="btn btn-sm btn-link text-primary preview-invite-link p-0" data-link-id="${id}" data-guest-name="${escapeHtml(inv.guestName)}"><i class="bi bi-eye"></i> Preview</button>
-        </div>
-      `;
+      row.insertCell(2).innerHTML = `<small>${fullLink.substring(0,40)}...</small>`;
       row.insertCell(3).innerHTML = inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('id') : '-';
-      row.insertCell(4).innerHTML = `<button class="btn btn-sm btn-outline-danger rounded-pill deleteInvBtn" data-id="${id}"><i class="bi bi-trash3"></i> Hapus</button>`;
-    }
-    
-    // Event listeners untuk copy dan preview
-    document.querySelectorAll('.copyInvLink').forEach(btn => {
-      btn.addEventListener('click', () => { 
-        navigator.clipboard.writeText(btn.dataset.link); 
-        showToast('Link disalin!'); 
-      });
+      row.insertCell(4).innerHTML = `<button class="btn btn-sm btn-outline-danger rounded-pill delete-invite" data-id="${id}">Hapus</button>`;
     });
     
-    document.querySelectorAll('.preview-invite-link').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const linkId = btn.dataset.linkId;
-        const guestName = btn.dataset.guestName;
-        openInvitationPreview(linkId, guestName);
-      });
-    });
-    
-    document.querySelectorAll('.deleteInvBtn').forEach(btn => {
+    document.querySelectorAll('.delete-invite').forEach(btn => {
       btn.addEventListener('click', async () => {
         if (confirm('Hapus undangan ini?')) {
           await remove(ref(db, `data/invitations/${btn.dataset.id}`));
           loadInvitations();
-          showToast('Undangan dihapus', 'warning');
         }
       });
     });
   }
   
-  // Update preview di sidebar
-  function updatePreview(guestName, phone, note) {
-    const previewDiv = document.getElementById('invitePreview');
-    if (!previewDiv) return;
+  // ============ DASHBOARD STATS ============
+  async function loadDashboardStats() {
+    const usersSnap = await get(ref(db, "data/users"));
+    const invitesSnap = await get(ref(db, "data/invitations"));
+    const momentsSnap = await get(ref(db, "data/moments"));
     
-    if (guestName) {
-      previewDiv.innerHTML = `
-        <div class="text-center p-3 rounded-4" style="background: linear-gradient(145deg, #fdf2f8, #fff);">
-          <i class="bi bi-envelope-heart-fill fs-1 text-danger"></i>
-          <h5 class="fw-bold mt-2">Undangan untuk ${escapeHtml(guestName)}</h5>
-          <p class="small">💌 Dengan hormat, kami mengundang Anda...</p>
-          <hr>
-          <div class="text-start small">
-            <p><i class="bi bi-calendar-heart text-danger me-2"></i> <strong>Acara:</strong> Pernikahan Fachmi & Azizah</p>
-            <p><i class="bi bi-clock me-2"></i> <strong>Waktu:</strong> 09:00 WIB - selesai</p>
-            <p><i class="bi bi-geo-alt me-2"></i> <strong>Tempat:</strong> Aula Serbaguna, Jakarta</p>
-            ${phone ? `<p><i class="bi bi-whatsapp me-2"></i> <strong>Konfirmasi:</strong> ${escapeHtml(phone)}</p>` : ''}
-            ${note ? `<p><i class="bi bi-chat-heart me-2"></i> <strong>Catatan:</strong> ${escapeHtml(note)}</p>` : ''}
-          </div>
-          <div class="mt-3">
-            <small class="text-muted">✨ Undangan digital ini menghemat kertas dan mengurangi jejak karbon</small>
-          </div>
-          <button class="btn btn-sm btn-outline-primary rounded-pill mt-3" id="openFullPreviewBtn">
-            <i class="bi bi-eye me-1"></i> Lihat Preview Lengkap
-          </button>
-        </div>
-      `;
-      
-      const openFullBtn = document.getElementById('openFullPreviewBtn');
-      if (openFullBtn) {
-        openFullBtn.addEventListener('click', () => {
-          const fakeLinkId = 'preview_' + Date.now();
-          openInvitationPreview(fakeLinkId, guestName);
-        });
-      }
-    } else {
-      previewDiv.innerHTML = `
-        <i class="bi bi-envelope-paper-heart fs-1 text-muted"></i>
-        <p class="mt-2">Isi nama tamu untuk pratinjau</p>
-      `;
-    }
+    document.getElementById('totalMoments').innerText = Object.keys(momentsSnap.val() || {}).length;
+    document.getElementById('totalUsers').innerText = Object.keys(usersSnap.val() || {}).length;
+    document.getElementById('totalInvites').innerText = Object.keys(invitesSnap.val() || {}).length;
   }
   
-  // ============ SHOW SECTION ============
+  async function loadUsersList() {
+    const snapshot = await get(ref(db, "data/users"));
+    const users = snapshot.val() || {};
+    const tbody = document.getElementById('usersTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    Object.entries(users).forEach(([username, userData]) => {
+      const row = tbody.insertRow();
+      row.insertCell(0).innerHTML = `<strong>${username}</strong>`;
+      row.insertCell(1).innerHTML = userData.fullname || '-';
+      row.insertCell(2).innerHTML = `<span class="badge ${userData.level === 'pro' ? 'bg-success' : userData.level === 'basic' ? 'bg-primary' : 'bg-warning'}">${userData.level || 'trial'}</span>`;
+      row.insertCell(3).innerHTML = `<button class="btn btn-sm btn-outline-primary">Edit</button>`;
+    });
+  }
+  
   function showSection(sectionId) {
     document.getElementById('dashboardSection').style.display = sectionId === 'dashboard' ? 'block' : 'none';
     document.getElementById('usersSection').style.display = sectionId === 'users' ? 'block' : 'none';
     document.getElementById('offersSection').style.display = sectionId === 'offers' ? 'block' : 'none';
+    document.getElementById('wedding-settings-section').style.display = sectionId === 'wedding-settings' ? 'block' : 'none';
     document.getElementById('undanganSection').style.display = sectionId === 'undangan' ? 'block' : 'none';
     document.getElementById('inviteListSection').style.display = sectionId === 'invite-list' ? 'block' : 'none';
-    document.querySelectorAll('.admin-sidebar .nav-link').forEach(link => link.classList.remove('active'));
-    document.querySelector(`.admin-sidebar .nav-link[data-section="${sectionId}"]`).classList.add('active');
     
-    if (sectionId === 'users') loadUsersList();
-    if (sectionId === 'offers') loadUsageStats();
-    if (sectionId === 'invite-list') loadInvitations();
-    if (sectionId === 'dashboard') loadDashboardStats();
+    document.querySelectorAll('.admin-sidebar .nav-link').forEach(link => link.classList.remove('active'));
+    document.querySelector(`.admin-sidebar .nav-link[data-section="${sectionId}"]`)?.classList.add('active');
     currentSection = sectionId;
   }
   
-  // ============ INITIALIZATION ============
-  window.addEventListener('DOMContentLoaded', async () => {
-    console.log("Admin panel starting...");
-    
-    const modalElement = document.getElementById('registerUserModal');
-    if (modalElement) {
-      registerModal = new bootstrap.Modal(modalElement);
+  function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ return m==='&'?'&amp;':m==='<'?'&lt;':'&gt;';}); }
+  
+  // ============ EVENT LISTENERS ============
+  document.getElementById('adminLoginBtn')?.addEventListener('click', handleAdminLogin);
+  document.getElementById('adminLogoutBtn')?.addEventListener('click', handleAdminLogout);
+  document.getElementById('saveWeddingSettingsBtn')?.addEventListener('click', saveWeddingSettings);
+  document.getElementById('addStoryBtn')?.addEventListener('click', () => {
+    const container = document.getElementById('storyList');
+    const storyDiv = document.createElement('div');
+    storyDiv.className = 'story-item mb-3 p-3 border rounded-3';
+    storyDiv.innerHTML = `
+      <input type="text" class="form-control story-title mb-2" placeholder="Judul Cerita">
+      <textarea class="form-control story-desc mb-2" rows="2" placeholder="Deskripsi cerita"></textarea>
+      <input type="date" class="form-control story-date" placeholder="Tanggal">
+      <button class="btn btn-sm btn-outline-danger mt-2 remove-story">Hapus</button>
+    `;
+    container.appendChild(storyDiv);
+  });
+  
+  document.getElementById('addBankBtn')?.addEventListener('click', () => {
+    const container = document.getElementById('bankList');
+    const bankDiv = document.createElement('div');
+    bankDiv.className = 'bank-item mb-3 p-3 border rounded-3';
+    bankDiv.innerHTML = `
+      <input type="text" class="form-control bank-name mb-2" placeholder="Nama Bank">
+      <input type="text" class="form-control bank-number mb-2" placeholder="Nomor Rekening">
+      <input type="text" class="form-control bank-owner mb-2" placeholder="Atas Nama">
+      <button class="btn btn-sm btn-outline-danger remove-bank">Hapus</button>
+    `;
+    container.appendChild(bankDiv);
+  });
+  
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('remove-story')) {
+      e.target.closest('.story-item').remove();
     }
-    
-    const levelModalElement = document.getElementById('editLevelModal');
-    if (levelModalElement) {
-      editLevelModal = new bootstrap.Modal(levelModalElement);
+    if (e.target.classList.contains('remove-bank')) {
+      e.target.closest('.bank-item').remove();
     }
-    
-    checkAdminSession();
-    
-    // Login event
-    document.getElementById('adminLoginBtn')?.addEventListener('click', handleAdminLogin);
-    document.getElementById('adminPassword')?.addEventListener('keypress', (e) => { if(e.key === 'Enter') handleAdminLogin(); });
-    
-    // Logout event
-    document.getElementById('adminLogoutBtn')?.addEventListener('click', handleAdminLogout);
-    document.getElementById('backToAppBtn')?.addEventListener('click', () => { 
-      window.location.href = window.location.pathname.replace('admin.html', 'index.html'); 
-    });
-    
-    // Refresh dashboard
-    const refreshBtn = document.getElementById('refreshDashboardBtn');
-    if (refreshBtn) {
-      refreshBtn.addEventListener('click', async () => {
-        refreshBtn.disabled = true;
-        refreshBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Memuat...';
-        await loadDashboardStats();
-        refreshBtn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> Refresh';
-        refreshBtn.disabled = false;
-        showToast('Dashboard berhasil diperbarui', 'success');
+    if (e.target.classList.contains('remove-gallery')) {
+      const galleries = [];
+      document.querySelectorAll('#galleryList .col-4 img').forEach((img, idx) => {
+        if (idx !== parseInt(e.target.dataset.index)) galleries.push(img.src);
       });
-    }
-    
-    // Open register modal
-    const openModalBtn = document.getElementById('openRegisterModalBtn');
-    if (openModalBtn) {
-      openModalBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        await loadPartnerOptions();
-        if (registerModal) {
-          document.getElementById('regUsername').value = '';
-          document.getElementById('regFullname').value = '';
-          document.getElementById('regPassword').value = '';
-          document.getElementById('regLevel').value = 'trial';
-          registerModal.show();
-        }
-      });
-    }
-    
-    // Confirm level change
-    const confirmLevelBtn = document.getElementById('confirmLevelChangeBtn');
-    if (confirmLevelBtn) {
-      confirmLevelBtn.addEventListener('click', saveLevelChange);
-    }
-    
-    // Confirm register user
-    document.getElementById('confirmRegisterBtn')?.addEventListener('click', async () => {
-      const username = document.getElementById('regUsername').value;
-      const fullname = document.getElementById('regFullname').value;
-      const password = document.getElementById('regPassword').value;
-      const level = document.getElementById('regLevel').value;
-      const partner = document.getElementById('regPartner').value;
-      
-      if (!username || !fullname || !password) {
-        showToast("Semua field harus diisi!", 'error');
-        return;
-      }
-      try {
-        const result = await registerNewUser(username, fullname, password, level, partner);
-        showToast(`Pengguna ${result.username} berhasil didaftarkan! ID: ${result.userId}${partner ? ` (Pasangan: ${partner})` : ''}`, 'success');
-        if (registerModal) registerModal.hide();
-        if (currentSection === 'users') loadUsersList();
-        loadDashboardStats();
-      } catch(err) {
-        showToast(err.message, 'error');
-      }
-    });
-    
-    // Generate Invitation Link
-    const generateBtn = document.getElementById('generateInviteBtn');
-    if (generateBtn) {
-      generateBtn.addEventListener('click', async () => {
-        const name = document.getElementById('guestName').value.trim();
-        const phone = document.getElementById('guestPhone').value;
-        const note = document.getElementById('guestNote').value;
-        if (!name) return showToast("Nama tamu harus diisi", 'error');
-        try {
-          const fullLink = await generateInvitationLink(name, phone, note);
-          document.getElementById('generatedLinkContainer').style.display = 'block';
-          document.getElementById('inviteLinkText').innerText = fullLink;
-          updatePreview(name, phone, note);
-          showToast("Link undangan berhasil dibuat!", 'success');
-          if (currentSection === 'invite-list') loadInvitations();
-        } catch(err) { showToast(err.message, 'error'); }
-      });
-    }
-    
-    // Preview Invitation button
-    const previewBtn = document.getElementById('previewInviteBtn');
-    if (previewBtn) {
-      previewBtn.addEventListener('click', () => {
-        const guestName = document.getElementById('guestName').value.trim();
-        if (!guestName) {
-          showToast("Masukkan nama tamu terlebih dahulu", 'error');
-          return;
-        }
-        const fakeLinkId = 'preview_' + Date.now();
-        openInvitationPreview(fakeLinkId, guestName);
-      });
-    }
-    
-    // Copy link button
-    document.getElementById('copyLinkBtn')?.addEventListener('click', () => {
-      const link = document.getElementById('inviteLinkText')?.innerText;
-      if(link){ navigator.clipboard.writeText(link); showToast("Link disalin"); }
-    });
-    
-    // Refresh invites button
-    document.getElementById('refreshInvitesBtn')?.addEventListener('click', () => loadInvitations());
-    
-    // Real-time preview update
-    const guestNameInput = document.getElementById('guestName');
-    const guestPhoneInput = document.getElementById('guestPhone');
-    const guestNoteInput = document.getElementById('guestNote');
-    if (guestNameInput) {
-      const updatePreviewFromInputs = () => {
-        updatePreview(guestNameInput.value, guestPhoneInput?.value || '', guestNoteInput?.value || '');
-      };
-      guestNameInput.addEventListener('input', updatePreviewFromInputs);
-      if (guestPhoneInput) guestPhoneInput.addEventListener('input', updatePreviewFromInputs);
-      if (guestNoteInput) guestNoteInput.addEventListener('input', updatePreviewFromInputs);
-    }
-    
-    // Navigation
-    document.querySelectorAll('.admin-sidebar .nav-link').forEach(link => {
-      link.addEventListener('click', (e) => { 
-        const sec = link.dataset.section; 
-        if(sec) showSection(sec); 
-        if(window.innerWidth <= 768) closeSidebar(); 
-      });
-    });
-    
-    // Dark Mode
-    const darkFab = document.getElementById('darkModeFab');
-    const isDark = localStorage.getItem('adminDark') === 'true';
-    if(isDark) document.body.classList.add('dark');
-    if (darkFab) {
-      darkFab.addEventListener('click', () => {
-        document.body.classList.toggle('dark');
-        localStorage.setItem('adminDark', document.body.classList.contains('dark'));
-        darkFab.innerHTML = document.body.classList.contains('dark') ? '<i class="bi bi-brightness-high-fill"></i>' : '<i class="bi bi-moon-stars"></i>';
-      });
-    }
-    
-    // Mobile hamburger menu
-    const hamburger = document.getElementById('hamburgerBtn');
-    const sidebar = document.getElementById('adminSidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-    function closeSidebar() { 
-      if (sidebar) sidebar.classList.remove('open'); 
-      if (overlay) overlay.classList.remove('active');
-    }
-    function openSidebar() { 
-      if (sidebar) sidebar.classList.add('open'); 
-      if (overlay) overlay.classList.add('active');
-    }
-    if (hamburger) hamburger.addEventListener('click', openSidebar);
-    if (overlay) overlay.addEventListener('click', closeSidebar);
-    window.addEventListener('resize', () => { 
-      if(window.innerWidth > 768) { 
-        closeSidebar(); 
-      } 
-    });
-    
-    if (document.body.classList.contains('logged-in')) {
-      showSection('dashboard');
+      renderGalleries(galleries);
     }
   });
+  
+  document.getElementById('generateInviteBtn')?.addEventListener('click', async () => {
+    const name = document.getElementById('guestName').value.trim();
+    const phone = document.getElementById('guestPhone').value;
+    const note = document.getElementById('guestNote').value;
+    if (!name) return Swal.fire('Info', 'Nama tamu harus diisi!', 'warning');
+    
+    try {
+      const link = await generateInvitationLink(name, phone, note);
+      document.getElementById('generatedLinkContainer').style.display = 'block';
+      document.getElementById('inviteLinkText').innerText = link;
+      Swal.fire('Berhasil!', 'Link undangan telah dibuat', 'success');
+      loadInvitations();
+    } catch(err) {
+      Swal.fire('Error', err.message, 'error');
+    }
+  });
+  
+  document.getElementById('copyLinkBtn')?.addEventListener('click', () => {
+    const link = document.getElementById('inviteLinkText')?.innerText;
+    if (link) { navigator.clipboard.writeText(link); Swal.fire('Disalin!', 'Link undangan disalin', 'success'); }
+  });
+  
+  document.getElementById('previewInviteBtn')?.addEventListener('click', () => {
+    const guestName = document.getElementById('guestName').value.trim();
+    if (!guestName) return Swal.fire('Info', 'Masukkan nama tamu terlebih dahulu', 'warning');
+    window.open(`${INVITATION_BASE_URL}?preview=true&name=${encodeURIComponent(guestName)}`, '_blank');
+  });
+  
+  document.getElementById('refreshInvitesBtn')?.addEventListener('click', loadInvitations);
+  
+  document.querySelectorAll('.admin-sidebar .nav-link').forEach(link => {
+    link.addEventListener('click', () => {
+      const section = link.dataset.section;
+      if (section) showSection(section);
+      if (window.innerWidth <= 768) {
+        document.getElementById('adminSidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('active');
+      }
+    });
+  });
+  
+  // Dark mode & hamburger
+  const darkFab = document.getElementById('darkModeFab');
+  darkFab?.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+    localStorage.setItem('adminDark', document.body.classList.contains('dark'));
+  });
+  if (localStorage.getItem('adminDark') === 'true') document.body.classList.add('dark');
+  
+  const hamburger = document.getElementById('hamburgerBtn');
+  const sidebar = document.getElementById('adminSidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  hamburger?.addEventListener('click', () => sidebar.classList.add('open'));
+  overlay?.addEventListener('click', () => sidebar.classList.remove('open'));
+  
+  // Initialize
+  checkAdminSession();
 </script>
 </body>
 </html>
