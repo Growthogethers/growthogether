@@ -1,4 +1,4 @@
-// js/moment.js - Dengan shared moments per pasangan
+// js/moment.js - Dengan shared moments per pasangan & max 10MB upload
 import { db, ref } from './firebase-config.js';
 import { 
   escapeHtml, showNotif, showCustomConfirm, 
@@ -55,7 +55,8 @@ export async function handleMultiplePhotos(input) {
   
   if (files.length === 0) return;
   
-  const compressedPhotos = await validateAndCompressPhotos(files, 2, 5 - currentMomentPhotos.length);
+  // maxSizeMB diubah menjadi 10MB
+  const compressedPhotos = await validateAndCompressPhotos(files, 10, 5 - currentMomentPhotos.length);
   
   if (compressedPhotos) {
     currentMomentPhotos.push(...compressedPhotos);
