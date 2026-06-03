@@ -72,7 +72,6 @@ export async function loadUserPartnerAndPair(username) {
   try {
     console.log(`Loading partner for user: ${username}`);
     
-    // Cek dari node partners (struktur dari admin panel)
     const partnerSnap = await get(ref(db, `data/partners/${username}`));
     let partner = partnerSnap.val();
     
@@ -80,7 +79,6 @@ export async function loadUserPartnerAndPair(username) {
       currentPartner = partner;
       console.log(`Partner found via partners node: ${currentPartner}`);
       
-      // Buat pairId dari username dan partner (diurutkan)
       const pair = [username, partner].sort();
       currentPairId = `${pair[0]}_${pair[1]}`;
       sessionStorage.setItem('progrowth_pairId', currentPairId);
@@ -99,16 +97,14 @@ export async function loadUserPartnerAndPair(username) {
   }
 }
 
-// ============ SHARED DATA FUNCTIONS (Menggunakan struktur global) ============
+// ============ SHARED DATA FUNCTIONS ============
 
-// GET MOMENTS - Filter berdasarkan user dan partner (dari struktur global data/moments)
 export async function getSharedMoments() {
   if (!currentUser) return {};
   try {
     const snap = await get(ref(db, `data/moments`));
     const allMoments = snap.val() || {};
     
-    // Filter moments yang dibuat oleh currentUser ATAU currentPartner
     const filteredMoments = {};
     Object.entries(allMoments).forEach(([id, moment]) => {
       if (moment.author === currentUser || (currentPartner && moment.author === currentPartner)) {
@@ -124,7 +120,6 @@ export async function getSharedMoments() {
   }
 }
 
-// SAVE MOMENT - Simpan ke struktur global data/moments
 export async function addSharedMoment(moment) {
   if (!currentUser) return null;
   
@@ -176,21 +171,18 @@ export async function deleteSharedMoment(momentId) {
   }
 }
 
-// GET KEUANGAN - Filter berdasarkan user (masing-masing punya data sendiri)
 export async function getSharedKeuangan() {
   if (!currentUser) return { transaksi: {} };
   try {
     const snap = await get(ref(db, `data/keuangan/${currentUser}/transaksi`));
     const transactions = snap.val() || {};
     
-    // Jika ada partner, ambil juga data partner untuk ditampilkan bersama
     let partnerTransactions = {};
     if (currentPartner) {
       const partnerSnap = await get(ref(db, `data/keuangan/${currentPartner}/transaksi`));
       partnerTransactions = partnerSnap.val() || {};
     }
     
-    // Gabungkan transaksi dari kedua user (dengan label createdBy)
     const allTransactions = {};
     
     Object.entries(transactions).forEach(([id, trans]) => {
@@ -208,7 +200,6 @@ export async function getSharedKeuangan() {
   }
 }
 
-// ADD TRANSACTION - Simpan ke keuangan user sendiri
 export async function addSharedTransaction(transaction) {
   if (!currentUser) return null;
   
@@ -234,7 +225,6 @@ export async function updateSharedTransaction(transactionId, transactionData) {
   if (!currentUser) return false;
   
   try {
-    // Cek apakah transaksi milik user ini
     const snap = await get(ref(db, `data/keuangan/${currentUser}/transaksi/${transactionId}`));
     if (snap.exists()) {
       await update(ref(db, `data/keuangan/${currentUser}/transaksi/${transactionId}`), {
@@ -263,7 +253,6 @@ export async function deleteSharedTransaction(transactionId) {
   }
 }
 
-// GET CATATAN - Bersama untuk pasangan (menggunakan pairId)
 export async function getSharedCatatan() {
   if (!currentPairId) return { kategori: {}, items: {} };
   try {
@@ -287,7 +276,6 @@ export async function saveSharedCatatan(catatan) {
   }
 }
 
-// Fungsi-fungsi lain yang tidak digunakan (placeholder)
 export async function saveSharedMoments(moments) {
   console.warn("saveSharedMoments not used in this structure");
   return false;
@@ -581,8 +569,8 @@ export function checkDuplicateTransaction(existingTransactions, newTransaction) 
   return false;
 }
 
-// ============ VALIDASI UKURAN FOTO ============
-export async function validateAndCompressPhotos(files, maxSizeMB = 2, maxFiles = 5) {
+// ============ VALIDASI UKURAN FOTO (MAX 10MB) ============
+export async function validateAndCompressPhotos(files, maxSizeMB = 10, maxFiles = 5) {
   if (files.length > maxFiles) {
     showNotif(`❌ Maksimal ${maxFiles} foto`, true, 'error');
     return null;
@@ -614,7 +602,59 @@ export async function validateAndCompressPhotos(files, maxSizeMB = 2, maxFiles =
   return compressedPhotos;
 }
 
-// ============ LIMIT FUNCTIONS BERDASARKAN LEVEL ============
+// ============ COMPRESS IMAGE (MAX 10MB) ============
+export function compressImage(file, maxSizeMB = 10) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (e) => {
+      const img = new Image();
+      img.src = e.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        
+        const fileSizeMB = file.size / (1024 * 1024);
+        let maxDimension = 1200;
+        if (fileSizeMB > 5) {
+          maxDimension = 800;
+        } else if (fileSizeMB > 3) {
+          maxDimension = 1000;
+        }
+        
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = (height * maxDimension) / width;
+            width = maxDimension;
+          } else {
+            width = (width * maxDimension) / height;
+            height = maxDimension;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        let quality = 0.7;
+        let result = canvas.toDataURL('image/jpeg', quality);
+        
+        while (result.length > maxSizeMB * 1024 * 1024 && quality > 0.3) {
+          quality -= 0.1;
+          result = canvas.toDataURL('image/jpeg', quality);
+        }
+        
+        resolve(result);
+      };
+      img.onerror = reject;
+    };
+    reader.onerror = reject;
+  });
+}
+
+// ============ LIMIT FUNCTIONS ============
 export async function loadUserLevelAndLimits(username) {
   try {
     const userSnap = await get(ref(db, `data/users/${username}`));
@@ -801,46 +841,6 @@ export function debounce(func, delay) {
     if (timeoutId) clearTimeout(timeoutId);
     timeoutId = setTimeout(() => func.apply(this, args), delay);
   };
-}
-
-// ============ COMPRESS IMAGE ============
-export function compressImage(file, maxSizeMB = 2) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (e) => {
-      const img = new Image();
-      img.src = e.target.result;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-        const maxDimension = 1024;
-        if (width > maxDimension || height > maxDimension) {
-          if (width > height) {
-            height = (height * maxDimension) / width;
-            width = maxDimension;
-          } else {
-            width = (width * maxDimension) / height;
-            height = maxDimension;
-          }
-        }
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-        let quality = 0.8;
-        let result = canvas.toDataURL('image/jpeg', quality);
-        while (result.length > maxSizeMB * 1024 * 1024 && quality > 0.3) {
-          quality -= 0.1;
-          result = canvas.toDataURL('image/jpeg', quality);
-        }
-        resolve(result);
-      };
-      img.onerror = reject;
-    };
-    reader.onerror = reject;
-  });
 }
 
 // ============ ANIMASI ============
