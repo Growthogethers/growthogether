@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Undangan Pernikahan - Fachmi & Azizah</title>
   
-  <!-- Favicon / Icon Tab -->
+  <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c9a03d'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E">
   
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -13,6 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800&family=Dancing+Script:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
   
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -22,6 +23,27 @@
       color: #f5f0e8; 
       overflow-x: hidden;
       position: relative;
+    }
+    
+    /* Disable selection and right click */
+    body {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    
+    /* Watermark */
+    .watermark {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      font-size: 10px;
+      color: rgba(201,160,61,0.2);
+      z-index: 999;
+      pointer-events: none;
+      font-family: monospace;
     }
     
     /* Background pattern */
@@ -62,7 +84,7 @@
     .btn-outline-gold { background: transparent; border: 1.5px solid #c9a03d; border-radius: 30px; padding: 8px 20px; text-decoration: none; color: #c9a03d; display: inline-block; transition: all 0.3s; }
     .btn-outline-gold:hover { background: #c9a03d; color: #0a0a0a; }
     
-    /* Hero Background Slideshow dengan background dari admin */
+    /* Hero Background Slideshow */
     .hero-wrapper { position: relative; min-height: 100vh; overflow: hidden; border-radius: 0 0 40px 40px; }
     .bg-slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1); filter: brightness(0.45) contrast(1.1); }
     .bg-slide.active { opacity: 1; }
@@ -118,7 +140,16 @@
     .form-luxury:focus { outline: none; border-color: #c9a03d; background: rgba(255,255,255,0.12); box-shadow: 0 0 0 3px rgba(201,160,61,0.2); }
     .form-luxury::placeholder { color: rgba(255,255,255,0.5); }
     
-    /* Bottom Navigation - Icon Cerita menggunakan bi-book-heart */
+    /* RSVP Section */
+    .rsvp-card { background: rgba(20, 18, 22, 0.85); backdrop-filter: blur(12px); border-radius: 32px; border: 1px solid rgba(201,160,61,0.3); padding: 20px; margin-top: 20px; }
+    .rsvp-btn { padding: 10px 25px; font-size: 1rem; margin: 0 8px; }
+    .rsvp-confirmed { background: rgba(16, 185, 129, 0.2); border-color: #10b981; }
+    
+    /* Map Container */
+    .map-container { border-radius: 20px; overflow: hidden; margin-top: 15px; }
+    .map-container iframe { width: 100%; height: 300px; border: none; }
+    
+    /* Bottom Navigation */
     .bottom-nav { 
       position: fixed; bottom: 0; left: 0; right: 0; 
       background: rgba(10,10,10,0.95); 
@@ -166,6 +197,7 @@
       .timeline-icon i { font-size: 1rem; } 
       .gallery-grid { gap: 12px; }
       .section-title::before, .section-title::after { display: none; }
+      .rsvp-btn { padding: 8px 16px; font-size: 0.9rem; }
     }
   </style>
 </head>
@@ -176,10 +208,10 @@
 <div class="corner-decoration corner-bottom-left"></div>
 <div class="corner-decoration corner-bottom-right"></div>
 
-<!-- Background Music - Pink at My Worst -->
-<audio id="bgAudio" loop>
-  <source src="https://dl.soundowl.com/3i7c8p/f94f/pink-at-my-worst-masicka-ft-rotimi.mp3" type="audio/mpeg">
-</audio>
+<!-- Watermark -->
+<div class="watermark">© GrowthTogether • Undangan Digital</div>
+
+<audio id="bgAudio" loop></audio>
 
 <!-- Loading Screen -->
 <div id="loading" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#0a0a0a; z-index:9999; display:flex; align-items:center; justify-content:center; flex-direction:column;">
@@ -191,9 +223,8 @@
 <div class="music-floating" id="muteBtn"><i class="bi bi-vinyl-fill"></i></div>
 
 <main class="pb-5">
-  <!-- Hero Section with Background Slideshow -->
+  <!-- Hero Section -->
   <div class="hero-wrapper" id="heroWrapper">
-    <!-- Background images akan diisi dari Firebase wedding_settings -->
     <div class="hero-overlay">
       <div class="container" data-aos="zoom-in-up" data-aos-duration="1400">
         <i class="bi bi-star-fill gold-text fs-1"></i>
@@ -210,7 +241,6 @@
           <div class="cd-item"><div class="cd-number" id="detik">0</div><div class="cd-label">Detik</div></div>
         </div>
         
-        <!-- Guest Name - akan diisi dari parameter URL -->
         <div class="mt-4">
           <div class="text-white-50 small mb-1">Kepada Yth.</div>
           <div class="guest-badge">
@@ -232,9 +262,7 @@
       <h2 class="gold-text fw-bold mt-2 section-title" style="font-family:'Playfair';">Mempelai Berbahagia</h2>
       <div class="divider-gold"></div>
     </div>
-    
     <div class="row g-5 mt-2" id="mempelaiContent"></div>
-    
     <div class="luxury-card mt-5 text-center" data-aos="zoom-in" id="weddingInfo"></div>
   </div>
 
@@ -248,7 +276,7 @@
     <div class="timeline-wrapper mt-4" id="storyList"></div>
   </div>
 
-  <!-- Acara Section -->
+  <!-- Acara Section dengan Peta Interaktif -->
   <div class="container py-5" id="acara">
     <div class="text-center" data-aos="fade-up">
       <i class="bi bi-bell-fill fs-1 gold-text"></i>
@@ -256,6 +284,20 @@
       <div class="divider-gold"></div>
     </div>
     <div class="row g-4 mt-2" id="acaraContent"></div>
+    
+    <!-- Peta Interaktif -->
+    <div class="mt-5" data-aos="fade-up">
+      <div class="luxury-card text-center">
+        <h5 class="gold-text mb-3"><i class="bi bi-geo-alt-fill me-2"></i>Lokasi Acara</h5>
+        <div class="map-container" id="mapContainer">
+          <iframe id="googleMap" src="" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+        <div class="mt-3">
+          <button class="btn-outline-gold" id="openMapsBtn"><i class="bi bi-compass me-2"></i>Buka di Google Maps</button>
+          <button class="btn-outline-gold ms-2" id="saveCalendarBtn"><i class="bi bi-calendar-plus me-2"></i>Simpan ke Kalender</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Galeri Foto Section -->
@@ -279,29 +321,31 @@
     <div class="row g-4 justify-content-center mt-2" id="bankList"></div>
   </div>
 
-  <!-- Doa & Ucapan Section -->
+  <!-- RSVP & Doa Section -->
   <div class="container py-5" id="doa">
     <div class="text-center" data-aos="fade-up">
       <i class="bi bi-chat-heart-fill fs-1 gold-text"></i>
-      <h2 class="gold-text section-title" style="font-family:'Playfair';">Ucapan & Doa Restu</h2>
+      <h2 class="gold-text section-title" style="font-family:'Playfair';">Konfirmasi Kehadiran & Doa Restu</h2>
       <div class="divider-gold"></div>
     </div>
     
+    <!-- RSVP Card -->
+    <div class="rsvp-card text-center mb-4" data-aos="fade-up" id="rsvpCard">
+      <h5 class="gold-text mb-3"><i class="bi bi-check2-circle me-2"></i>Konfirmasi Kehadiran</h5>
+      <p class="small text-white-50">Mohon isi nama Anda terlebih dahulu, lalu konfirmasi kehadiran</p>
+      <div class="d-flex justify-content-center gap-3 flex-wrap">
+        <button class="btn-gold rsvp-btn" id="rsvpHadir"><i class="bi bi-check-circle-fill me-2"></i>Ya, Saya Hadir</button>
+        <button class="btn-outline-gold rsvp-btn" id="rsvpTidak"><i class="bi bi-x-circle-fill me-2"></i>Maaf, Tidak Bisa Hadir</button>
+      </div>
+      <div id="rsvpStatus" class="mt-3 small"></div>
+    </div>
+    
+    <!-- Form Ucapan -->
     <div class="luxury-card p-4 mt-3" data-aos="fade-up">
       <form id="formUcapan">
         <input type="text" id="nama" class="form-luxury mb-3" placeholder="Nama Lengkap *" required>
         <input type="text" id="alamat" class="form-luxury mb-3" placeholder="Asal Kota / Alamat">
         <textarea id="doaText" class="form-luxury mb-3" rows="3" placeholder="Doa & Ucapan untuk Pengantin *" required style="border-radius: 20px;"></textarea>
-        <div class="mb-3 d-flex gap-4 justify-content-center">
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="hadir" id="hadirYa" value="1" checked style="accent-color: #c9a03d;">
-            <label class="form-check-label" for="hadirYa">🙏 Saya akan hadir</label>
-          </div>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="hadir" id="hadirTidak" value="2" style="accent-color: #c9a03d;">
-            <label class="form-check-label" for="hadirTidak">💔 Tidak bisa hadir</label>
-          </div>
-        </div>
         <button type="submit" class="btn-gold w-100"><i class="bi bi-send-fill me-2"></i> Kirim Doa & Ucapan</button>
       </form>
       <div id="formSuccessMessage" class="alert alert-success mt-3 text-center rounded-4" style="display:none; background: #1a3a2a; border-color: #c9a03d; color: #c9a03d;">
@@ -340,10 +384,36 @@
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getDatabase, ref, get, set, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+  import { getDatabase, ref, get, set, push, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
   
-  // Firebase Configuration
-  var firebaseConfig = { 
+  // ============ PROTEKSI SCREENSHOT & RIGHT CLICK ============
+  document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    return false;
+  });
+  
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'PrintScreen') {
+      e.preventDefault();
+      return false;
+    }
+    if (e.ctrlKey && (e.key === 'c' || e.key === 'C' || e.key === 's' || e.key === 'S' || e.key === 'u' || e.key === 'U')) {
+      e.preventDefault();
+      return false;
+    }
+  });
+  
+  // ============ CONFETTI ANIMATION ============
+  function triggerConfetti() {
+    canvasConfetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#c9a03d', '#e4c580', '#b8860b'] });
+    setTimeout(() => {
+      canvasConfetti({ particleCount: 100, spread: 100, origin: { y: 0.7, x: 0.2 }, startVelocity: 25 });
+      canvasConfetti({ particleCount: 100, spread: 100, origin: { y: 0.7, x: 0.8 }, startVelocity: 25 });
+    }, 200);
+  }
+  
+  // ============ FIREBASE CONFIG ============
+  const firebaseConfig = { 
     apiKey: "AIzaSyBeUaOyesw9ucpBGumNjrzUp3WfUtXu39w", 
     authDomain: "growthogether.firebaseapp.com", 
     databaseURL: "https://growthogether-default-rtdb.asia-southeast1.firebasedatabase.app", 
@@ -353,146 +423,118 @@
     appId: "1:784796645743:web:e4eb40810d3051826d909a" 
   };
   
-  var app = initializeApp(firebaseConfig);
-  var db = getDatabase(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
   
-  // Decrypt function for invite parameter
-  var SALT = "wedding2025";
+  // ============ ENKRIPSI ============
+  const SALT = "wedding2025";
   
   function decryptInviteId(encrypted) {
     try {
-      var base64 = encrypted.replace(/-/g, '+').replace(/_/g, '/');
+      let base64 = encrypted.replace(/-/g, '+').replace(/_/g, '/');
       while (base64.length % 4) base64 += '=';
-      var decoded = atob(base64);
-      var parts = decoded.split('|');
-      if (parts.length === 2 && parts[1] === SALT) {
-        return parts[0];
-      }
+      const decoded = atob(base64);
+      const parts = decoded.split('|');
+      if (parts.length === 2 && parts[1] === SALT) return parts[0];
       return null;
-    } catch(e) {
-      return null;
-    }
+    } catch(e) { return null; }
   }
   
-  // Get URL parameters
-  var urlParams = new URLSearchParams(window.location.search);
-  var encryptedId = urlParams.get('invite');
-  var inviteId = encryptedId ? decryptInviteId(encryptedId) : null;
-  var isPreview = urlParams.get('preview') === 'true';
-  var previewName = urlParams.get('name');
-  var weddingData = null;
-  var guestName = "Tamu Undangan";
+  const urlParams = new URLSearchParams(window.location.search);
+  const encryptedId = urlParams.get('invite');
+  const inviteId = encryptedId ? decryptInviteId(encryptedId) : null;
+  const isPreview = urlParams.get('preview') === 'true';
+  const previewName = urlParams.get('name');
+  let weddingData = null;
+  let guestName = "Tamu Undangan";
+  let hasTriggeredConfetti = false;
   
-  console.log("Encrypted ID:", encryptedId);
-  console.log("Decrypted ID:", inviteId);
-  console.log("Preview Name:", previewName);
+  function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+  function formatDate(dateStr) { if(!dateStr) return ''; var d = new Date(dateStr); return d.toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' }); }
   
-  function escapeHtml(str) { 
-    if(!str) return ''; 
-    return str.replace(/[&<>]/g, function(m) { 
-      if(m === '&') return '&amp;'; 
-      if(m === '<') return '&lt;'; 
-      if(m === '>') return '&gt;'; 
-      return m; 
-    }); 
-  }
-  
-  function formatDate(dateStr) { 
-    if(!dateStr) return ''; 
-    var d = new Date(dateStr);
-    return d.toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' }); 
-  }
-  
+  // ============ LOAD WEDDING DATA ============
   async function loadWeddingData() {
-    var snapshot = await get(ref(db, "data/wedding_settings"));
+    const snapshot = await get(ref(db, "data/wedding_settings"));
     weddingData = snapshot.val() || {};
     
-    // Default values
-    var defaults = {
-      groomName: "Fachmi", brideName: "Azizah", 
-      groomNickname: "Fachmi", brideNickname: "Azizah", 
-      groomFather: "Bpk. H. Sumarmo", groomMother: "Ibu Hj. Kantun", 
-      brideFather: "Bpk. H. Ahmad", brideMother: "Ibu Hj. Siti", 
-      weddingDate: "2025-06-15", akadTime: "09:00", receptionTime: "12:00", 
-      venueName: "Aula Serbaguna", venueAddress: "Jalan Kebahagiaan No. 123, Jakarta", 
-      mapsLink: "https://maps.google.com", stories: [], galleries: [], banks: [],
-      backgrounds: [] // Background images dari admin
+    const defaults = {
+      groomName: "Fachmi", brideName: "Azizah", groomNickname: "Fachmi", brideNickname: "Azizah",
+      groomFather: "Bpk. H. Sumarmo", groomMother: "Ibu Hj. Kantun",
+      brideFather: "Bpk. H. Ahmad", brideMother: "Ibu Hj. Siti",
+      weddingDate: "2025-06-15", akadTime: "09:00", receptionTime: "12:00",
+      venueName: "Aula Serbaguna", venueAddress: "Jalan Kebahagiaan No. 123, Jakarta",
+      mapsLink: "https://maps.google.com", musicUrl: "", stories: [], galleries: [], banks: []
     };
+    for(var key in defaults) { if(!weddingData[key]) weddingData[key] = defaults[key]; }
     
-    for(var key in defaults) {
-      if(!weddingData[key]) weddingData[key] = defaults[key];
-    }
-    
-    // Get guest name from invitation
+    // Get guest name
     if (inviteId && !isPreview) {
-      var inviteSnap = await get(ref(db, "data/invitations/" + inviteId));
+      const inviteSnap = await get(ref(db, "data/invitations/" + inviteId));
       if (inviteSnap.exists()) {
         guestName = inviteSnap.val().guestName || guestName;
-        console.log("Guest name from DB:", guestName);
+        // Update view count
+        const currentViews = inviteSnap.val().viewCount || 0;
+        await update(ref(db, "data/invitations/" + inviteId), { 
+          viewCount: currentViews + 1,
+          viewHistory: [...(inviteSnap.val().viewHistory || []), Date.now()]
+        });
       }
     } else if (isPreview && previewName) {
       guestName = decodeURIComponent(previewName);
-      console.log("Preview name:", guestName);
     }
     
-    // Render background slideshow dari admin
-    renderBackgroundSlideshow();
+    // Trigger confetti on first load
+    if (!hasTriggeredConfetti && !isPreview) {
+      hasTriggeredConfetti = true;
+      setTimeout(triggerConfetti, 500);
+    }
+    
+    // Setup music
+    setupMusic();
     
     renderAllSections();
     updateCountdown();
     setInterval(updateCountdown, 1000);
+    renderBackgroundSlideshow();
     
     setTimeout(function() { 
       var ld = document.getElementById('loading'); 
-      if(ld) { 
-        ld.style.opacity = '0'; 
-        setTimeout(function() { if(ld && ld.parentNode) ld.parentNode.removeChild(ld); }, 500); 
-      } 
+      if(ld) { ld.style.opacity = '0'; setTimeout(function() { if(ld && ld.parentNode) ld.parentNode.removeChild(ld); }, 500); } 
     }, 1200);
     
     AOS.init({ duration: 800, once: true });
   }
   
-  // Render background slideshow dari wedding_settings.backgrounds
-  function renderBackgroundSlideshow() {
-    var backgrounds = weddingData.backgrounds || [];
-    var heroWrapper = document.getElementById('heroWrapper');
-    
-    // Hapus background images yang sudah ada
-    var existingBg = heroWrapper.querySelectorAll('.bg-slide');
-    for(var i = 0; i < existingBg.length; i++) {
-      existingBg[i].remove();
-    }
-    
-    // Jika ada background dari admin, gunakan itu
-    if(backgrounds.length > 0) {
-      for(var i = 0; i < backgrounds.length; i++) {
-        var img = document.createElement('img');
-        img.src = backgrounds[i];
-        img.className = 'bg-slide';
-        if(i === 0) img.classList.add('active');
-        img.alt = 'Wedding Background';
-        heroWrapper.insertBefore(img, heroWrapper.firstChild);
-      }
+  function setupMusic() {
+    const audio = document.getElementById('bgAudio');
+    if (weddingData.musicUrl) {
+      audio.src = weddingData.musicUrl;
+      audio.load();
     } else {
-      // Default backgrounds jika tidak ada dari admin
-      var defaultBgs = [
-        'https://images.pexels.com/photos/169191/pexels-photo-169191.jpeg?auto=compress&cs=tinysrgb&w=1600',
-        'https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=1600',
-        'https://images.pexels.com/photos/2253870/pexels-photo-2253870.jpeg?auto=compress&cs=tinysrgb&w=1600',
-        'https://images.pexels.com/photos/3171837/pexels-photo-3171837.jpeg?auto=compress&cs=tinysrgb&w=1600'
-      ];
-      for(var i = 0; i < defaultBgs.length; i++) {
-        var img = document.createElement('img');
-        img.src = defaultBgs[i];
-        img.className = 'bg-slide';
-        if(i === 0) img.classList.add('active');
-        img.alt = 'Wedding Background';
-        heroWrapper.insertBefore(img, heroWrapper.firstChild);
-      }
+      audio.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
     }
+  }
+  
+  function renderBackgroundSlideshow() {
+    const backgrounds = weddingData.backgrounds || [];
+    const heroWrapper = document.getElementById('heroWrapper');
+    const existingBg = heroWrapper.querySelectorAll('.bg-slide');
+    for(var i = 0; i < existingBg.length; i++) existingBg[i].remove();
     
-    // Start slideshow
+    const bgList = backgrounds.length > 0 ? backgrounds : [
+      'https://images.pexels.com/photos/169191/pexels-photo-169191.jpeg?auto=compress&cs=tinysrgb&w=1600',
+      'https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=1600',
+      'https://images.pexels.com/photos/2253870/pexels-photo-2253870.jpeg?auto=compress&cs=tinysrgb&w=1600'
+    ];
+    
+    for(var i = 0; i < bgList.length; i++) {
+      const img = document.createElement('img');
+      img.src = bgList[i];
+      img.className = 'bg-slide';
+      if(i === 0) img.classList.add('active');
+      img.alt = 'Wedding Background';
+      heroWrapper.insertBefore(img, heroWrapper.firstChild);
+    }
     startBackgroundSlideshow();
   }
   
@@ -520,78 +562,107 @@
     }
   }
   
+  // ============ SAVE TO CALENDAR ============
+  function saveToCalendar() {
+    const startDate = new Date(weddingData.weddingDate + 'T' + (weddingData.akadTime || '09:00') + ':00');
+    const endDate = new Date(weddingData.weddingDate + 'T' + (weddingData.receptionTime || '12:00') + ':00');
+    const formatDateForICS = (date) => {
+      return date.toISOString().replace(/-|:|\.\d+/g, '');
+    };
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//GrowthTogether//Wedding Invitation//EN',
+      'BEGIN:VEVENT',
+      'UID:' + Date.now() + '@growthogether.com',
+      'DTSTAMP:' + formatDateForICS(new Date()),
+      'DTSTART:' + formatDateForICS(startDate),
+      'DTEND:' + formatDateForICS(endDate),
+      'SUMMARY:Pernikahan ' + (weddingData.groomName || 'Fachmi') + ' & ' + (weddingData.brideName || 'Azizah'),
+      'LOCATION:' + (weddingData.venueName || '') + ' - ' + (weddingData.venueAddress || ''),
+      'DESCRIPTION:Undangan Pernikahan ' + (weddingData.groomName || 'Fachmi') + ' & ' + (weddingData.brideName || 'Azizah'),
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\n');
+    
+    const blob = new Blob([icsContent], { type: 'text/calendar' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'wedding_invitation.ics';
+    link.click();
+    URL.revokeObjectURL(link.href);
+    Swal.fire('Berhasil!', 'Acara telah disimpan ke kalender Anda.', 'success');
+  }
+  
+  // ============ RSVP FUNCTION ============
+  async function sendRSVP(status) {
+    const nama = document.getElementById('nama').value.trim();
+    if(!nama) {
+      Swal.fire('Info', 'Mohon isi nama Anda terlebih dahulu untuk konfirmasi kehadiran', 'warning');
+      return;
+    }
+    
+    const rsvpRef = ref(db, "data/rsvp/" + (inviteId || 'general'));
+    await set(rsvpRef, {
+      nama: nama,
+      status: status,
+      timestamp: Date.now()
+    });
+    
+    const statusText = status === 'hadir' ? 'HADIR' : 'TIDAK HADIR';
+    const statusClass = status === 'hadir' ? 'bg-success' : 'bg-secondary';
+    document.getElementById('rsvpStatus').innerHTML = `<span class="badge ${statusClass} p-2">✓ Terima kasih! Konfirmasi Anda sebagai ${statusText} telah tersimpan.</span>`;
+    Swal.fire('Berhasil!', `Konfirmasi kehadiran Anda sebagai ${statusText} telah tersimpan.`, 'success');
+  }
+  
+  // ============ RENDER ALL SECTIONS ============
   function renderAllSections() {
-    // Update couple names
     document.getElementById('coupleNames').innerHTML = (weddingData.groomNickname || weddingData.groomName) + ' & ' + (weddingData.brideNickname || weddingData.brideName);
     document.getElementById('guestNameDisplay').innerHTML = escapeHtml(guestName);
+    document.getElementById('footerText').innerHTML = escapeHtml(weddingData.groomName) + ' & ' + escapeHtml(weddingData.brideName);
     
     // Mempelai
     document.getElementById('mempelaiContent').innerHTML = 
-      '<div class="col-md-6 text-center" data-aos="fade-right">' +
-        '<div class="photo-frame"><img src="' + (weddingData.bridePhoto || 'https://randomuser.me/api/portraits/women/68.jpg') + '"></div>' +
-        '<div class="luxury-card mt-4"><h3 class="gold-text">' + escapeHtml(weddingData.brideName) + '</h3><p class="small text-white-50">Putri dari</p><h5>' + escapeHtml(weddingData.brideFather) + ' &<br>' + escapeHtml(weddingData.brideMother) + '</h5></div>' +
-      '</div>' +
-      '<div class="col-md-6 text-center" data-aos="fade-left">' +
-        '<div class="photo-frame"><img src="' + (weddingData.groomPhoto || 'https://randomuser.me/api/portraits/men/32.jpg') + '"></div>' +
-        '<div class="luxury-card mt-4"><h3 class="gold-text">' + escapeHtml(weddingData.groomName) + '</h3><p class="small text-white-50">Putra dari</p><h5>' + escapeHtml(weddingData.groomFather) + ' &<br>' + escapeHtml(weddingData.groomMother) + '</h5></div>' +
-      '</div>';
+      '<div class="col-md-6 text-center" data-aos="fade-right"><div class="photo-frame"><img src="' + (weddingData.bridePhoto || 'https://randomuser.me/api/portraits/women/68.jpg') + '"></div><div class="luxury-card mt-4"><h3 class="gold-text">' + escapeHtml(weddingData.brideName) + '</h3><p class="small text-white-50">Putri dari</p><h5>' + escapeHtml(weddingData.brideFather) + ' & ' + escapeHtml(weddingData.brideMother) + '</h5></div></div>' +
+      '<div class="col-md-6 text-center" data-aos="fade-left"><div class="photo-frame"><img src="' + (weddingData.groomPhoto || 'https://randomuser.me/api/portraits/men/32.jpg') + '"></div><div class="luxury-card mt-4"><h3 class="gold-text">' + escapeHtml(weddingData.groomName) + '</h3><p class="small text-white-50">Putra dari</p><h5>' + escapeHtml(weddingData.groomFather) + ' & ' + escapeHtml(weddingData.groomMother) + '</h5></div></div>';
     
     document.getElementById('weddingInfo').innerHTML = 
-      '<i class="bi bi-calendar-heart fs-2 gold-text"></i>' +
-      '<p class="mt-2">Insya Allah akan diselenggarakan pada:</p>' +
-      '<h4 class="fw-bold">' + formatDate(weddingData.weddingDate) + '</h4>' +
-      '<div class="gold-text mt-2">' + escapeHtml(weddingData.venueName) + '<br>' + escapeHtml(weddingData.venueAddress) + '</div>';
+      '<i class="bi bi-calendar-heart fs-2 gold-text"></i><p class="mt-2">Insya Allah akan diselenggarakan pada:</p><h4 class="fw-bold">' + formatDate(weddingData.weddingDate) + '</h4><div class="gold-text mt-2">' + escapeHtml(weddingData.venueName) + '<br>' + escapeHtml(weddingData.venueAddress) + '</div>';
     
     // Stories
     var stories = weddingData.stories || [];
     var storiesHtml = '';
     for(var i = 0; i < stories.length; i++) {
       var s = stories[i];
-      storiesHtml += 
-        '<div class="timeline-item" data-aos="fade-up" data-aos-delay="' + (i * 50) + '">' +
-          '<div class="timeline-icon"><i class="bi bi-heart-fill"></i></div>' +
-          '<div class="timeline-content">' +
-            '<h5 class="gold-text">' + escapeHtml(s.title) + '</h5>' +
-            '<small class="text-muted">📅 ' + formatDate(s.date) + '</small>' +
-            '<p class="mt-2">' + escapeHtml(s.desc) + '</p>' +
-          '</div>' +
-        '</div>';
+      storiesHtml += '<div class="timeline-item" data-aos="fade-up" data-aos-delay="' + (i * 50) + '"><div class="timeline-icon"><i class="bi bi-heart-fill"></i></div><div class="timeline-content"><h5 class="gold-text">' + escapeHtml(s.title) + '</h5><small class="text-muted">📅 ' + formatDate(s.date) + '</small><p class="mt-2">' + escapeHtml(s.desc) + '</p></div></div>';
     }
-    if(storiesHtml === '') storiesHtml = '<div class="text-center text-muted py-5"><i class="bi bi-emoji-smile fs-1"></i><p class="mt-2">Belum ada cerita yang ditambahkan</p></div>';
-    document.getElementById('storyList').innerHTML = storiesHtml;
+    document.getElementById('storyList').innerHTML = storiesHtml || '<div class="text-center text-muted py-5"><i class="bi bi-emoji-smile fs-1"></i><p>Belum ada cerita</p></div>';
     
     // Acara
     document.getElementById('acaraContent').innerHTML = 
-      '<div class="col-md-6" data-aos="fade-right">' +
-        '<div class="luxury-card text-center"><i class="bi bi-ring-fill fs-1 gold-text"></i><h4 class="mt-2">Akad Nikah</h4><div>📅 ' + formatDate(weddingData.weddingDate) + '</div><div class="fs-4 fw-semibold mt-2">' + (weddingData.akadTime || '09:00') + ' WIB</div><div class="small mt-2">' + escapeHtml(weddingData.venueName) + '<br>' + escapeHtml(weddingData.venueAddress) + '</div><a href="' + weddingData.mapsLink + '" target="_blank" class="btn-outline-gold mt-3 d-inline-block"><i class="bi bi-geo-alt me-2"></i>Buka Maps</a></div>' +
-      '</div>' +
-      '<div class="col-md-6" data-aos="fade-left">' +
-        '<div class="luxury-card text-center"><i class="bi bi-cake2-fill fs-1 gold-text"></i><h4 class="mt-2">Resepsi Pernikahan</h4><div>📅 ' + formatDate(weddingData.weddingDate) + '</div><div class="fs-4 fw-semibold mt-2">' + (weddingData.receptionTime || '12:00') + ' WIB - Selesai</div><div class="small mt-2">' + escapeHtml(weddingData.venueName) + '<br>' + escapeHtml(weddingData.venueAddress) + '</div></div>' +
-      '</div>';
+      '<div class="col-md-6" data-aos="fade-right"><div class="luxury-card text-center"><i class="bi bi-ring-fill fs-1 gold-text"></i><h4 class="mt-2">Akad Nikah</h4><div>📅 ' + formatDate(weddingData.weddingDate) + '</div><div class="fs-4 fw-semibold mt-2">' + (weddingData.akadTime || '09:00') + ' WIB</div><div class="small mt-2">' + escapeHtml(weddingData.venueName) + '<br>' + escapeHtml(weddingData.venueAddress) + '</div></div></div>' +
+      '<div class="col-md-6" data-aos="fade-left"><div class="luxury-card text-center"><i class="bi bi-cake2-fill fs-1 gold-text"></i><h4 class="mt-2">Resepsi</h4><div>📅 ' + formatDate(weddingData.weddingDate) + '</div><div class="fs-4 fw-semibold mt-2">' + (weddingData.receptionTime || '12:00') + ' WIB - Selesai</div><div class="small mt-2">' + escapeHtml(weddingData.venueName) + '<br>' + escapeHtml(weddingData.venueAddress) + '</div></div></div>';
+    
+    // Map
+    const mapsEmbedUrl = weddingData.mapsLink.includes('maps.google.com') ? weddingData.mapsLink.replace('maps.google.com', 'www.google.com/maps/embed?pb=') : weddingData.mapsLink;
+    document.getElementById('googleMap').src = mapsEmbedUrl;
+    document.getElementById('openMapsBtn').onclick = () => window.open(weddingData.mapsLink, '_blank');
+    document.getElementById('saveCalendarBtn').onclick = saveToCalendar;
     
     // Gallery
     var galleries = weddingData.galleries || [];
     var galleriesHtml = '';
     for(var j = 0; j < galleries.length; j++) {
-      galleriesHtml += 
-        '<div class="gallery-item" data-img="' + galleries[j] + '">' +
-          '<img src="' + galleries[j] + '" loading="lazy">' +
-          '<div class="gallery-overlay"><i class="bi bi-zoom-in"></i></div>' +
-        '</div>';
+      galleriesHtml += '<div class="gallery-item" data-img="' + galleries[j] + '"><img src="' + galleries[j] + '" loading="lazy"><div class="gallery-overlay"><i class="bi bi-zoom-in"></i></div></div>';
     }
-    if(galleriesHtml === '') galleriesHtml = '<div class="text-center text-muted py-5"><i class="bi bi-images fs-1"></i><p class="mt-2">Belum ada foto galeri</p></div>';
-    document.getElementById('galleryList').innerHTML = galleriesHtml;
+    document.getElementById('galleryList').innerHTML = galleriesHtml || '<div class="text-center text-muted py-5"><i class="bi bi-images fs-1"></i><p>Belum ada foto</p></div>';
     
-    // Gallery click event
+    // Gallery click
     var galleryItems = document.querySelectorAll('.gallery-item');
     var modal = new bootstrap.Modal(document.getElementById('galleryModal'));
     var modalImg = document.getElementById('modalGalleryImage');
     for(var g = 0; g < galleryItems.length; g++) {
-      galleryItems[g].addEventListener('click', function() {
-        var imgSrc = this.getAttribute('data-img');
-        if(modalImg) modalImg.src = imgSrc;
-        modal.show();
-      });
+      galleryItems[g].addEventListener('click', function() { modalImg.src = this.dataset.img; modal.show(); });
     }
     
     // Banks
@@ -599,172 +670,128 @@
     var banksHtml = '';
     for(var k = 0; k < banks.length; k++) {
       var b = banks[k];
-      banksHtml += 
-        '<div class="col-md-6" data-aos="fade-up" data-aos-delay="' + (k * 100) + '">' +
-          '<div class="bank-card">' +
-            '<i class="bi bi-bank fs-2 gold-text"></i>' +
-            '<h5 class="mt-2">' + escapeHtml(b.name) + '</h5>' +
-            '<div class="bank-number mt-2">' + escapeHtml(b.number) + '</div>' +
-            '<p class="small mt-2">a.n. ' + escapeHtml(b.owner) + '</p>' +
-            '<button class="btn btn-sm btn-outline-gold copy-rek" data-rek="' + b.number + '"><i class="bi bi-copy me-1"></i> Salin Rekening</button>' +
-          '</div>' +
-        '</div>';
+      banksHtml += '<div class="col-md-6" data-aos="fade-up"><div class="bank-card"><i class="bi bi-bank fs-2 gold-text"></i><h5>' + escapeHtml(b.name) + '</h5><div class="bank-number mt-2">' + escapeHtml(b.number) + '</div><p class="small mt-2">a.n. ' + escapeHtml(b.owner) + '</p><button class="btn btn-sm btn-outline-gold copy-rek" data-rek="' + b.number + '">Salin Rekening</button></div></div>';
     }
-    if(banksHtml === '') banksHtml = '<div class="text-center text-muted col-12">Belum ada rekening yang ditambahkan</div>';
-    document.getElementById('bankList').innerHTML = banksHtml;
+    document.getElementById('bankList').innerHTML = banksHtml || '<div class="text-center text-muted col-12">Belum ada rekening</div>';
     
     // Copy rekening
-    var copyBtns = document.querySelectorAll('.copy-rek');
-    for(var c = 0; c < copyBtns.length; c++) {
-      copyBtns[c].addEventListener('click', function() {
-        var rek = this.getAttribute('data-rek');
-        navigator.clipboard.writeText(rek);
-        Swal.fire('Tersalin!', 'Nomor rekening telah disalin', 'success');
-      });
-    }
+    document.querySelectorAll('.copy-rek').forEach(btn => btn.addEventListener('click', () => { navigator.clipboard.writeText(btn.dataset.rek); Swal.fire('Tersalin!', 'Nomor rekening disalin', 'success'); }));
     
-    document.getElementById('footerText').innerHTML = escapeHtml(weddingData.groomName) + ' & ' + escapeHtml(weddingData.brideName);
-    
-    // Bottom Navigation - Icon untuk Cerita menggunakan bi-journal-bookmark-fill
+    // Bottom Nav
     var navItems = [
       { id: 'mempelai', icon: 'people-fill', label: 'Mempelai' },
       { id: 'cerita', icon: 'journal-bookmark-fill', label: 'Cerita' },
       { id: 'acara', icon: 'envelope-paper-heart', label: 'Acara' },
       { id: 'galeri', icon: 'images', label: 'Galeri' },
       { id: 'kado', icon: 'gift-fill', label: 'Kado' },
-      { id: 'doa', icon: 'chat-square-heart', label: 'Doa' }
+      { id: 'doa', icon: 'chat-square-heart', label: 'RSVP' }
     ];
-    
     var bottomHtml = '';
     for(var n = 0; n < navItems.length; n++) {
-      var item = navItems[n];
-      bottomHtml += '<a href="#' + item.id + '" class="nav-link-bottom"><i class="bi bi-' + item.icon + '"></i><span>' + item.label + '</span></a>';
+      bottomHtml += '<a href="#' + navItems[n].id + '"><i class="bi bi-' + navItems[n].icon + '"></i><span>' + navItems[n].label + '</span></a>';
     }
     document.getElementById('bottomNav').innerHTML = bottomHtml;
     
     loadMessagesFromFirebase();
     setupFormListener();
     setupNavScroll();
+    
+    // RSVP Buttons
+    document.getElementById('rsvpHadir').onclick = () => sendRSVP('hadir');
+    document.getElementById('rsvpTidak').onclick = () => sendRSVP('tidak');
+    
+    // Load existing RSVP
+    loadExistingRSVP();
+  }
+  
+  async function loadExistingRSVP() {
+    const rsvpSnap = await get(ref(db, "data/rsvp/" + (inviteId || 'general')));
+    if(rsvpSnap.exists()) {
+      const rsvp = rsvpSnap.val();
+      const statusText = rsvp.status === 'hadir' ? 'HADIR' : 'TIDAK HADIR';
+      const statusClass = rsvp.status === 'hadir' ? 'bg-success' : 'bg-secondary';
+      document.getElementById('rsvpStatus').innerHTML = `<span class="badge ${statusClass} p-2">✓ Anda telah mengkonfirmasi kehadiran sebagai ${statusText}</span>`;
+    }
   }
   
   async function loadMessagesFromFirebase() {
-    var messagesRef = ref(db, "data/messages");
-    var snapshot = await get(messagesRef);
-    var allMessages = snapshot.val() || {};
-    
-    var container = document.getElementById('messagesList');
+    const messagesRef = ref(db, "data/messages");
+    const snapshot = await get(messagesRef);
+    const allMessages = snapshot.val() || {};
+    const container = document.getElementById('messagesList');
     if (!container) return;
     
     var messagesArray = [];
     for(var key in allMessages) {
-      if(allMessages.hasOwnProperty(key)) {
-        var msg = allMessages[key];
-        if(inviteId && msg.inviteId === inviteId) {
-          messagesArray.push(msg);
-        } else if(!inviteId) {
-          messagesArray.push(msg);
-        }
+      if(allMessages[key] && ((inviteId && allMessages[key].inviteId === inviteId) || (!inviteId))) {
+        messagesArray.push(allMessages[key]);
       }
     }
-    
-    messagesArray.sort(function(a, b) { return b.timestamp - a.timestamp; });
+    messagesArray.sort((a, b) => b.timestamp - a.timestamp);
     messagesArray = messagesArray.slice(0, 30);
     
     if (messagesArray.length === 0) {
-      container.innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-chat-quote fs-1"></i><p class="mt-2">Belum ada ucapan. Jadilah yang pertama! 🤍</p></div>';
+      container.innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-chat-quote fs-1"></i><p>Belum ada ucapan. Jadilah yang pertama! 🤍</p></div>';
       return;
     }
     
     var messagesHtml = '';
     for(var i = 0; i < messagesArray.length; i++) {
       var m = messagesArray[i];
-      messagesHtml += 
-        '<div class="message-card">' +
-          '<div class="d-flex justify-content-between align-items-start flex-wrap gap-2">' +
-            '<div><b>' + escapeHtml(m.nama) + '</b>' + (m.alamat ? '<br><small class="text-muted">📍 ' + escapeHtml(m.alamat) + '</small>' : '') + '</div>' +
-            '<span class="badge ' + (m.hadir === '1' ? 'bg-success' : 'bg-secondary') + ' rounded-pill">' + (m.hadir === '1' ? '🙏 Akan Hadir' : '💔 Tidak Hadir') + '</span>' +
-          '</div>' +
-          '<p class="mt-2 mb-1">' + escapeHtml(m.doa) + '</p>' +
-          '<small class="text-muted">' + new Date(m.timestamp).toLocaleDateString('id-ID') + '</small>' +
-        '</div>';
+      messagesHtml += '<div class="message-card"><div class="d-flex justify-content-between"><b>' + escapeHtml(m.nama) + '</b><span class="badge ' + (m.hadir === '1' ? 'bg-success' : 'bg-secondary') + '">' + (m.hadir === '1' ? 'Hadir' : 'Tidak Hadir') + '</span></div>' + (m.alamat ? '<small>📍 ' + escapeHtml(m.alamat) + '</small><br>' : '') + '<p class="mt-2">' + escapeHtml(m.doa) + '</p><small>' + new Date(m.timestamp).toLocaleDateString('id-ID') + '</small></div>';
     }
     container.innerHTML = messagesHtml;
   }
   
   function setupFormListener() {
-    var form = document.getElementById('formUcapan');
+    const form = document.getElementById('formUcapan');
     if (!form) return;
-    
     form.addEventListener('submit', async function(e) {
       e.preventDefault();
-      var nama = document.getElementById('nama').value.trim();
-      var doaVal = document.getElementById('doaText').value.trim();
+      const nama = document.getElementById('nama').value.trim();
+      const doaVal = document.getElementById('doaText').value.trim();
+      if (!nama || !doaVal) { Swal.fire('Info', 'Mohon isi nama dan doa!', 'warning'); return; }
+      const hadir = document.querySelector('input[name="hadir"]') ? (document.querySelector('input[name="hadir"]:checked')?.value || '1') : '1';
+      const alamat = document.getElementById('alamat').value;
       
-      if (!nama || !doaVal) {
-        Swal.fire('Info', 'Mohon isi nama dan doa/ucapan!', 'warning');
-        return;
-      }
-      
-      var hadir = document.querySelector('input[name="hadir"]:checked').value;
-      var alamat = document.getElementById('alamat').value;
-      
-      var messagesRef = ref(db, "data/messages");
-      var newMessageRef = push(messagesRef);
-      await set(newMessageRef, {
-        nama: nama,
-        alamat: alamat || '',
-        doa: doaVal,
-        hadir: hadir,
-        inviteId: inviteId || 'general',
-        timestamp: Date.now()
-      });
+      const messagesRef = ref(db, "data/messages");
+      const newMessageRef = push(messagesRef);
+      await set(newMessageRef, { nama, alamat: alamat || '', doa: doaVal, hadir, inviteId: inviteId || 'general', timestamp: Date.now() });
       
       form.style.display = 'none';
-      var successMsg = document.getElementById('formSuccessMessage');
-      if(successMsg) successMsg.style.display = 'block';
-      
+      document.getElementById('formSuccessMessage').style.display = 'block';
       await loadMessagesFromFirebase();
       Swal.fire('Terima Kasih!', 'Doa dan ucapan Anda telah terkirim ❤️', 'success');
     });
   }
   
   function setupNavScroll() {
-    var navLinks = document.querySelectorAll('.nav-link-bottom, .btn-gold, a[href^="#"]');
+    var navLinks = document.querySelectorAll('.bottom-nav a, .btn-gold, a[href^="#"]');
     for(var i = 0; i < navLinks.length; i++) {
       navLinks[i].addEventListener('click', function(e) {
         var href = this.getAttribute('href');
         if (href && href.indexOf('#') === 0) {
           e.preventDefault();
-          var targetId = href.substring(1);
-          var target = document.getElementById(targetId);
-          if (target) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
+          var target = document.querySelector(href);
+          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       });
     }
   }
   
-  // Music Player - Pink at My Worst
+  // Music Player
   var isPlaying = false;
   var audio = document.getElementById('bgAudio');
   var muteBtn = document.getElementById('muteBtn');
   if(muteBtn) {
     muteBtn.addEventListener('click', function() {
-      if (isPlaying) { 
-        audio.pause(); 
-        muteBtn.innerHTML = '<i class="bi bi-vinyl"></i>'; 
-      } else { 
-        audio.play().catch(function(e) { console.log('Autoplay prevented:', e); }); 
-        muteBtn.innerHTML = '<i class="bi bi-vinyl-fill"></i>'; 
-      }
+      if (isPlaying) { audio.pause(); muteBtn.innerHTML = '<i class="bi bi-vinyl"></i>'; }
+      else { audio.play().catch(e => console.log('Auto-play prevented')); muteBtn.innerHTML = '<i class="bi bi-vinyl-fill"></i>'; }
       isPlaying = !isPlaying;
     });
-    
-    // Try to auto-play (required user interaction first)
     document.body.addEventListener('click', function initAudio() {
-      if(!isPlaying) {
-        audio.play().catch(function(e) { console.log('Auto-play prevented, click music button to play'); });
+      if(!isPlaying && weddingData.musicUrl) {
+        audio.play().catch(e => console.log('Auto-play prevented'));
         isPlaying = true;
         muteBtn.innerHTML = '<i class="bi bi-vinyl-fill"></i>';
       }
