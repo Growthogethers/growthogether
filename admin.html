@@ -63,8 +63,8 @@
     .setting-card { background: #1a1a1a; border-radius: 24px; padding: 1.5rem; margin-bottom: 20px; border: 1px solid #c9a03d30; }
     body.light .setting-card { background: #ffffff; }
     .image-preview { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #c9a03d; cursor: pointer; }
-    .story-item, .bank-item, .bg-item { background: #2a2a2a; border-radius: 16px; padding: 1rem; margin-bottom: 1rem; }
-    body.light .story-item, body.light .bank-item, body.light .bg-item { background: #f5f0e8; }
+    .story-item, .bank-item, .bg-item, .music-item { background: #2a2a2a; border-radius: 16px; padding: 1rem; margin-bottom: 1rem; }
+    body.light .story-item, body.light .bank-item, body.light .bg-item, body.light .music-item { background: #f5f0e8; }
     
     /* Search & Filter */
     .search-bar { background: #2a2a2a; border: 1px solid #c9a03d30; border-radius: 60px; padding: 8px 16px; color: white; width: 100%; }
@@ -82,12 +82,17 @@
     .bg-preview-item img { width: 100%; height: 100%; object-fit: cover; }
     .bg-preview-item button { position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; background: red; border: none; border-radius: 50%; color: white; font-size: 10px; cursor: pointer; }
     
+    /* Preview Modal */
+    .preview-modal .modal-content { background: #0a0a0a; border-radius: 24px; border: 1px solid #c9a03d; }
+    .preview-iframe { width: 100%; height: 500px; border: none; border-radius: 16px; }
+    
     /* Responsive */
     @media (max-width: 768px) {
       .sidebar { left: -280px; position: fixed; z-index: 1000; }
       .sidebar.open { left: 0; }
       .content { margin-left: 0; padding: 1rem; padding-top: 70px; }
       .hamburger { display: flex; position: fixed; top: 16px; left: 16px; z-index: 1060; background: #c9a03d; width: 44px; height: 44px; border-radius: 14px; align-items: center; justify-content: center; border: none; cursor: pointer; }
+      .preview-iframe { height: 400px; }
     }
     .hamburger { display: none; }
     .dark-mode-fab { position: fixed; bottom: 20px; right: 20px; width: 48px; height: 48px; background: #c9a03d; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1050; border: none; }
@@ -100,6 +105,10 @@
     body.light .table { color: #1a1a1a; }
     .table-dark { background-color: #1a1a1a; }
     body.light .table-dark { background-color: #ffffff; }
+    
+    /* Date filter */
+    .date-filter { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .date-filter input { width: auto; min-width: 130px; }
   </style>
 </head>
 <body>
@@ -148,12 +157,22 @@
         <div class="col-md-3"><div class="stat-card"><small class="text-white-50">Total Undangan</small><h2 class="gold-text" id="totalInvites">0</h2></div></div>
         <div class="col-md-3"><div class="stat-card"><small class="text-white-50">VIP Tamu</small><h2 class="gold-text" id="totalVip">0</h2></div></div>
         <div class="col-md-3"><div class="stat-card"><small class="text-white-50">Reguler Tamu</small><h2 class="gold-text" id="totalRegular">0</h2></div></div>
-        <div class="col-md-3"><div class="stat-card"><small class="text-white-50">Ucapan Masuk</small><h2 class="gold-text" id="totalMessages">0</h2></div></div>
+        <div class="col-md-3"><div class="stat-card"><small class="text-white-50">Total Views</small><h2 class="gold-text" id="totalViews">0</h2></div></div>
       </div>
-      <div class="setting-card"><canvas id="dashboardChart" style="max-height: 250px;"></canvas></div>
+      <div class="row g-4 mb-4">
+        <div class="col-md-6">
+          <div class="setting-card"><canvas id="dashboardChart" style="max-height: 250px;"></canvas></div>
+        </div>
+        <div class="col-md-6">
+          <div class="setting-card">
+            <h5 class="gold-text mb-3"><i class="bi bi-graph-up"></i> Statistik Pengunjung</h5>
+            <canvas id="viewsChart" style="max-height: 200px;"></canvas>
+          </div>
+        </div>
+      </div>
     </div>
     
-    <!-- PENGATURAN UNDANGAN (DENGAN BACKGROUND SLIDESHOW) -->
+    <!-- PENGATURAN UNDANGAN (DENGAN BACKGROUND SLIDESHOW & LAGU) -->
     <div id="weddingSection" style="display:none;">
       <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <h4 class="fw-bold gold-text"><i class="bi bi-sliders2 me-2"></i>Pengaturan Undangan</h4>
@@ -190,6 +209,32 @@
             <input type="text" id="venueName" class="form-control mb-2" placeholder="Nama Tempat">
             <textarea id="venueAddress" rows="2" class="form-control mb-2" placeholder="Alamat Lengkap"></textarea>
             <input type="text" id="mapsLink" class="form-control mb-2" placeholder="Link Google Maps">
+          </div>
+        </div>
+        
+        <!-- Pengaturan Lagu Latar -->
+        <div class="col-md-12">
+          <div class="setting-card">
+            <h5 class="gold-text mb-3"><i class="bi bi-music-note-beamed me-2"></i>Pengaturan Lagu Latar</h5>
+            <p class="small text-white-50 mb-2">Pilih lagu untuk diputar di halaman undangan</p>
+            <div class="row g-3">
+              <div class="col-md-8">
+                <input type="text" id="musicUrl" class="form-control" placeholder="URL MP3 lagu (contoh: https://example.com/song.mp3)">
+                <small class="text-muted">Masukkan URL langsung file MP3, atau gunakan preset di bawah</small>
+              </div>
+              <div class="col-md-4">
+                <select id="musicPreset" class="form-select">
+                  <option value="">-- Pilih Lagu Preset --</option>
+                  <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">SoundHelix - Song 1</option>
+                  <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3">SoundHelix - Song 2</option>
+                  <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3">SoundHelix - Song 3</option>
+                  <option value="https://dl.soundowl.com/3i7c8p/f94f/pink-at-my-worst-masicka-ft-rotimi.mp3">Pink at My Worst</option>
+                </select>
+              </div>
+            </div>
+            <div class="mt-3">
+              <button class="btn btn-sm btn-outline-secondary" id="testMusicBtn"><i class="bi bi-play-circle"></i> Test Lagu</button>
+            </div>
           </div>
         </div>
         
@@ -252,7 +297,11 @@
             <button class="btn-gold w-100" id="generateInviteBtn"><i class="bi bi-link-45deg me-2"></i>Generate Link</button>
             <div id="linkResult" class="mt-3" style="display:none;">
               <div class="bg-dark p-2 rounded-3"><code id="inviteLink" class="small text-break"></code></div>
-              <button class="btn btn-sm btn-outline-secondary mt-2 w-100" id="copyLinkBtn"><i class="bi bi-files"></i> Salin Link</button>
+              <div class="d-flex gap-2 mt-2">
+                <button class="btn btn-sm btn-outline-secondary w-50" id="copyLinkBtn"><i class="bi bi-files"></i> Salin Link</button>
+                <button class="btn btn-sm btn-success w-50" id="sendWABtn"><i class="bi bi-whatsapp"></i> Kirim WA</button>
+                <button class="btn btn-sm btn-info w-50" id="previewInviteBtn"><i class="bi bi-eye"></i> Preview</button>
+              </div>
             </div>
           </div>
         </div>
@@ -265,24 +314,29 @@
       </div>
     </div>
     
-    <!-- DAFTAR TAMU dengan SEARCH & FILTER -->
+    <!-- DAFTAR TAMU dengan SEARCH, FILTER, & EDIT -->
     <div id="guestlistSection" style="display:none;">
       <h4 class="fw-bold gold-text mb-4"><i class="bi bi-people-fill me-2"></i>Daftar Tamu Undangan</h4>
       
       <div class="setting-card mb-4">
         <div class="row g-3 align-items-center">
-          <div class="col-md-5">
+          <div class="col-md-4">
             <input type="text" id="searchGuestInput" class="search-bar" placeholder="🔍 Cari nama tamu...">
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3">
             <div class="d-flex gap-2 flex-wrap">
               <button class="filter-btn" data-filter="all" id="filterAll">Semua</button>
               <button class="filter-btn" data-filter="vip" id="filterVip">👑 VIP</button>
               <button class="filter-btn" data-filter="regular" id="filterRegular">📋 Reguler</button>
             </div>
           </div>
-          <div class="col-md-3 text-end">
+          <div class="col-md-3 date-filter">
+            <input type="date" id="filterStartDate" class="form-control" placeholder="Dari tgl">
+            <input type="date" id="filterEndDate" class="form-control" placeholder="Sampai tgl">
+          </div>
+          <div class="col-md-2 text-end">
             <button id="refreshGuestList" class="btn btn-sm btn-outline-secondary rounded-pill"><i class="bi bi-arrow-repeat"></i> Refresh</button>
+            <button id="clearDateFilter" class="btn btn-sm btn-outline-danger rounded-pill mt-1"><i class="bi bi-x-circle"></i> Hapus Filter</button>
           </div>
         </div>
       </div>
@@ -292,10 +346,11 @@
           <table class="table table-dark table-hover mb-0">
             <thead>
               <tr>
-                <th style="width: 25%">Nama Tamu</th>
-                <th style="width: 15%">Status</th>
+                <th style="width: 20%">Nama Tamu</th>
+                <th style="width: 10%">Status</th>
                 <th style="width: 15%">Telepon</th>
                 <th style="width: 30%">Link Undangan</th>
+                <th style="width: 10%">Dibuat</th>
                 <th style="width: 15%">Aksi</th>
               </tr>
             </thead>
@@ -305,7 +360,7 @@
       </div>
     </div>
     
-    <!-- KELOLA PENGGUNA - FIXED TABLE (4 KOLOM) -->
+    <!-- KELOLA PENGGUNA -->
     <div id="usersSection" style="display:none;">
       <h4 class="fw-bold gold-text mb-4"><i class="bi bi-person-badge me-2"></i>Kelola Pengguna</h4>
       <button class="btn-gold mb-3" id="openRegisterModal" style="width:auto;"><i class="bi bi-person-plus-fill me-2"></i>Daftar User Baru</button>
@@ -351,6 +406,38 @@
   </div>
 </div>
 
+<!-- MODAL EDIT TAMU -->
+<div class="modal fade" id="editGuestModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-white">
+      <div class="modal-header border-secondary"><h5 class="gold-text"><i class="bi bi-pencil-square me-2"></i>Edit Data Tamu</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <input type="text" id="editGuestName" class="form-control mb-3" placeholder="Nama Tamu *">
+        <input type="tel" id="editGuestPhone" class="form-control mb-3" placeholder="No. WhatsApp">
+        <textarea id="editGuestNote" rows="3" class="form-control mb-3" placeholder="Catatan Khusus"></textarea>
+        <select id="editGuestTier" class="form-select mb-3">
+          <option value="regular">Reguler (Biasa)</option>
+          <option value="vip">VIP (Istimewa)</option>
+        </select>
+        <input type="hidden" id="editGuestId">
+      </div>
+      <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button><button class="btn-gold" id="saveEditGuestBtn">Simpan Perubahan</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PREVIEW UNDANGAN -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content preview-modal">
+      <div class="modal-header border-secondary"><h5 class="gold-text"><i class="bi bi-eye-fill me-2"></i>Preview Undangan</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body p-0">
+        <iframe id="previewIframe" class="preview-iframe" src=""></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getDatabase, ref, get, set, remove, update, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -370,8 +457,11 @@
   const INVITE_BASE_URL = window.location.origin + window.location.pathname.replace('admin.html', 'undangan.html');
   let currentUser = null;
   let chartInstance = null;
+  let viewsChartInstance = null;
   let currentFilter = 'all';
   let currentSearch = '';
+  let currentStartDate = '';
+  let currentEndDate = '';
   let allInvitations = [];
   
   // ============ ENKRIPSI ============
@@ -382,7 +472,17 @@
     return btoa(combined).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
   }
   
-  // Helper functions
+  function decryptInviteId(encrypted) {
+    try {
+      let base64 = encrypted.replace(/-/g, '+').replace(/_/g, '/');
+      while (base64.length % 4) base64 += '=';
+      const decoded = atob(base64);
+      const parts = decoded.split('|');
+      if (parts.length === 2 && parts[1] === SALT) return parts[0];
+      return null;
+    } catch(e) { return null; }
+  }
+  
   function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
   
   async function hashPassword(pwd) { 
@@ -417,11 +517,7 @@
     const upper = username.toUpperCase().trim();
     const authSnap = await get(ref(db, "data/auth/" + upper));
     const userSnap = await get(ref(db, "data/users/" + upper));
-    
-    if (!authSnap.exists() || !userSnap.exists()) {
-      throw new Error('Username tidak terdaftar');
-    }
-    
+    if (!authSnap.exists() || !userSnap.exists()) throw new Error('Username tidak terdaftar');
     const hash = await hashPassword(password);
     if (authSnap.val() === hash) { 
       currentUser = upper; 
@@ -447,9 +543,10 @@
     await loadInvitations();
     await loadUsers();
     await loadStats();
+    await loadViewStats();
   }
   
-  // ============ WEDDING SETTINGS (dengan backgrounds) ============
+  // ============ WEDDING SETTINGS ============
   async function loadWeddingSettings() {
     const snap = await get(ref(db, "data/wedding_settings"));
     const s = snap.val() || {};
@@ -469,6 +566,7 @@
     document.getElementById('venueName').value = s.venueName || 'Aula Serbaguna';
     document.getElementById('venueAddress').value = s.venueAddress || 'Jalan Kebahagiaan No. 123, Jakarta';
     document.getElementById('mapsLink').value = s.mapsLink || 'https://maps.google.com';
+    document.getElementById('musicUrl').value = s.musicUrl || '';
     renderStories(s.stories || []);
     renderGalleries(s.galleries || []);
     renderBanks(s.banks || []);
@@ -517,7 +615,6 @@
       div.innerHTML = `<img src="${url}"><button class="remove-bg" data-idx="${idx}">✕</button>`;
       container.appendChild(div);
     });
-    
     document.querySelectorAll('.remove-bg').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const idx = parseInt(btn.dataset.idx);
@@ -563,6 +660,7 @@
         venueName: document.getElementById('venueName').value,
         venueAddress: document.getElementById('venueAddress').value,
         mapsLink: document.getElementById('mapsLink').value,
+        musicUrl: document.getElementById('musicUrl').value,
         stories: stories,
         galleries: galleries,
         banks: banks,
@@ -598,6 +696,8 @@
     if (currentFilter === 'vip') filtered = filtered.filter(inv => inv.tier === 'vip');
     if (currentFilter === 'regular') filtered = filtered.filter(inv => inv.tier !== 'vip');
     if (currentSearch) filtered = filtered.filter(inv => inv.guestName.toLowerCase().indexOf(currentSearch.toLowerCase()) !== -1);
+    if (currentStartDate) filtered = filtered.filter(inv => inv.createdAt >= new Date(currentStartDate).getTime());
+    if (currentEndDate) filtered = filtered.filter(inv => inv.createdAt <= new Date(currentEndDate + 'T23:59:59').getTime());
     
     filtered.reverse();
     tbody.innerHTML = '';
@@ -606,20 +706,29 @@
       const encryptedId = encryptInviteId(inv.id);
       const link = `${INVITE_BASE_URL}?invite=${encryptedId}`;
       const tierBadge = inv.tier === 'vip' ? '<span class="badge-vip">👑 VIP</span>' : '<span class="badge-regular">📋 Reguler</span>';
+      const viewCount = inv.viewCount || 0;
+      const viewIcon = viewCount > 0 ? `<i class="bi bi-eye text-info me-1"></i>${viewCount}` : '';
+      
       tbody.innerHTML += `
         <tr>
-          <td><strong>${escapeHtml(inv.guestName)}</strong></td>
+          <td><strong>${escapeHtml(inv.guestName)}</strong><br><small class="text-muted">${viewIcon}</small></td>
           <td>${tierBadge}</td>
           <td>${inv.phone || '-'}</td>
           <td><small class="text-break" style="max-width:200px; display:inline-block;">${link}</small></td>
+          <td>${inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('id') : '-'}</td>
           <td>
-            <button class="btn btn-sm btn-outline-danger rounded-pill delete-invite" data-id="${inv.id}">Hapus</button>
-            <button class="btn btn-sm btn-outline-warning rounded-pill edit-tier mt-1" data-id="${inv.id}" data-tier="${inv.tier || 'regular'}">Ubah Status</button>
+            <div class="d-flex flex-wrap gap-1">
+              <button class="btn btn-sm btn-outline-primary edit-guest" data-id="${inv.id}" data-name="${escapeHtml(inv.guestName)}" data-phone="${inv.phone || ''}" data-note="${inv.note || ''}" data-tier="${inv.tier || 'regular'}"><i class="bi bi-pencil"></i> Edit</button>
+              <button class="btn btn-sm btn-success send-wa" data-name="${escapeHtml(inv.guestName)}" data-link="${link}"><i class="bi bi-whatsapp"></i> WA</button>
+              <button class="btn btn-sm btn-info preview-guest" data-link="${link}"><i class="bi bi-eye"></i> Preview</button>
+              <button class="btn btn-sm btn-outline-danger delete-invite" data-id="${inv.id}"><i class="bi bi-trash3"></i> Hapus</button>
+            </div>
            </td>
         </tr>
       `;
     }
     
+    // Delete event
     document.querySelectorAll('.delete-invite').forEach(btn => {
       btn.addEventListener('click', async () => { 
         if(confirm('Hapus undangan ini?')) { 
@@ -629,12 +738,34 @@
       });
     });
     
-    document.querySelectorAll('.edit-tier').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const newTier = btn.dataset.tier === 'vip' ? 'regular' : 'vip';
-        await update(ref(db, "data/invitations/" + btn.dataset.id), { tier: newTier });
-        await loadInvitations();
-        Swal.fire('Berhasil', `Status diubah menjadi ${newTier === 'vip' ? 'VIP' : 'Reguler'}`, 'success');
+    // Edit event
+    document.querySelectorAll('.edit-guest').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('editGuestId').value = btn.dataset.id;
+        document.getElementById('editGuestName').value = btn.dataset.name;
+        document.getElementById('editGuestPhone').value = btn.dataset.phone;
+        document.getElementById('editGuestNote').value = btn.dataset.note;
+        document.getElementById('editGuestTier').value = btn.dataset.tier;
+        new bootstrap.Modal(document.getElementById('editGuestModal')).show();
+      });
+    });
+    
+    // Send WA event
+    document.querySelectorAll('.send-wa').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const name = btn.dataset.name;
+        const link = btn.dataset.link;
+        const message = `*UNDANGAN PERNIKAHAN*%0A%0Aالسلام عليكم ورحمة الله وبركاته%0A%0AKepada Yth. ${encodeURIComponent(name)}%0A%0ATanpa mengurangi rasa hormat, kami mengundang Bapak/Ibu/Saudara/i untuk hadir dalam acara pernikahan kami.%0A%0A📅 Hari/Tanggal: (sesuai undangan)%0A📍 Tempat: (sesuai undangan)%0A%0A🔗 Link Undangan Digital: ${encodeURIComponent(link)}%0A%0AMohon doa restunya. Terima kasih.%0A%0AWassalamu'alaikum wr.wb.`;
+        window.open(`https://wa.me/?text=${message}`, '_blank');
+      });
+    });
+    
+    // Preview event
+    document.querySelectorAll('.preview-guest').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const link = btn.dataset.link;
+        document.getElementById('previewIframe').src = link + '&preview=true';
+        new bootstrap.Modal(document.getElementById('previewModal')).show();
       });
     });
   }
@@ -647,9 +778,54 @@
       phone: phone || '', 
       note: note || '', 
       tier: tier || 'regular',
-      createdAt: Date.now() 
+      createdAt: Date.now(),
+      viewCount: 0
     });
     return encryptInviteId(id);
+  }
+  
+  // ============ VIEW STATISTICS ============
+  async function loadViewStats() {
+    const snap = await get(ref(db, "data/invitations"));
+    const invites = snap.val() || {};
+    let totalViews = 0;
+    for(const id in invites) {
+      if(invites[id].viewCount) totalViews += invites[id].viewCount;
+    }
+    document.getElementById('totalViews').innerText = totalViews;
+    
+    // Views chart (last 7 days)
+    const viewsData = {};
+    for(const id in invites) {
+      if(invites[id].viewHistory) {
+        for(const view of invites[id].viewHistory) {
+          const date = new Date(view).toISOString().slice(0,10);
+          viewsData[date] = (viewsData[date] || 0) + 1;
+        }
+      }
+    }
+    
+    const last7Days = [];
+    for(let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      last7Days.push(d.toISOString().slice(0,10));
+    }
+    
+    const viewCounts = last7Days.map(d => viewsData[d] || 0);
+    
+    if(viewsChartInstance) viewsChartInstance.destroy();
+    const ctx = document.getElementById('viewsChart')?.getContext('2d');
+    if(ctx) {
+      viewsChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: last7Days.map(d => d.slice(5)),
+          datasets: [{ label: 'Views', data: viewCounts, borderColor: '#c9a03d', backgroundColor: 'rgba(201,160,61,0.1)', fill: true, tension: 0.3 }]
+        },
+        options: { responsive: true, maintainAspectRatio: true }
+      });
+    }
   }
   
   // ============ USERS ============
@@ -664,7 +840,6 @@
           const data = users[uname];
           const level = data.level || 'trial';
           let levelBadge = '';
-          let levelText = level.toUpperCase();
           if(level === 'pro') levelBadge = 'badge-pro';
           else if(level === 'basic') levelBadge = 'badge-basic';
           else levelBadge = 'badge-trial';
@@ -672,9 +847,8 @@
           const row = tbody.insertRow();
           row.insertCell(0).innerHTML = `<strong>${escapeHtml(uname)}</strong>`;
           row.insertCell(1).innerHTML = escapeHtml(data.fullname || uname);
-          row.insertCell(2).innerHTML = `<span class="${levelBadge}">${levelText}</span>`;
+          row.insertCell(2).innerHTML = `<span class="${levelBadge}">${level.toUpperCase()}</span>`;
           
-          // Aksi: admin tidak bisa dihapus
           if(uname !== 'FACHMI' && uname !== 'AZIZAH') {
             row.insertCell(3).innerHTML = `<button class="btn btn-sm btn-outline-danger rounded-pill delete-user" data-username="${uname}"><i class="bi bi-trash3 me-1"></i>Hapus</button>`;
           } else {
@@ -683,7 +857,6 @@
         }
       }
       
-      // Event listener untuk hapus user
       document.querySelectorAll('.delete-user').forEach(btn => {
         btn.addEventListener('click', async () => {
           const username = btn.dataset.username;
@@ -693,17 +866,11 @@
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Ya, hapus!',
-            cancelButtonText: 'Batal'
+            confirmButtonText: 'Ya, hapus!'
           });
           if(result.isConfirmed) {
             await remove(ref(db, "data/users/" + username));
             await remove(ref(db, "data/auth/" + username));
-            await remove(ref(db, "data/keuangan/" + username));
-            await remove(ref(db, "data/impian/" + username));
-            await remove(ref(db, "data/profiles/" + username));
-            await remove(ref(db, "data/partners/" + username));
             await loadUsers();
             Swal.fire('Terhapus!', `Pengguna ${username} telah dihapus.`, 'success');
           }
@@ -736,12 +903,10 @@
     const totalInvites = allInvitations.length;
     const totalVip = allInvitations.filter(i => i.tier === 'vip').length;
     const totalRegular = totalInvites - totalVip;
-    const messages = JSON.parse(localStorage.getItem('wedding_messages_general') || '[]');
     
     document.getElementById('totalInvites').innerText = totalInvites;
     document.getElementById('totalVip').innerText = totalVip;
     document.getElementById('totalRegular').innerText = totalRegular;
-    document.getElementById('totalMessages').innerText = messages.length;
     
     if(chartInstance) chartInstance.destroy();
     const ctx = document.getElementById('dashboardChart')?.getContext('2d');
@@ -749,8 +914,8 @@
       chartInstance = new Chart(ctx, { 
         type: 'doughnut', 
         data: { 
-          labels: ['VIP', 'Reguler', 'Ucapan'], 
-          datasets: [{ data: [totalVip, totalRegular, messages.length], backgroundColor: ['#c9a03d', '#2a2a2a', '#1a5a3a'] }] 
+          labels: ['VIP', 'Reguler'], 
+          datasets: [{ data: [totalVip, totalRegular], backgroundColor: ['#c9a03d', '#2a2a2a'] }] 
         }, 
         options: { responsive: true, maintainAspectRatio: true } 
       });
@@ -788,9 +953,20 @@
       renderGuestTable();
     });
     
-    document.getElementById('refreshGuestList')?.addEventListener('click', () => {
-      loadInvitations();
+    const startDate = document.getElementById('filterStartDate');
+    const endDate = document.getElementById('filterEndDate');
+    if(startDate) startDate.addEventListener('change', (e) => { currentStartDate = e.target.value; renderGuestTable(); });
+    if(endDate) endDate.addEventListener('change', (e) => { currentEndDate = e.target.value; renderGuestTable(); });
+    
+    document.getElementById('clearDateFilter')?.addEventListener('click', () => {
+      if(startDate) startDate.value = '';
+      if(endDate) endDate.value = '';
+      currentStartDate = '';
+      currentEndDate = '';
+      renderGuestTable();
     });
+    
+    document.getElementById('refreshGuestList')?.addEventListener('click', () => { loadInvitations(); });
   }
   
   // ============ NAVIGATION ============
@@ -885,6 +1061,24 @@
   document.getElementById('addGalleryBtn')?.addEventListener('click', () => document.getElementById('galleryPhotoInput').click());
   document.getElementById('addBgBtn')?.addEventListener('click', () => document.getElementById('bgPhotoInput').click());
   
+  // Music preset
+  document.getElementById('musicPreset')?.addEventListener('change', (e) => {
+    if(e.target.value) {
+      document.getElementById('musicUrl').value = e.target.value;
+    }
+  });
+  
+  document.getElementById('testMusicBtn')?.addEventListener('click', () => {
+    const url = document.getElementById('musicUrl').value;
+    if(url) {
+      const audio = new Audio(url);
+      audio.play().catch(e => Swal.fire('Error', 'Tidak dapat memutar lagu. Periksa URL.', 'error'));
+      setTimeout(() => audio.pause(), 5000);
+    } else {
+      Swal.fire('Info', 'Masukkan URL lagu terlebih dahulu', 'info');
+    }
+  });
+  
   document.getElementById('generateInviteBtn')?.addEventListener('click', async () => { 
     const name = document.getElementById('guestName').value.trim(); 
     if(!name) { Swal.fire('Info', 'Nama tamu wajib diisi', 'warning'); return; }
@@ -896,9 +1090,6 @@
       document.getElementById('inviteLink').innerText = link; 
       Swal.fire('Berhasil', 'Link undangan dibuat', 'success'); 
       await loadInvitations(); 
-      document.getElementById('guestName').value = '';
-      document.getElementById('guestPhone').value = '';
-      document.getElementById('guestNote').value = '';
     } catch(e) { Swal.fire('Error', e.message, 'error'); }
   });
   
@@ -906,6 +1097,27 @@
     const link = document.getElementById('inviteLink').innerText;
     navigator.clipboard.writeText(link); 
     Swal.fire('Disalin', 'Link disalin ke clipboard', 'success'); 
+  });
+  
+  document.getElementById('sendWABtn')?.addEventListener('click', () => {
+    const link = document.getElementById('inviteLink').innerText;
+    const name = document.getElementById('guestName').value.trim();
+    if(name && link) {
+      const message = `*UNDANGAN PERNIKAHAN*%0A%0Aالسلام عليكم ورحمة الله وبركاته%0A%0AKepada Yth. ${encodeURIComponent(name)}%0A%0A🔗 Link Undangan: ${encodeURIComponent(link)}%0A%0AMohon doa restunya. Terima kasih.`;
+      window.open(`https://wa.me/?text=${message}`, '_blank');
+    } else {
+      Swal.fire('Info', 'Generate link terlebih dahulu', 'info');
+    }
+  });
+  
+  document.getElementById('previewInviteBtn')?.addEventListener('click', () => {
+    const link = document.getElementById('inviteLink').innerText;
+    if(link) {
+      document.getElementById('previewIframe').src = link + '&preview=true';
+      new bootstrap.Modal(document.getElementById('previewModal')).show();
+    } else {
+      Swal.fire('Info', 'Generate link terlebih dahulu', 'info');
+    }
   });
   
   document.getElementById('guestName')?.addEventListener('input', () => { 
@@ -940,6 +1152,19 @@
       await loadUsers(); 
       bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide(); 
     } catch(e) { Swal.fire('Error', e.message, 'error'); }
+  });
+  
+  document.getElementById('saveEditGuestBtn')?.addEventListener('click', async () => {
+    const id = document.getElementById('editGuestId').value;
+    await update(ref(db, "data/invitations/" + id), {
+      guestName: document.getElementById('editGuestName').value,
+      phone: document.getElementById('editGuestPhone').value,
+      note: document.getElementById('editGuestNote').value,
+      tier: document.getElementById('editGuestTier').value
+    });
+    await loadInvitations();
+    bootstrap.Modal.getInstance(document.getElementById('editGuestModal')).hide();
+    Swal.fire('Berhasil', 'Data tamu diperbarui', 'success');
   });
   
   document.querySelectorAll('.sidebar .nav-link').forEach(link => link.addEventListener('click', () => { 
