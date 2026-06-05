@@ -12,16 +12,18 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #f5f0e8; }
-    .gold-text { background: linear-gradient(135deg, #e4c580, #c9a03d, #b8860b); background-clip: text; color: transparent; font-weight: 600; }
-    .btn-gold { background: linear-gradient(135deg, #c9a03d, #a67c1e); border: none; border-radius: 50px; padding: 12px 36px; font-weight: 600; color: #0a0a0a; transition: all 0.3s; }
+    .gold-text { background: linear-gradient(135deg, #e4c580, #c9a03d, #b8860b); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 600; }
+    .btn-gold { background: linear-gradient(135deg, #c9a03d, #a67c1e); border: none; border-radius: 50px; padding: 12px 36px; font-weight: 600; color: #0a0a0a; transition: all 0.3s; text-decoration: none; display: inline-block; }
     .btn-gold:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(201,160,61,0.4); }
+    .btn-outline-gold { background: transparent; border: 1px solid #c9a03d; border-radius: 30px; padding: 8px 20px; text-decoration: none; color: #c9a03d; display: inline-block; }
     .luxury-card { background: rgba(20, 18, 22, 0.8); backdrop-filter: blur(10px); border-radius: 32px; border: 1px solid rgba(201,160,61,0.2); padding: 20px; }
     .photo-frame img { width: 160px; height: 160px; object-fit: cover; border-radius: 50%; border: 4px solid #c9a03d; }
     @media (max-width: 768px) { .photo-frame img { width: 120px; height: 120px; } }
     .countdown-elegant { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-    .cd-item { background: rgba(255,255,255,0.08); backdrop-filter: blur(12px); border-radius: 24px; padding: 8px 16px; min-width: 70px; border: 1px solid rgba(201,160,61,0.3); }
+    .cd-item { background: rgba(255,255,255,0.08); backdrop-filter: blur(12px); border-radius: 24px; padding: 8px 16px; min-width: 70px; border: 1px solid rgba(201,160,61,0.3); text-align: center; }
     .cd-number { font-size: 2rem; font-weight: 700; color: #c9a03d; line-height: 1; }
-    .timeline-icon { width: 50px; height: 50px; background: #c9a03d; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .cd-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.7); }
+    .timeline-icon { width: 50px; height: 50px; background: #c9a03d; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; }
     .gallery-grid img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 20px; cursor: pointer; transition: transform 0.3s; }
     .gallery-grid img:hover { transform: scale(1.02); }
@@ -30,9 +32,12 @@
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(10,10,10,0.95); backdrop-filter: blur(20px); padding: 8px; display: flex; justify-content: space-around; z-index: 100; }
     .bottom-nav a { color: #aaa; text-decoration: none; font-size: 12px; text-align: center; }
     .bottom-nav a i { font-size: 22px; display: block; }
-    .bottom-nav a.active, .bottom-nav a:hover { color: #c9a03d; }
+    .bottom-nav a:hover, .bottom-nav a.active { color: #c9a03d; }
     .music-floating { position: fixed; bottom: 80px; right: 16px; width: 48px; height: 48px; background: #1e1e1e; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 101; border: 1px solid #c9a03d; }
-    @media (max-width: 576px) { .container { padding-left: 16px; padding-right: 16px; } .cd-number { font-size: 1.2rem; } .cd-item { padding: 5px 10px; min-width: 55px; } }
+    @media (max-width: 576px) { .container { padding-left: 16px; padding-right: 16px; } .cd-number { font-size: 1.2rem; } .cd-item { padding: 5px 10px; min-width: 55px; } .timeline-icon { width: 40px; height: 40px; } }
+    .form-control { background: rgba(255,255,255,0.1); border: 1px solid #c9a03d; border-radius: 30px; padding: 12px; color: white; width: 100%; }
+    .form-control:focus { outline: none; border-color: #e4c580; }
+    .form-check-input:checked { background-color: #c9a03d; border-color: #c9a03d; }
   </style>
 </head>
 <body>
@@ -42,9 +47,8 @@
 </audio>
 
 <div id="loading" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#0a0a0a; z-index:9999; display:flex; align-items:center; justify-content:center; flex-direction:column;">
-  <div class="gold-text" style="font-size:2rem;">✦ Pernikahan ✦</div>
-  <div style="width:200px; height:2px; background:linear-gradient(90deg, transparent, #c9a03d, transparent); animation:loading 1.5s infinite;"></div>
-  <style>@keyframes loading { 0% { width:0; opacity:0; } 50% { width:200px; opacity:1; } 100% { width:0; opacity:0; } }</style>
+  <div style="font-size:2rem; background:linear-gradient(135deg, #e4c580, #c9a03d); -webkit-background-clip:text; background-clip:text; color:transparent;">✦ Pernikahan ✦</div>
+  <div style="width:200px; height:2px; background:linear-gradient(90deg, transparent, #c9a03d, transparent); animation:loadingAnim 1.5s infinite; margin-top:20px;"></div>
 </div>
 
 <div class="music-floating" id="muteBtn"><i class="bi bi-vinyl-fill"></i></div>
@@ -62,7 +66,7 @@
   <div class="container py-5" id="galeri"><div id="galeriContent"></div></div>
   <div class="container py-5" id="kado"><div id="kadoContent"></div></div>
   <div class="container py-5" id="doa"><div id="doaContent"></div></div>
-  <div class="footer-elegant text-center py-4 border-top"><i class="bi bi-heart-fill gold-text"></i><p class="mt-2 small" id="footerText">Loading...</p></div>
+  <div class="footer-elegant text-center py-4 border-top mt-4"><i class="bi bi-heart-fill gold-text"></i><p class="mt-2 small" id="footerText">Loading...</p></div>
 </main>
 
 <div class="bottom-nav" id="bottomNav"></div>
@@ -74,7 +78,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
   
-  const firebaseConfig = { 
+  var firebaseConfig = { 
     apiKey: "AIzaSyBeUaOyesw9ucpBGumNjrzUp3WfUtXu39w", 
     authDomain: "growthogether.firebaseapp.com", 
     databaseURL: "https://growthogether-default-rtdb.asia-southeast1.firebasedatabase.app", 
@@ -83,26 +87,51 @@
     messagingSenderId: "784796645743", 
     appId: "1:784796645743:web:e4eb40810d3051826d909a" 
   };
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+  var app = initializeApp(firebaseConfig);
+  var db = getDatabase(app);
   
-  const urlParams = new URLSearchParams(window.location.search);
-  const inviteId = urlParams.get('invite');
-  const isPreview = urlParams.get('preview') === 'true';
-  let weddingData = null;
-  let guestName = "Tamu Undangan";
+  var urlParams = new URLSearchParams(window.location.search);
+  var inviteId = urlParams.get('invite');
+  var isPreview = urlParams.get('preview') === 'true';
+  var weddingData = null;
+  var guestName = "Tamu Undangan";
   
-  function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
-  function formatDate(dateStr) { if(!dateStr) return ''; return new Date(dateStr).toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' }); }
+  function escapeHtml(str) { 
+    if(!str) return ''; 
+    return str.replace(/[&<>]/g, function(m) { 
+      if(m === '&') return '&amp;'; 
+      if(m === '<') return '&lt;'; 
+      if(m === '>') return '&gt;'; 
+      return m; 
+    }); 
+  }
+  
+  function formatDate(dateStr) { 
+    if(!dateStr) return ''; 
+    var d = new Date(dateStr);
+    return d.toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' }); 
+  }
   
   async function loadWeddingData() {
-    const snapshot = await get(ref(db, "data/wedding_settings"));
+    var snapshot = await get(ref(db, "data/wedding_settings"));
     weddingData = snapshot.val() || {};
-    // Default values jika belum ada di database
-    weddingData = { ...{ groomName: "Fachmi", brideName: "Azizah", groomNickname: "Fachmi", brideNickname: "Azizah", groomFather: "Bpk. H. Sumarmo", groomMother: "Ibu Hj. Kantun", brideFather: "Bpk. H. Ahmad", brideMother: "Ibu Hj. Siti", weddingDate: "2025-06-15", akadTime: "09:00", receptionTime: "12:00", venueName: "Aula Serbaguna", venueAddress: "Jalan Kebahagiaan No. 123, Jakarta", mapsLink: "https://maps.google.com", stories: [], galleries: [], banks: [] }, ...weddingData };
+    
+    var defaults = {
+      groomName: "Fachmi", brideName: "Azizah", 
+      groomNickname: "Fachmi", brideNickname: "Azizah", 
+      groomFather: "Bpk. H. Sumarmo", groomMother: "Ibu Hj. Kantun", 
+      brideFather: "Bpk. H. Ahmad", brideMother: "Ibu Hj. Siti", 
+      weddingDate: "2025-06-15", akadTime: "09:00", receptionTime: "12:00", 
+      venueName: "Aula Serbaguna", venueAddress: "Jalan Kebahagiaan No. 123, Jakarta", 
+      mapsLink: "https://maps.google.com", stories: [], galleries: [], banks: []
+    };
+    
+    for(var key in defaults) {
+      if(!weddingData[key]) weddingData[key] = defaults[key];
+    }
     
     if (inviteId && !isPreview) {
-      const inviteSnap = await get(ref(db, `data/invitations/${inviteId}`));
+      var inviteSnap = await get(ref(db, "data/invitations/" + inviteId));
       if (inviteSnap.exists()) guestName = inviteSnap.val().guestName || guestName;
     } else if (isPreview && urlParams.get('name')) {
       guestName = decodeURIComponent(urlParams.get('name'));
@@ -111,145 +140,213 @@
     renderAllSections();
     updateCountdown();
     setInterval(updateCountdown, 1000);
-    setTimeout(() => { const ld = document.getElementById('loading'); if(ld) { ld.style.opacity='0'; setTimeout(()=>ld.remove(),500); } }, 1200);
+    setTimeout(function() { 
+      var ld = document.getElementById('loading'); 
+      if(ld) { 
+        ld.style.opacity = '0'; 
+        setTimeout(function() { if(ld && ld.parentNode) ld.parentNode.removeChild(ld); }, 500); 
+      } 
+    }, 1200);
     AOS.init({ duration: 800, once: true });
   }
   
   function updateCountdown() {
     if (!weddingData.weddingDate) return;
-    const target = new Date(weddingData.weddingDate + 'T' + (weddingData.akadTime || '09:00') + ':00');
-    const diff = target - new Date();
+    var target = new Date(weddingData.weddingDate + 'T' + (weddingData.akadTime || '09:00') + ':00');
+    var diff = target - new Date();
     if (diff > 0) {
-      document.getElementById('hari')?.innerText = Math.floor(diff/86400000);
-      document.getElementById('jam')?.innerText = Math.floor((diff%86400000)/3600000);
-      document.getElementById('menit')?.innerText = Math.floor((diff%3600000)/60000);
-      document.getElementById('detik')?.innerText = Math.floor((diff%60000)/1000);
+      var days = Math.floor(diff / 86400000);
+      var hours = Math.floor((diff % 86400000) / 3600000);
+      var minutes = Math.floor((diff % 3600000) / 60000);
+      var seconds = Math.floor((diff % 60000) / 1000);
+      if(document.getElementById('hari')) document.getElementById('hari').innerText = days;
+      if(document.getElementById('jam')) document.getElementById('jam').innerText = hours;
+      if(document.getElementById('menit')) document.getElementById('menit').innerText = minutes;
+      if(document.getElementById('detik')) document.getElementById('detik').innerText = seconds;
     } else {
-      document.getElementById('hari')?.innerText = '0'; document.getElementById('jam')?.innerText = '0';
-      document.getElementById('menit')?.innerText = '0'; document.getElementById('detik')?.innerText = '0';
+      if(document.getElementById('hari')) document.getElementById('hari').innerText = '0';
+      if(document.getElementById('jam')) document.getElementById('jam').innerText = '0';
+      if(document.getElementById('menit')) document.getElementById('menit').innerText = '0';
+      if(document.getElementById('detik')) document.getElementById('detik').innerText = '0';
     }
   }
   
   function renderAllSections() {
     // Hero
-    document.getElementById('heroContent').innerHTML = `
-      <div data-aos="zoom-in"><i class="bi bi-star-fill gold-text fs-1"></i><i class="bi bi-suit-heart-fill gold-text fs-1 mx-2"></i><i class="bi bi-star-fill gold-text fs-1"></i>
-      <p class="text-white text-uppercase small mt-3" style="letter-spacing:4px;">The Wedding of</p>
-      <h1 class="display-4 fw-bold" style="font-family:'Playfair Display';">${escapeHtml(weddingData.groomNickname || weddingData.groomName)} & ${escapeHtml(weddingData.brideNickname || weddingData.brideName)}</h1>
-      <div class="countdown-elegant my-4"><div class="cd-item"><div class="cd-number" id="hari">0</div><div class="cd-label">Hari</div></div><div class="cd-item"><div class="cd-number" id="jam">0</div><div class="cd-label">Jam</div></div><div class="cd-item"><div class="cd-number" id="menit">0</div><div class="cd-label">Menit</div></div><div class="cd-item"><div class="cd-number" id="detik">0</div><div class="cd-label">Detik</div></div></div>
-      <div class="mt-3"><div class="bg-white bg-opacity-10 d-inline-block rounded-pill px-4 py-2">Kepada Yth. <strong class="gold-text">${escapeHtml(guestName)}</strong></div></div>
-      <div class="mt-4"><a href="#mempelai" class="btn-gold">Buka Undangan <i class="bi bi-arrow-down-short"></i></a></div></div>
-    `;
+    document.getElementById('heroContent').innerHTML = 
+      '<div data-aos="zoom-in"><i class="bi bi-star-fill gold-text fs-1"></i><i class="bi bi-suit-heart-fill gold-text fs-1 mx-2"></i><i class="bi bi-star-fill gold-text fs-1"></i>' +
+      '<p class="text-white text-uppercase small mt-3" style="letter-spacing:4px;">The Wedding of</p>' +
+      '<h1 class="display-4 fw-bold" style="font-family:\'Playfair Display\';">' + escapeHtml(weddingData.groomNickname || weddingData.groomName) + ' & ' + escapeHtml(weddingData.brideNickname || weddingData.brideName) + '</h1>' +
+      '<div class="countdown-elegant my-4"><div class="cd-item"><div class="cd-number" id="hari">0</div><div class="cd-label">Hari</div></div><div class="cd-item"><div class="cd-number" id="jam">0</div><div class="cd-label">Jam</div></div><div class="cd-item"><div class="cd-number" id="menit">0</div><div class="cd-label">Menit</div></div><div class="cd-item"><div class="cd-number" id="detik">0</div><div class="cd-label">Detik</div></div></div>' +
+      '<div class="mt-3"><div class="bg-white bg-opacity-10 d-inline-block rounded-pill px-4 py-2">Kepada Yth. <strong class="gold-text">' + escapeHtml(guestName) + '</strong></div></div>' +
+      '<div class="mt-4"><a href="#mempelai" class="btn-gold">Buka Undangan <i class="bi bi-arrow-down-short"></i></a></div></div>';
     
     // Mempelai
-    document.getElementById('mempelaiContent').innerHTML = `
-      <div class="text-center"><i class="bi bi-flower2 fs-1 gold-text"></i><h2 class="gold-text fw-bold mt-2">Mempelai Berbahagia</h2><div class="mx-auto my-3" style="width:80px; height:2px; background:#c9a03d;"></div></div>
-      <div class="row g-5 mt-3"><div class="col-md-6 text-center"><div class="photo-frame"><img src="${weddingData.bridePhoto || 'https://randomuser.me/api/portraits/women/68.jpg'}"></div><div class="luxury-card mt-3"><h3 class="gold-text">${escapeHtml(weddingData.brideName)}</h3><p class="small">Putri dari</p><h5>${escapeHtml(weddingData.brideFather)} & ${escapeHtml(weddingData.brideMother)}</h5></div></div>
-      <div class="col-md-6 text-center"><div class="photo-frame"><img src="${weddingData.groomPhoto || 'https://randomuser.me/api/portraits/men/32.jpg'}"></div><div class="luxury-card mt-3"><h3 class="gold-text">${escapeHtml(weddingData.groomName)}</h3><p class="small">Putra dari</p><h5>${escapeHtml(weddingData.groomFather)} & ${escapeHtml(weddingData.groomMother)}</h5></div></div></div>
-      <div class="luxury-card mt-5 text-center"><i class="bi bi-calendar-heart fs-2 gold-text"></i><p class="mt-2">Insya Allah akan diselenggarakan pada:</p><h4 class="fw-bold">${formatDate(weddingData.weddingDate)}</h4><div class="gold-text">${escapeHtml(weddingData.venueName)} - ${escapeHtml(weddingData.venueAddress)}</div></div>
-    `;
+    document.getElementById('mempelaiContent').innerHTML = 
+      '<div class="text-center"><i class="bi bi-flower2 fs-1 gold-text"></i><h2 class="gold-text fw-bold mt-2">Mempelai Berbahagia</h2><div class="mx-auto my-3" style="width:80px; height:2px; background:#c9a03d;"></div></div>' +
+      '<div class="row g-5 mt-3"><div class="col-md-6 text-center"><div class="photo-frame"><img src="' + (weddingData.bridePhoto || 'https://randomuser.me/api/portraits/women/68.jpg') + '"></div><div class="luxury-card mt-3"><h3 class="gold-text">' + escapeHtml(weddingData.brideName) + '</h3><p class="small">Putri dari</p><h5>' + escapeHtml(weddingData.brideFather) + ' & ' + escapeHtml(weddingData.brideMother) + '</h5></div></div>' +
+      '<div class="col-md-6 text-center"><div class="photo-frame"><img src="' + (weddingData.groomPhoto || 'https://randomuser.me/api/portraits/men/32.jpg') + '"></div><div class="luxury-card mt-3"><h3 class="gold-text">' + escapeHtml(weddingData.groomName) + '</h3><p class="small">Putra dari</p><h5>' + escapeHtml(weddingData.groomFather) + ' & ' + escapeHtml(weddingData.groomMother) + '</h5></div></div></div>' +
+      '<div class="luxury-card mt-5 text-center"><i class="bi bi-calendar-heart fs-2 gold-text"></i><p class="mt-2">Insya Allah akan diselenggarakan pada:</p><h4 class="fw-bold">' + formatDate(weddingData.weddingDate) + '</h4><div class="gold-text">' + escapeHtml(weddingData.venueName) + ' - ' + escapeHtml(weddingData.venueAddress) + '</div></div>';
     
     // Cerita
-    const stories = weddingData.stories || [];
-    document.getElementById('ceritaContent').innerHTML = `
-      <div class="text-center"><i class="bi bi-suit-heart-fill fs-1 gold-text"></i><h2 class="gold-text">Our Love Story</h2><div class="mx-auto my-3" style="width:80px; height:2px; background:#c9a03d;"></div></div>
-      <div class="mt-4">${stories.map((s, i) => `<div class="d-flex gap-3 mb-4" data-aos="fade-up"><div class="timeline-icon"><i class="bi bi-heart-fill text-black"></i></div><div class="luxury-card flex-grow-1"><h5 class="gold-text">${escapeHtml(s.title)}</h5><small class="text-muted">📅 ${formatDate(s.date)}</small><p class="mt-2">${escapeHtml(s.desc)}</p></div></div>`).join('') || '<div class="text-center text-muted">Belum ada cerita yang ditambahkan</div>'}</div>
-    `;
+    var stories = weddingData.stories || [];
+    var storiesHtml = '';
+    for(var i = 0; i < stories.length; i++) {
+      var s = stories[i];
+      storiesHtml += '<div class="d-flex gap-3 mb-4" data-aos="fade-up"><div class="timeline-icon"><i class="bi bi-heart-fill text-black"></i></div><div class="luxury-card flex-grow-1"><h5 class="gold-text">' + escapeHtml(s.title) + '</h5><small class="text-muted">📅 ' + formatDate(s.date) + '</small><p class="mt-2">' + escapeHtml(s.desc) + '</p></div></div>';
+    }
+    if(storiesHtml === '') storiesHtml = '<div class="text-center text-muted">Belum ada cerita yang ditambahkan</div>';
+    document.getElementById('ceritaContent').innerHTML = 
+      '<div class="text-center"><i class="bi bi-suit-heart-fill fs-1 gold-text"></i><h2 class="gold-text">Our Love Story</h2><div class="mx-auto my-3" style="width:80px; height:2px; background:#c9a03d;"></div></div>' +
+      '<div class="mt-4">' + storiesHtml + '</div>';
     
     // Acara
-    document.getElementById('acaraContent').innerHTML = `
-      <div class="text-center"><i class="bi bi-bell-fill fs-1 gold-text"></i><h2 class="gold-text">Rangkaian Acara</h2><div class="mx-auto my-3" style="width:80px; height:2px; background:#c9a03d;"></div></div>
-      <div class="row g-4"><div class="col-md-6"><div class="luxury-card text-center"><i class="bi bi-ring-fill fs-1 gold-text"></i><h4 class="mt-2">Akad Nikah</h4><div>📅 ${formatDate(weddingData.weddingDate)}</div><div class="fs-4 fw-semibold">${weddingData.akadTime || '09:00'} WIB</div><div class="small">${escapeHtml(weddingData.venueName)}<br>${escapeHtml(weddingData.venueAddress)}</div><a href="${weddingData.mapsLink}" target="_blank" class="btn-outline-gold mt-3 d-inline-block" style="border:1px solid #c9a03d; border-radius:30px; padding:8px 20px; text-decoration:none; color:#c9a03d;">Buka Maps</a></div></div>
-      <div class="col-md-6"><div class="luxury-card text-center"><i class="bi bi-cake2-fill fs-1 gold-text"></i><h4 class="mt-2">Resepsi</h4><div>📅 ${formatDate(weddingData.weddingDate)}</div><div class="fs-4 fw-semibold">${weddingData.receptionTime || '12:00'} WIB</div><div class="small">${escapeHtml(weddingData.venueName)}<br>${escapeHtml(weddingData.venueAddress)}</div></div></div></div>
-    `;
+    document.getElementById('acaraContent').innerHTML = 
+      '<div class="text-center"><i class="bi bi-bell-fill fs-1 gold-text"></i><h2 class="gold-text">Rangkaian Acara</h2><div class="mx-auto my-3" style="width:80px; height:2px; background:#c9a03d;"></div></div>' +
+      '<div class="row g-4"><div class="col-md-6"><div class="luxury-card text-center"><i class="bi bi-ring-fill fs-1 gold-text"></i><h4 class="mt-2">Akad Nikah</h4><div>📅 ' + formatDate(weddingData.weddingDate) + '</div><div class="fs-4 fw-semibold">' + (weddingData.akadTime || '09:00') + ' WIB</div><div class="small">' + escapeHtml(weddingData.venueName) + '<br>' + escapeHtml(weddingData.venueAddress) + '</div><a href="' + weddingData.mapsLink + '" target="_blank" class="btn-outline-gold mt-3 d-inline-block">Buka Maps</a></div></div>' +
+      '<div class="col-md-6"><div class="luxury-card text-center"><i class="bi bi-cake2-fill fs-1 gold-text"></i><h4 class="mt-2">Resepsi</h4><div>📅 ' + formatDate(weddingData.weddingDate) + '</div><div class="fs-4 fw-semibold">' + (weddingData.receptionTime || '12:00') + ' WIB</div><div class="small">' + escapeHtml(weddingData.venueName) + '<br>' + escapeHtml(weddingData.venueAddress) + '</div></div></div></div>';
     
     // Galeri
-    const galleries = weddingData.galleries || [];
-    document.getElementById('galeriContent').innerHTML = `
-      <div class="text-center"><i class="bi bi-camera-fill fs-1 gold-text"></i><h2 class="gold-text">Momen Bahagia</h2><div class="mx-auto my-3" style="width:80px; height:2px; background:#c9a03d;"></div></div>
-      <div class="gallery-grid mt-4">${galleries.map(url => `<img src="${url}" loading="lazy" onclick="window.open('${url}','_blank')">`).join('') || '<div class="text-center text-muted">Belum ada foto galeri</div>'}</div>
-    `;
+    var galleries = weddingData.galleries || [];
+    var galleriesHtml = '';
+    for(var j = 0; j < galleries.length; j++) {
+      galleriesHtml += '<img src="' + galleries[j] + '" loading="lazy" onclick="window.open(\'' + galleries[j] + '\',\'_blank\')">';
+    }
+    if(galleriesHtml === '') galleriesHtml = '<div class="text-center text-muted">Belum ada foto galeri</div>';
+    document.getElementById('galeriContent').innerHTML = 
+      '<div class="text-center"><i class="bi bi-camera-fill fs-1 gold-text"></i><h2 class="gold-text">Momen Bahagia</h2><div class="mx-auto my-3" style="width:80px; height:2px; background:#c9a03d;"></div></div>' +
+      '<div class="gallery-grid mt-4">' + galleriesHtml + '</div>';
     
     // Kado & Bank
-    const banks = weddingData.banks || [];
-    document.getElementById('kadoContent').innerHTML = `
-      <div class="text-center"><i class="bi bi-gift-fill fs-1 gold-text"></i><h2 class="gold-text">Kirim Kado & Doa</h2><div class="mx-auto my-3" style="width:80px; height:2px; background:#c9a03d;"></div><p class="text-muted">Terima kasih atas kasih sayang Anda, kado dapat dikirim melalui rekening berikut:</p></div>
-      <div class="row g-4 justify-content-center mt-2">${banks.map(b => `<div class="col-md-6"><div class="bank-card"><i class="bi bi-bank fs-2 gold-text"></i><h5>${escapeHtml(b.name)}</h5><div class="bg-dark bg-opacity-50 p-2 rounded-4 my-2" style="font-family:monospace;">${escapeHtml(b.number)}</div><p class="small">a.n. ${escapeHtml(b.owner)}</p><button class="btn btn-sm btn-outline-light copy-rek" data-rek="${b.number}">Salin Rekening</button></div></div>`).join('') || '<div class="text-center text-muted col-12">Belum ada rekening yang ditambahkan</div>'}</div>
-    `;
-    document.querySelectorAll('.copy-rek').forEach(btn => {
-      btn.addEventListener('click', () => { navigator.clipboard.writeText(btn.dataset.rek); Swal.fire('Tersalin!', 'Nomor rekening disalin', 'success'); });
-    });
+    var banks = weddingData.banks || [];
+    var banksHtml = '';
+    for(var k = 0; k < banks.length; k++) {
+      var b = banks[k];
+      banksHtml += '<div class="col-md-6"><div class="bank-card"><i class="bi bi-bank fs-2 gold-text"></i><h5>' + escapeHtml(b.name) + '</h5><div class="bg-dark bg-opacity-50 p-2 rounded-4 my-2" style="font-family:monospace;">' + escapeHtml(b.number) + '</div><p class="small">a.n. ' + escapeHtml(b.owner) + '</p><button class="btn btn-sm btn-outline-light copy-rek" data-rek="' + b.number + '">Salin Rekening</button></div></div>';
+    }
+    if(banksHtml === '') banksHtml = '<div class="text-center text-muted col-12">Belum ada rekening yang ditambahkan</div>';
+    document.getElementById('kadoContent').innerHTML = 
+      '<div class="text-center"><i class="bi bi-gift-fill fs-1 gold-text"></i><h2 class="gold-text">Kirim Kado & Doa</h2><div class="mx-auto my-3" style="width:80px; height:2px; background:#c9a03d;"></div><p class="text-muted">Terima kasih atas kasih sayang Anda, kado dapat dikirim melalui rekening berikut:</p></div>' +
+      '<div class="row g-4 justify-content-center mt-2">' + banksHtml + '</div>';
     
     // Doa & Ucapan
-    document.getElementById('doaContent').innerHTML = `
-      <div class="text-center"><i class="bi bi-chat-heart-fill fs-1 gold-text"></i><h2 class="gold-text">Ucapan & Doa Restu</h2><div class="mx-auto my-3" style="width:80px; height:2px; background:#c9a03d;"></div></div>
-      <div class="luxury-card p-4 mt-3"><form id="formUcapan"><input type="text" id="nama" class="form-control mb-3" style="background:rgba(255,255,255,0.1); border:1px solid #c9a03d; border-radius:30px; padding:12px; color:white;" placeholder="Nama Lengkap *" required><input type="text" id="alamat" class="form-control mb-3" style="background:rgba(255,255,255,0.1); border:1px solid #c9a03d; border-radius:30px; padding:12px; color:white;" placeholder="Asal Kota"><textarea id="doa" class="form-control mb-3" rows="3" style="background:rgba(255,255,255,0.1); border:1px solid #c9a03d; border-radius:20px; padding:12px; color:white;" placeholder="Doa & Ucapan *" required></textarea><div class="mb-3 d-flex gap-3"><div class="form-check"><input class="form-check-input" type="radio" name="hadir" id="hadirYa" value="1" checked><label class="form-check-label">🙏 Hadir</label></div><div class="form-check"><input class="form-check-input" type="radio" name="hadir" id="hadirTidak" value="2"><label class="form-check-label">💔 Tidak Hadir</label></div></div><button type="submit" class="btn-gold w-100">Kirim Doa <i class="bi bi-send-fill"></i></button></form><div id="formSuccessMessage" class="alert alert-success mt-3" style="display:none; background:#1a3a2a; border-color:#c9a03d; color:#c9a03d;">Terima kasih atas doa dan ucapannya! ❤️</div></div>
-      <div class="mt-5" id="messagesList"></div>
-    `;
-    document.getElementById('footerText').innerHTML = `${escapeHtml(weddingData.groomName)} & ${escapeHtml(weddingData.brideName)}<br>Digital Invitation by GrowthTogether • Mengurangi Jejak Karbon`;
+    document.getElementById('doaContent').innerHTML = 
+      '<div class="text-center"><i class="bi bi-chat-heart-fill fs-1 gold-text"></i><h2 class="gold-text">Ucapan & Doa Restu</h2><div class="mx-auto my-3" style="width:80px; height:2px; background:#c9a03d;"></div></div>' +
+      '<div class="luxury-card p-4 mt-3"><form id="formUcapan"><input type="text" id="nama" class="form-control mb-3" placeholder="Nama Lengkap *" required><input type="text" id="alamat" class="form-control mb-3" placeholder="Asal Kota"><textarea id="doaText" class="form-control mb-3" rows="3" placeholder="Doa & Ucapan *" required></textarea><div class="mb-3 d-flex gap-3"><div class="form-check"><input class="form-check-input" type="radio" name="hadir" id="hadirYa" value="1" checked><label class="form-check-label">🙏 Hadir</label></div><div class="form-check"><input class="form-check-input" type="radio" name="hadir" id="hadirTidak" value="2"><label class="form-check-label">💔 Tidak Hadir</label></div></div><button type="submit" class="btn-gold w-100">Kirim Doa <i class="bi bi-send-fill"></i></button></form><div id="formSuccessMessage" class="alert alert-success mt-3" style="display:none; background:#1a3a2a; border-color:#c9a03d; color:#c9a03d;">Terima kasih atas doa dan ucapannya! ❤️</div></div>' +
+      '<div class="mt-5" id="messagesList"></div>';
+    
+    document.getElementById('footerText').innerHTML = escapeHtml(weddingData.groomName) + ' & ' + escapeHtml(weddingData.brideName) + '<br>Digital Invitation by GrowthTogether • Mengurangi Jejak Karbon';
     
     // Bottom Nav
-    const navItems = ['mempelai','cerita','acara','galeri','kado','doa'];
-    const navIcons = {'mempelai':'people-fill','cerita':'journal-heart','acara':'envelope-paper-heart','galeri':'images','kado':'gift-fill','doa':'chat-square-heart'};
-    document.getElementById('bottomNav').innerHTML = navItems.map(id => `<a href="#${id}" class="nav-link-bottom"><i class="bi bi-${navIcons[id]}"></i><span>${id.charAt(0).toUpperCase()+id.slice(1)}</span></a>`).join('');
+    var navItems = ['mempelai', 'cerita', 'acara', 'galeri', 'kado', 'doa'];
+    var navIcons = { 'mempelai':'people-fill', 'cerita':'journal-heart', 'acara':'envelope-paper-heart', 'galeri':'images', 'kado':'gift-fill', 'doa':'chat-square-heart' };
+    var bottomHtml = '';
+    for(var n = 0; n < navItems.length; n++) {
+      var id = navItems[n];
+      bottomHtml += '<a href="#' + id + '" class="nav-link-bottom"><i class="bi bi-' + navIcons[id] + '"></i><span>' + id.charAt(0).toUpperCase() + id.slice(1) + '</span></a>';
+    }
+    document.getElementById('bottomNav').innerHTML = bottomHtml;
     
     loadMessages();
     setupFormListener();
     setupNavScroll();
+    
+    // Copy rekening buttons
+    var copyBtns = document.querySelectorAll('.copy-rek');
+    for(var c = 0; c < copyBtns.length; c++) {
+      copyBtns[c].addEventListener('click', function(e) {
+        var rek = this.getAttribute('data-rek');
+        navigator.clipboard.writeText(rek);
+        Swal.fire('Tersalin!', 'Nomor rekening disalin', 'success');
+      });
+    }
   }
   
-  async function loadMessages() {
-    const key = 'wedding_messages_'+(inviteId || 'general');
-    const msgs = JSON.parse(localStorage.getItem(key) || '[]');
-    const container = document.getElementById('messagesList');
+  function loadMessages() {
+    var key = 'wedding_messages_' + (inviteId || 'general');
+    var msgs = JSON.parse(localStorage.getItem(key) || '[]');
+    var container = document.getElementById('messagesList');
     if (!container) return;
-    if (msgs.length === 0) { container.innerHTML = '<div class="text-center text-muted"><i class="bi bi-chat-quote fs-1"></i><p>Belum ada ucapan, jadilah yang pertama 🤍</p></div>'; return; }
-    container.innerHTML = msgs.slice(0,30).map(m => `<div class="message-card"><div class="d-flex justify-content-between"><b>${escapeHtml(m.nama)}</b><span class="badge ${m.hadir==='1'?'bg-success':'bg-secondary'}">${m.hadir==='1'?'Hadir':'Tidak Hadir'}</span></div>${m.alamat ? `<small>📍 ${escapeHtml(m.alamat)}</small><br>`:''}<p class="mt-2">${escapeHtml(m.doa)}</p><small class="text-muted">${new Date(m.tanggal).toLocaleDateString()}</small></div>`).join('');
+    if (msgs.length === 0) {
+      container.innerHTML = '<div class="text-center text-muted"><i class="bi bi-chat-quote fs-1"></i><p>Belum ada ucapan, jadilah yang pertama 🤍</p></div>';
+      return;
+    }
+    var messagesHtml = '';
+    for(var i = 0; i < Math.min(msgs.length, 30); i++) {
+      var m = msgs[i];
+      messagesHtml += '<div class="message-card"><div class="d-flex justify-content-between"><b>' + escapeHtml(m.nama) + '</b><span class="badge ' + (m.hadir === '1' ? 'bg-success' : 'bg-secondary') + '">' + (m.hadir === '1' ? 'Hadir' : 'Tidak Hadir') + '</span></div>' + (m.alamat ? '<small>📍 ' + escapeHtml(m.alamat) + '</small><br>' : '') + '<p class="mt-2">' + escapeHtml(m.doa) + '</p><small class="text-muted">' + new Date(m.tanggal).toLocaleDateString() + '</small></div>';
+    }
+    container.innerHTML = messagesHtml;
   }
   
   function setupFormListener() {
-    const form = document.getElementById('formUcapan');
+    var form = document.getElementById('formUcapan');
     if (!form) return;
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', function(e) {
       e.preventDefault();
-      const nama = document.getElementById('nama').value.trim();
-      const doa = document.getElementById('doa').value.trim();
-      if (!nama || !doa) return Swal.fire('Info', 'Isi nama dan doa ya!', 'info');
-      const hadir = document.querySelector('input[name="hadir"]:checked').value;
-      const keyMsg = 'wedding_messages_'+(inviteId || 'general');
-      const msgs = JSON.parse(localStorage.getItem(keyMsg) || '[]');
-      msgs.unshift({ nama, alamat: document.getElementById('alamat').value, doa, hadir, tanggal: new Date().toISOString() });
-      localStorage.setItem(keyMsg, JSON.stringify(msgs.slice(0,50)));
-      localStorage.setItem('kirim_ucapan_'+(inviteId || 'general'), 'true');
+      var nama = document.getElementById('nama').value.trim();
+      var doaVal = document.getElementById('doaText').value.trim();
+      if (!nama || !doaVal) {
+        Swal.fire('Info', 'Isi nama dan doa ya!', 'info');
+        return;
+      }
+      var hadir = document.querySelector('input[name="hadir"]:checked').value;
+      var keyMsg = 'wedding_messages_' + (inviteId || 'general');
+      var msgs = JSON.parse(localStorage.getItem(keyMsg) || '[]');
+      msgs.unshift({ 
+        nama: nama, 
+        alamat: document.getElementById('alamat').value, 
+        doa: doaVal, 
+        hadir: hadir, 
+        tanggal: new Date().toISOString() 
+      });
+      localStorage.setItem(keyMsg, JSON.stringify(msgs.slice(0, 50)));
+      localStorage.setItem('kirim_ucapan_' + (inviteId || 'general'), 'true');
       form.style.display = 'none';
-      document.getElementById('formSuccessMessage').style.display = 'block';
+      var successMsg = document.getElementById('formSuccessMessage');
+      if(successMsg) successMsg.style.display = 'block';
       loadMessages();
       Swal.fire('Berhasil!', 'Doa restu telah terkirim', 'success');
     });
   }
   
   function setupNavScroll() {
-    document.querySelectorAll('.nav-link-bottom, .btn-gold').forEach(link => {
-      link.addEventListener('click', (e) => {
-        const href = link.getAttribute('href');
-        if (href && href.startsWith('#')) {
+    var navLinks = document.querySelectorAll('.nav-link-bottom, .btn-gold, a[href^="#"]');
+    for(var i = 0; i < navLinks.length; i++) {
+      navLinks[i].addEventListener('click', function(e) {
+        var href = this.getAttribute('href');
+        if (href && href.indexOf('#') === 0) {
           e.preventDefault();
-          const target = document.querySelector(href);
-          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          var target = document.querySelector(href);
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
         }
       });
-    });
+    }
   }
   
   // Music Player
-  let isPlaying = false;
-  const audio = document.getElementById('bgAudio');
-  const muteBtn = document.getElementById('muteBtn');
-  muteBtn?.addEventListener('click', () => {
-    if (isPlaying) { audio.pause(); muteBtn.innerHTML = '<i class="bi bi-vinyl"></i>'; }
-    else { audio.play().catch(e=>console.log('Autoplay prevented')); muteBtn.innerHTML = '<i class="bi bi-vinyl-fill"></i>'; }
-    isPlaying = !isPlaying;
-  });
+  var isPlaying = false;
+  var audio = document.getElementById('bgAudio');
+  var muteBtn = document.getElementById('muteBtn');
+  if(muteBtn) {
+    muteBtn.addEventListener('click', function() {
+      if (isPlaying) { 
+        audio.pause(); 
+        muteBtn.innerHTML = '<i class="bi bi-vinyl"></i>'; 
+      } else { 
+        audio.play().catch(function(e) { console.log('Autoplay prevented'); }); 
+        muteBtn.innerHTML = '<i class="bi bi-vinyl-fill"></i>'; 
+      }
+      isPlaying = !isPlaying;
+    });
+  }
+  
+  // CSS animation
+  var style = document.createElement('style');
+  style.textContent = '@keyframes loadingAnim { 0% { width:0; opacity:0; } 50% { width:200px; opacity:1; } 100% { width:0; opacity:0; } }';
+  document.head.appendChild(style);
   
   loadWeddingData();
 </script>
