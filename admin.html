@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c9a03d'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -86,6 +86,13 @@
     .preview-modal .modal-content { background: #0a0a0a; border-radius: 24px; border: 1px solid #c9a03d; }
     .preview-iframe { width: 100%; height: 500px; border: none; border-radius: 16px; }
     
+    /* Arabic text area */
+    .arabic-input {
+      font-family: 'Amiri', serif;
+      font-size: 1.1rem;
+      direction: rtl;
+    }
+    
     /* Responsive */
     @media (max-width: 768px) {
       .sidebar { left: -280px; position: fixed; z-index: 1000; }
@@ -100,13 +107,11 @@
     body.light .form-control, body.light .form-select { background: #f5f0e8; color: #000; }
     .form-control:focus { border-color: #c9a03d; outline: none; box-shadow: 0 0 0 2px rgba(201,160,61,0.3); }
     
-    /* Table styles */
     .table { color: #f5f0e8; }
     body.light .table { color: #1a1a1a; }
     .table-dark { background-color: #1a1a1a; }
     body.light .table-dark { background-color: #ffffff; }
     
-    /* Date filter */
     .date-filter { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .date-filter input { width: auto; min-width: 130px; }
   </style>
@@ -165,14 +170,14 @@
         </div>
         <div class="col-md-6">
           <div class="setting-card">
-            <h5 class="gold-text mb-3"><i class="bi bi-graph-up"></i> Statistik Pengunjung</h5>
+            <h5 class="gold-text mb-3"><i class="bi bi-graph-up"></i> Statistik Pengunjung (7 Hari)</h5>
             <canvas id="viewsChart" style="max-height: 200px;"></canvas>
           </div>
         </div>
       </div>
     </div>
     
-    <!-- PENGATURAN UNDANGAN (DENGAN BACKGROUND SLIDESHOW & LAGU) -->
+    <!-- PENGATURAN UNDANGAN (LENGKAP DENGAN TEKS DAN WHATSAPP) -->
     <div id="weddingSection" style="display:none;">
       <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <h4 class="fw-bold gold-text"><i class="bi bi-sliders2 me-2"></i>Pengaturan Undangan</h4>
@@ -219,7 +224,7 @@
             <p class="small text-white-50 mb-2">Pilih lagu untuk diputar di halaman undangan</p>
             <div class="row g-3">
               <div class="col-md-8">
-                <input type="text" id="musicUrl" class="form-control" placeholder="URL MP3 lagu (contoh: https://example.com/song.mp3)">
+                <input type="text" id="musicUrl" class="form-control" placeholder="URL MP3 lagu">
                 <small class="text-muted">Masukkan URL langsung file MP3, atau gunakan preset di bawah</small>
               </div>
               <div class="col-md-4">
@@ -242,7 +247,7 @@
         <div class="col-md-12">
           <div class="setting-card">
             <h5 class="gold-text mb-3"><i class="bi bi-images me-2"></i>Background Slideshow Hero</h5>
-            <p class="small text-white-50 mb-2">Upload foto-foto untuk background slideshow di halaman undangan (minimal 2 foto untuk efek slideshow)</p>
+            <p class="small text-white-50 mb-2">Upload foto-foto untuk background slideshow di halaman undangan</p>
             <div id="bgList" class="bg-preview-grid"></div>
             <div class="mt-3 d-flex gap-2">
               <input type="file" id="bgPhotoInput" class="form-control" accept="image/*">
@@ -276,6 +281,63 @@
             <h5 class="gold-text mb-3"><i class="bi bi-bank me-2"></i>Rekening Bank</h5>
             <div id="bankList"></div>
             <button class="btn btn-sm btn-outline-secondary rounded-pill mt-2" id="addBankBtn"><i class="bi bi-plus-lg"></i> Tambah Rekening</button>
+          </div>
+        </div>
+        
+        <!-- PENGATURAN TEKS UNDANGAN & WHATSAPP (FITUR BARU) -->
+        <div class="col-md-12">
+          <div class="setting-card">
+            <h5 class="gold-text mb-3"><i class="bi bi-chat-text-fill me-2"></i>Pengaturan Teks Undangan & WhatsApp</h5>
+            
+            <!-- Teks Ayat -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold gold-text">Teks Ayat (Q.S. Ar-Rum:21) - Bahasa Arab</label>
+              <textarea id="weddingAyat" class="form-control arabic-input" rows="4" style="font-family: 'Amiri', serif; font-size: 1.1rem; direction: rtl;"></textarea>
+              <small class="text-muted">Teks Arab ayat yang akan ditampilkan di halaman undangan</small>
+            </div>
+            
+            <!-- Terjemahan Ayat -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold gold-text">Terjemahan Ayat</label>
+              <textarea id="weddingAyatTranslation" class="form-control" rows="2" placeholder="Terjemahan ayat dalam bahasa Indonesia"></textarea>
+              <small class="text-muted">Terjemahan ayat yang akan ditampilkan di bawah teks Arab</small>
+            </div>
+            
+            <!-- Teks Pembuka Undangan -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold gold-text">Teks Pembuka Undangan</label>
+              <textarea id="weddingOpeningText" class="form-control" rows="6" style="white-space: pre-line;"></textarea>
+              <small class="text-muted">Teks pembuka setelah ayat, sebelum informasi acara (Gunakan \n untuk baris baru)</small>
+            </div>
+            
+            <!-- Teks Penutup Undangan -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold gold-text">Teks Penutup Undangan</label>
+              <textarea id="weddingClosingText" class="form-control" rows="5" style="white-space: pre-line;"></textarea>
+              <small class="text-muted">Teks penutup sebelum tanda tangan pengantin</small>
+            </div>
+            
+            <!-- Template WhatsApp -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold gold-text">Template Pesan WhatsApp</label>
+              <textarea id="whatsappTemplate" class="form-control" rows="12" style="white-space: pre-line; font-family: monospace; font-size: 12px;"></textarea>
+              <small class="text-muted">
+                <strong>Variable yang tersedia:</strong><br>
+                <code>{nama_tamu}</code> - Nama tamu undangan<br>
+                <code>{link_undangan}</code> - Link undangan unik<br>
+                <code>{groom_name}</code> - Nama pengantin pria<br>
+                <code>{bride_name}</code> - Nama pengantin wanita<br>
+                <code>{groom_nickname}</code> - Panggilan pengantin pria<br>
+                <code>{bride_nickname}</code> - Panggilan pengantin wanita<br>
+                <code>{wedding_date}</code> - Tanggal pernikahan<br>
+                <code>{venue_name}</code> - Nama tempat acara
+              </small>
+            </div>
+            
+            <div class="alert alert-info mt-2">
+              <i class="bi bi-info-circle-fill me-2"></i>
+              Perubahan akan tersimpan saat klik "Simpan Semua"
+            </div>
           </div>
         </div>
       </div>
@@ -314,7 +376,7 @@
       </div>
     </div>
     
-    <!-- DAFTAR TAMU dengan SEARCH, FILTER, & EDIT -->
+    <!-- DAFTAR TAMU -->
     <div id="guestlistSection" style="display:none;">
       <h4 class="fw-bold gold-text mb-4"><i class="bi bi-people-fill me-2"></i>Daftar Tamu Undangan</h4>
       
@@ -367,14 +429,7 @@
       <div class="setting-card p-0">
         <div class="table-responsive">
           <table class="table table-dark table-hover mb-0">
-            <thead>
-              <tr>
-                <th style="width: 25%">Username</th>
-                <th style="width: 35%">Nama Lengkap</th>
-                <th style="width: 20%">Level</th>
-                <th style="width: 20%">Aksi</th>
-              </tr>
-            </thead>
+            <thead><tr><th style="width: 25%">Username</th><th style="width: 35%">Nama Lengkap</th><th style="width: 20%">Level</th><th style="width: 20%">Aksi</th></tr></thead>
             <tbody id="usersTableBody"></tbody>
           </table>
         </div>
@@ -463,6 +518,7 @@
   let currentStartDate = '';
   let currentEndDate = '';
   let allInvitations = [];
+  let weddingDataCache = {};
   
   // ============ ENKRIPSI ============
   const SALT = "wedding2025";
@@ -470,17 +526,6 @@
   function encryptInviteId(id) {
     const combined = id + "|" + SALT;
     return btoa(combined).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-  }
-  
-  function decryptInviteId(encrypted) {
-    try {
-      let base64 = encrypted.replace(/-/g, '+').replace(/_/g, '/');
-      while (base64.length % 4) base64 += '=';
-      const decoded = atob(base64);
-      const parts = decoded.split('|');
-      if (parts.length === 2 && parts[1] === SALT) return parts[0];
-      return null;
-    } catch(e) { return null; }
   }
   
   function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
@@ -546,10 +591,13 @@
     await loadViewStats();
   }
   
-  // ============ WEDDING SETTINGS ============
+  // ============ WEDDING SETTINGS (LENGKAP) ============
   async function loadWeddingSettings() {
     const snap = await get(ref(db, "data/wedding_settings"));
     const s = snap.val() || {};
+    weddingDataCache = s;
+    
+    // Data pasangan
     document.getElementById('groomName').value = s.groomName || 'Fachmi';
     document.getElementById('brideName').value = s.brideName || 'Azizah';
     document.getElementById('groomNickname').value = s.groomNickname || 'Fachmi';
@@ -560,13 +608,26 @@
     document.getElementById('brideMother').value = s.brideMother || 'Hj. Siti';
     if(s.groomPhoto) document.getElementById('groomPhotoPreview').src = s.groomPhoto;
     if(s.bridePhoto) document.getElementById('bridePhotoPreview').src = s.bridePhoto;
+    
+    // Waktu & lokasi
     document.getElementById('weddingDate').value = s.weddingDate || '2025-06-15';
     document.getElementById('akadTime').value = s.akadTime || '09:00';
     document.getElementById('receptionTime').value = s.receptionTime || '12:00';
     document.getElementById('venueName').value = s.venueName || 'Aula Serbaguna';
     document.getElementById('venueAddress').value = s.venueAddress || 'Jalan Kebahagiaan No. 123, Jakarta';
     document.getElementById('mapsLink').value = s.mapsLink || 'https://maps.google.com';
+    
+    // Lagu
     document.getElementById('musicUrl').value = s.musicUrl || '';
+    
+    // Teks undangan
+    document.getElementById('weddingAyat').value = s.weddingAyat || 'وَمِنْ اٰيٰتِهٖٓ اَنْ خَلَقَ لَكُمْ مِّنْ اَنْفُسِكُمْ اَزْوَاجًا لِّتَسْكُنُوْٓا اِلَيْهَا وَجَعَلَ بَيْنَكُمْ مَّوَدَّةً وَّرَحْمَةً ۗاِنَّ فِيْ ذٰلِكَ لَاٰيٰتٍ لِّقَوْمٍ يَّتَفَكَّرُوْنَ';
+    document.getElementById('weddingAyatTranslation').value = s.weddingAyatTranslation || '"Dan di antara tanda-tanda kekuasaan-Nya diciptakan-Nya untukmu pasangan hidup dari jenismu sendiri supaya kamu dapat ketenangan hati dan dijadikannya kasih sayang di antara kamu. Sesungguhnya yang demikian menjadi tanda-tanda kebesaran-Nya bagi orang-orang yang berpikir." (Q.S. Ar-Rum: 21)';
+    document.getElementById('weddingOpeningText').value = s.weddingOpeningText || 'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيْمِ\n\nMaha suci Allah SWT yang telah menciptakan makhluk-Nya berpasang-pasangan.\nTanpa mengurangi rasa hormat, dengan ini kami bermaksud mengundang Bapak/Ibu/Saudara/i untuk hadir pada acara pernikahan kami :';
+    document.getElementById('weddingClosingText').value = s.weddingClosingText || 'Menjadi sebuah kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dalam hari bahagia ini.\n\nTerima kasih atas segala ucapan, doa, dan perhatian yang diberikan.\n\nSee you on our wedding day!';
+    document.getElementById('whatsappTemplate').value = s.whatsappTemplate || 'Assalamu’alaikum warahmatullahi wabarakatuh\n\nKepada Yth. {nama_tamu} & Partner,\n\nDengan memohon rahmat dan ridha Allah SWT, kami bermaksud mengundang Bapak/Ibu/Saudara/i untuk menghadiri acara pernikahan kami:\n\n🌿 {groom_name} & {bride_name} 🌿\n\nMerupakan kehormatan dan kebahagiaan bagi kami apabila {nama_tamu} & Partner berkenan hadir dan memberikan doa restu.\n\nUntuk informasi lengkap mengenai waktu, tempat, serta konfirmasi kehadiran, silakan membuka tautan undangan berikut:\n{link_undangan}\n\nAtas kehadiran serta doa restunya, kami ucapkan terima kasih.\n\nWassalamu’alaikum warahmatullahi wabarakatuh\n\nHormat kami,\n{groom_name} & {bride_name}';
+    
+    // Lists
     renderStories(s.stories || []);
     renderGalleries(s.galleries || []);
     renderBanks(s.banks || []);
@@ -661,6 +722,11 @@
         venueAddress: document.getElementById('venueAddress').value,
         mapsLink: document.getElementById('mapsLink').value,
         musicUrl: document.getElementById('musicUrl').value,
+        weddingAyat: document.getElementById('weddingAyat').value,
+        weddingAyatTranslation: document.getElementById('weddingAyatTranslation').value,
+        weddingOpeningText: document.getElementById('weddingOpeningText').value,
+        weddingClosingText: document.getElementById('weddingClosingText').value,
+        whatsappTemplate: document.getElementById('whatsappTemplate').value,
         stories: stories,
         galleries: galleries,
         banks: banks,
@@ -668,6 +734,7 @@
         updatedAt: Date.now()
       };
       await set(ref(db, "data/wedding_settings"), settings);
+      weddingDataCache = settings;
       Swal.fire('Berhasil!', 'Pengaturan undangan tersimpan', 'success');
     } catch(e) { 
       Swal.fire('Error', 'Gagal menyimpan: ' + e.message, 'error'); 
@@ -750,12 +817,23 @@
       });
     });
     
-    // Send WA event
+    // Send WA event with template
     document.querySelectorAll('.send-wa').forEach(btn => {
       btn.addEventListener('click', () => {
         const name = btn.dataset.name;
         const link = btn.dataset.link;
-        const message = `*UNDANGAN PERNIKAHAN*%0A%0Aالسلام عليكم ورحمة الله وبركاته%0A%0AKepada Yth. ${encodeURIComponent(name)}%0A%0ATanpa mengurangi rasa hormat, kami mengundang Bapak/Ibu/Saudara/i untuk hadir dalam acara pernikahan kami.%0A%0A📅 Hari/Tanggal: (sesuai undangan)%0A📍 Tempat: (sesuai undangan)%0A%0A🔗 Link Undangan Digital: ${encodeURIComponent(link)}%0A%0AMohon doa restunya. Terima kasih.%0A%0AWassalamu'alaikum wr.wb.`;
+        const template = weddingDataCache.whatsappTemplate || '';
+        
+        let message = template
+          .replace(/{nama_tamu}/g, encodeURIComponent(name))
+          .replace(/{link_undangan}/g, encodeURIComponent(link))
+          .replace(/{groom_name}/g, encodeURIComponent(weddingDataCache.groomName || 'Fachmi'))
+          .replace(/{bride_name}/g, encodeURIComponent(weddingDataCache.brideName || 'Azizah'))
+          .replace(/{groom_nickname}/g, encodeURIComponent(weddingDataCache.groomNickname || 'Fachmi'))
+          .replace(/{bride_nickname}/g, encodeURIComponent(weddingDataCache.brideNickname || 'Azizah'))
+          .replace(/{wedding_date}/g, encodeURIComponent(weddingDataCache.weddingDate || '2025-06-15'))
+          .replace(/{venue_name}/g, encodeURIComponent(weddingDataCache.venueName || 'Aula Serbaguna'));
+        
         window.open(`https://wa.me/?text=${message}`, '_blank');
       });
     });
@@ -794,7 +872,6 @@
     }
     document.getElementById('totalViews').innerText = totalViews;
     
-    // Views chart (last 7 days)
     const viewsData = {};
     for(const id in invites) {
       if(invites[id].viewHistory) {
@@ -1103,7 +1180,16 @@
     const link = document.getElementById('inviteLink').innerText;
     const name = document.getElementById('guestName').value.trim();
     if(name && link) {
-      const message = `*UNDANGAN PERNIKAHAN*%0A%0Aالسلام عليكم ورحمة الله وبركاته%0A%0AKepada Yth. ${encodeURIComponent(name)}%0A%0A🔗 Link Undangan: ${encodeURIComponent(link)}%0A%0AMohon doa restunya. Terima kasih.`;
+      const template = weddingDataCache.whatsappTemplate || '';
+      let message = template
+        .replace(/{nama_tamu}/g, encodeURIComponent(name))
+        .replace(/{link_undangan}/g, encodeURIComponent(link))
+        .replace(/{groom_name}/g, encodeURIComponent(weddingDataCache.groomName || 'Fachmi'))
+        .replace(/{bride_name}/g, encodeURIComponent(weddingDataCache.brideName || 'Azizah'))
+        .replace(/{groom_nickname}/g, encodeURIComponent(weddingDataCache.groomNickname || 'Fachmi'))
+        .replace(/{bride_nickname}/g, encodeURIComponent(weddingDataCache.brideNickname || 'Azizah'))
+        .replace(/{wedding_date}/g, encodeURIComponent(weddingDataCache.weddingDate || '2025-06-15'))
+        .replace(/{venue_name}/g, encodeURIComponent(weddingDataCache.venueName || 'Aula Serbaguna'));
       window.open(`https://wa.me/?text=${message}`, '_blank');
     } else {
       Swal.fire('Info', 'Generate link terlebih dahulu', 'info');
