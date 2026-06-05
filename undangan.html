@@ -24,8 +24,7 @@
       position: relative;
     }
     
-    /* ============ BACKGROUND DEKORASI DI SELURUH HALAMAN ============ */
-    /* Background utama dengan gradasi dan pattern */
+    /* Background pattern */
     body::before {
       content: '';
       position: fixed;
@@ -35,78 +34,40 @@
       height: 100%;
       background-image: 
         radial-gradient(circle at 20% 30%, rgba(201,160,61,0.06) 0%, transparent 60%),
-        radial-gradient(circle at 80% 70%, rgba(201,160,61,0.05) 0%, transparent 60%),
-        repeating-linear-gradient(45deg, rgba(201,160,61,0.02) 0px, rgba(201,160,61,0.02) 2px, transparent 2px, transparent 10px);
+        radial-gradient(circle at 80% 70%, rgba(201,160,61,0.05) 0%, transparent 60%);
       pointer-events: none;
       z-index: 0;
     }
     
-    /* Dekorasi sudut dengan motif bunga */
+    /* Corner decorations */
     .corner-decoration {
       position: fixed;
       width: 180px;
       height: 180px;
       pointer-events: none;
       z-index: 0;
-      opacity: 0.35;
+      opacity: 0.3;
     }
-    .corner-top-left {
-      top: 0;
-      left: 0;
-      background: radial-gradient(circle at 0% 0%, rgba(201,160,61,0.25) 0%, transparent 70%);
-      border-bottom-right-radius: 100%;
-    }
-    .corner-top-right {
-      top: 0;
-      right: 0;
-      background: radial-gradient(circle at 100% 0%, rgba(201,160,61,0.25) 0%, transparent 70%);
-      border-bottom-left-radius: 100%;
-    }
-    .corner-bottom-left {
-      bottom: 0;
-      left: 0;
-      background: radial-gradient(circle at 0% 100%, rgba(201,160,61,0.25) 0%, transparent 70%);
-      border-top-right-radius: 100%;
-    }
-    .corner-bottom-right {
-      bottom: 0;
-      right: 0;
-      background: radial-gradient(circle at 100% 100%, rgba(201,160,61,0.25) 0%, transparent 70%);
-      border-top-left-radius: 100%;
-    }
+    .corner-top-left { top: 0; left: 0; background: radial-gradient(circle at 0% 0%, rgba(201,160,61,0.2) 0%, transparent 70%); border-bottom-right-radius: 100%; }
+    .corner-top-right { top: 0; right: 0; background: radial-gradient(circle at 100% 0%, rgba(201,160,61,0.2) 0%, transparent 70%); border-bottom-left-radius: 100%; }
+    .corner-bottom-left { bottom: 0; left: 0; background: radial-gradient(circle at 0% 100%, rgba(201,160,61,0.2) 0%, transparent 70%); border-top-right-radius: 100%; }
+    .corner-bottom-right { bottom: 0; right: 0; background: radial-gradient(circle at 100% 100%, rgba(201,160,61,0.2) 0%, transparent 70%); border-top-left-radius: 100%; }
     
-    /* Elemen dekoratif bunga kecil tersebar */
-    .floating-flower {
-      position: fixed;
-      font-size: 14px;
-      opacity: 0.2;
-      pointer-events: none;
-      z-index: 0;
-      color: #c9a03d;
-    }
+    .container, .hero-wrapper, .bottom-nav, .music-floating { position: relative; z-index: 2; }
     
-    /* Container utama dengan z-index lebih tinggi */
-    .container, .hero-wrapper, .bottom-nav, .music-floating {
-      position: relative;
-      z-index: 2;
-    }
-    
-    /* Gold Text */
     .gold-text { background: linear-gradient(135deg, #e4c580, #c9a03d, #b8860b); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 600; }
     
-    /* Buttons */
     .btn-gold { background: linear-gradient(135deg, #c9a03d, #a67c1e); border: none; border-radius: 50px; padding: 12px 36px; font-weight: 600; color: #0a0a0a; transition: all 0.3s; text-decoration: none; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
     .btn-gold:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(201,160,61,0.4); }
     .btn-outline-gold { background: transparent; border: 1.5px solid #c9a03d; border-radius: 30px; padding: 8px 20px; text-decoration: none; color: #c9a03d; display: inline-block; transition: all 0.3s; }
     .btn-outline-gold:hover { background: #c9a03d; color: #0a0a0a; }
     
-    /* Hero Background Slideshow */
+    /* Hero Background Slideshow dengan background dari admin */
     .hero-wrapper { position: relative; min-height: 100vh; overflow: hidden; border-radius: 0 0 40px 40px; }
     .bg-slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1); filter: brightness(0.45) contrast(1.1); }
     .bg-slide.active { opacity: 1; }
     .hero-overlay { position: relative; z-index: 2; min-height: 100vh; background: radial-gradient(circle at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%); display: flex; align-items: center; text-align: center; padding: 60px 20px; }
     
-    /* Luxury Card dengan background transparan dan border gold */
     .luxury-card { 
       background: rgba(20, 18, 22, 0.75); 
       backdrop-filter: blur(12px); 
@@ -118,20 +79,17 @@
     }
     .luxury-card:hover { border-color: rgba(201,160,61,0.6); transform: translateY(-3px); }
     
-    /* Photo Frame */
     .photo-frame { position: relative; display: inline-block; }
     .photo-frame img { width: 180px; height: 180px; object-fit: cover; border-radius: 50%; border: 4px solid #c9a03d; box-shadow: 0 20px 30px -10px rgba(0,0,0,0.5); transition: transform 0.3s; }
     .photo-frame img:hover { transform: scale(1.02); }
     @media (max-width: 768px) { .photo-frame img { width: 130px; height: 130px; } }
     
-    /* Countdown */
     .countdown-elegant { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
     .cd-item { background: rgba(255,255,255,0.1); backdrop-filter: blur(12px); border-radius: 20px; padding: 8px 18px; min-width: 75px; border: 1px solid rgba(201,160,61,0.4); text-align: center; }
     .cd-number { font-size: 2rem; font-weight: 700; color: #c9a03d; line-height: 1; font-family: 'Playfair Display', serif; }
     .cd-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.8); }
     @media (max-width: 576px) { .cd-item { padding: 5px 12px; min-width: 60px; } .cd-number { font-size: 1.3rem; } }
     
-    /* Timeline Cerita */
     .timeline-wrapper { position: relative; padding-left: 30px; }
     .timeline-wrapper::before { content: ''; position: absolute; left: 20px; top: 10px; bottom: 10px; width: 2px; background: linear-gradient(to bottom, #c9a03d, rgba(201,160,61,0.1)); }
     .timeline-item { display: flex; gap: 20px; margin-bottom: 35px; position: relative; }
@@ -139,7 +97,6 @@
     .timeline-icon i { font-size: 1.4rem; color: #0a0a0a; }
     .timeline-content { flex: 1; background: rgba(255,255,255,0.05); padding: 18px; border-radius: 20px; border-left: 3px solid #c9a03d; backdrop-filter: blur(4px); }
     
-    /* Gallery Grid dengan Modal */
     .gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; }
     .gallery-item { position: relative; border-radius: 20px; overflow: hidden; cursor: pointer; aspect-ratio: 1/1; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
     .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
@@ -148,24 +105,20 @@
     .gallery-item:hover .gallery-overlay { opacity: 1; }
     .gallery-overlay i { font-size: 2rem; color: #c9a03d; }
     
-    /* Modal Gallery */
     .gallery-modal-img { max-width: 90vw; max-height: 80vh; object-fit: contain; border-radius: 16px; }
     
-    /* Bank Card */
     .bank-card { background: rgba(0,0,0,0.6); border-radius: 24px; padding: 24px; text-align: center; border: 1px solid rgba(201,160,61,0.3); transition: all 0.3s; backdrop-filter: blur(8px); }
     .bank-card:hover { border-color: #c9a03d; transform: translateY(-5px); }
     .bank-number { font-family: monospace; font-size: 1.2rem; letter-spacing: 2px; background: #1a1a1a; display: inline-block; padding: 8px 20px; border-radius: 50px; color: #c9a03d; }
     
-    /* Message Card */
     .message-card { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 16px; margin-bottom: 16px; border-left: 3px solid #c9a03d; transition: all 0.2s; backdrop-filter: blur(4px); }
     .message-card:hover { background: rgba(255,255,255,0.08); transform: translateX(5px); }
     
-    /* Form */
     .form-luxury { background: rgba(255,255,255,0.08); border: 1px solid rgba(201,160,61,0.3); border-radius: 30px; padding: 12px 20px; color: white; width: 100%; transition: all 0.3s; }
     .form-luxury:focus { outline: none; border-color: #c9a03d; background: rgba(255,255,255,0.12); box-shadow: 0 0 0 3px rgba(201,160,61,0.2); }
     .form-luxury::placeholder { color: rgba(255,255,255,0.5); }
     
-    /* Bottom Navigation - ICON CERITA SUDAH DIPERBAIKI */
+    /* Bottom Navigation - Icon Cerita menggunakan bi-book-heart */
     .bottom-nav { 
       position: fixed; bottom: 0; left: 0; right: 0; 
       background: rgba(10,10,10,0.95); 
@@ -191,61 +144,41 @@
     .bottom-nav a span { font-size: 10px; }
     .bottom-nav a:hover, .bottom-nav a.active { color: #c9a03d; transform: translateY(-2px); }
     
-    /* Music Button */
     .music-floating { position: fixed; bottom: 80px; right: 16px; width: 48px; height: 48px; background: #1e1e1e; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 101; border: 1.5px solid #c9a03d; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: all 0.2s; }
     .music-floating:hover { transform: scale(1.05); }
     .music-floating i { font-size: 24px; color: #c9a03d; }
     
-    /* Divider */
     .divider-gold { width: 80px; height: 2px; background: linear-gradient(90deg, transparent, #c9a03d, #c9a03d, transparent); margin: 20px auto; }
     
-    /* Guest Badge */
     .guest-badge { background: rgba(255,255,255,0.12); backdrop-filter: blur(10px); border-radius: 60px; padding: 8px 24px; display: inline-block; border: 1px solid rgba(201,160,61,0.4); }
     
-    /* Loading Animation */
     @keyframes loadingAnim { 0% { width: 0; opacity: 0; } 50% { width: 200px; opacity: 1; } 100% { width: 0; opacity: 0; } }
     
-    /* Section Title Decoration */
-    .section-title {
-      position: relative;
-      display: inline-block;
-      margin-bottom: 20px;
-    }
-    .section-title::before,
-    .section-title::after {
-      content: '✦';
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #c9a03d;
-      font-size: 1rem;
-    }
+    .section-title { position: relative; display: inline-block; margin-bottom: 20px; }
+    .section-title::before, .section-title::after { content: '✦'; position: absolute; top: 50%; transform: translateY(-50%); color: #c9a03d; font-size: 1rem; }
     .section-title::before { left: -30px; }
     .section-title::after { right: -30px; }
     
-    /* Responsive */
     @media (max-width: 576px) { 
       .container { padding-left: 16px; padding-right: 16px; } 
       .timeline-wrapper { padding-left: 15px; } 
       .timeline-icon { width: 40px; height: 40px; } 
       .timeline-icon i { font-size: 1rem; } 
       .gallery-grid { gap: 12px; }
-      .section-title::before,
-      .section-title::after { display: none; }
+      .section-title::before, .section-title::after { display: none; }
     }
   </style>
 </head>
 <body>
 
-<!-- ============ DEKORASI BACKGROUND ============ -->
 <div class="corner-decoration corner-top-left"></div>
 <div class="corner-decoration corner-top-right"></div>
 <div class="corner-decoration corner-bottom-left"></div>
 <div class="corner-decoration corner-bottom-right"></div>
 
-<!-- Background Music -->
+<!-- Background Music - Pink at My Worst -->
 <audio id="bgAudio" loop>
-  <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+  <source src="https://dl.soundowl.com/3i7c8p/f94f/pink-at-my-worst-masicka-ft-rotimi.mp3" type="audio/mpeg">
 </audio>
 
 <!-- Loading Screen -->
@@ -259,12 +192,8 @@
 
 <main class="pb-5">
   <!-- Hero Section with Background Slideshow -->
-  <div class="hero-wrapper">
-    <img src="https://images.pexels.com/photos/169191/pexels-photo-169191.jpeg?auto=compress&cs=tinysrgb&w=1600" class="bg-slide active" id="bg1" alt="Wedding Background">
-    <img src="https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=1600" class="bg-slide" id="bg2" alt="Wedding Background">
-    <img src="https://images.pexels.com/photos/2253870/pexels-photo-2253870.jpeg?auto=compress&cs=tinysrgb&w=1600" class="bg-slide" id="bg3" alt="Wedding Background">
-    <img src="https://images.pexels.com/photos/3171837/pexels-photo-3171837.jpeg?auto=compress&cs=tinysrgb&w=1600" class="bg-slide" id="bg4" alt="Wedding Background">
-    
+  <div class="hero-wrapper" id="heroWrapper">
+    <!-- Background images akan diisi dari Firebase wedding_settings -->
     <div class="hero-overlay">
       <div class="container" data-aos="zoom-in-up" data-aos-duration="1400">
         <i class="bi bi-star-fill gold-text fs-1"></i>
@@ -274,7 +203,6 @@
         <h1 class="display-3 fw-bold" style="font-family:'Playfair Display';" id="coupleNames">Fachmi & Azizah</h1>
         <div class="divider-gold my-3"></div>
         
-        <!-- Countdown -->
         <div class="countdown-elegant my-4">
           <div class="cd-item"><div class="cd-number" id="hari">0</div><div class="cd-label">Hari</div></div>
           <div class="cd-item"><div class="cd-number" id="jam">0</div><div class="cd-label">Jam</div></div>
@@ -282,7 +210,7 @@
           <div class="cd-item"><div class="cd-number" id="detik">0</div><div class="cd-label">Detik</div></div>
         </div>
         
-        <!-- Guest Name -->
+        <!-- Guest Name - akan diisi dari parameter URL -->
         <div class="mt-4">
           <div class="text-white-50 small mb-1">Kepada Yth.</div>
           <div class="guest-badge">
@@ -428,7 +356,7 @@
   var app = initializeApp(firebaseConfig);
   var db = getDatabase(app);
   
-  // ============ ENKRIPSI PARAMETER INVITE ============
+  // Decrypt function for invite parameter
   var SALT = "wedding2025";
   
   function decryptInviteId(encrypted) {
@@ -446,16 +374,18 @@
     }
   }
   
-  // Get URL parameters with decryption
+  // Get URL parameters
   var urlParams = new URLSearchParams(window.location.search);
   var encryptedId = urlParams.get('invite');
   var inviteId = encryptedId ? decryptInviteId(encryptedId) : null;
   var isPreview = urlParams.get('preview') === 'true';
+  var previewName = urlParams.get('name');
   var weddingData = null;
   var guestName = "Tamu Undangan";
   
   console.log("Encrypted ID:", encryptedId);
   console.log("Decrypted ID:", inviteId);
+  console.log("Preview Name:", previewName);
   
   function escapeHtml(str) { 
     if(!str) return ''; 
@@ -477,6 +407,7 @@
     var snapshot = await get(ref(db, "data/wedding_settings"));
     weddingData = snapshot.val() || {};
     
+    // Default values
     var defaults = {
       groomName: "Fachmi", brideName: "Azizah", 
       groomNickname: "Fachmi", brideNickname: "Azizah", 
@@ -484,21 +415,28 @@
       brideFather: "Bpk. H. Ahmad", brideMother: "Ibu Hj. Siti", 
       weddingDate: "2025-06-15", akadTime: "09:00", receptionTime: "12:00", 
       venueName: "Aula Serbaguna", venueAddress: "Jalan Kebahagiaan No. 123, Jakarta", 
-      mapsLink: "https://maps.google.com", stories: [], galleries: [], banks: []
+      mapsLink: "https://maps.google.com", stories: [], galleries: [], banks: [],
+      backgrounds: [] // Background images dari admin
     };
     
     for(var key in defaults) {
       if(!weddingData[key]) weddingData[key] = defaults[key];
     }
     
+    // Get guest name from invitation
     if (inviteId && !isPreview) {
       var inviteSnap = await get(ref(db, "data/invitations/" + inviteId));
       if (inviteSnap.exists()) {
         guestName = inviteSnap.val().guestName || guestName;
+        console.log("Guest name from DB:", guestName);
       }
-    } else if (isPreview && urlParams.get('name')) {
-      guestName = decodeURIComponent(urlParams.get('name'));
+    } else if (isPreview && previewName) {
+      guestName = decodeURIComponent(previewName);
+      console.log("Preview name:", guestName);
     }
+    
+    // Render background slideshow dari admin
+    renderBackgroundSlideshow();
     
     renderAllSections();
     updateCountdown();
@@ -513,6 +451,48 @@
     }, 1200);
     
     AOS.init({ duration: 800, once: true });
+  }
+  
+  // Render background slideshow dari wedding_settings.backgrounds
+  function renderBackgroundSlideshow() {
+    var backgrounds = weddingData.backgrounds || [];
+    var heroWrapper = document.getElementById('heroWrapper');
+    
+    // Hapus background images yang sudah ada
+    var existingBg = heroWrapper.querySelectorAll('.bg-slide');
+    for(var i = 0; i < existingBg.length; i++) {
+      existingBg[i].remove();
+    }
+    
+    // Jika ada background dari admin, gunakan itu
+    if(backgrounds.length > 0) {
+      for(var i = 0; i < backgrounds.length; i++) {
+        var img = document.createElement('img');
+        img.src = backgrounds[i];
+        img.className = 'bg-slide';
+        if(i === 0) img.classList.add('active');
+        img.alt = 'Wedding Background';
+        heroWrapper.insertBefore(img, heroWrapper.firstChild);
+      }
+    } else {
+      // Default backgrounds jika tidak ada dari admin
+      var defaultBgs = [
+        'https://images.pexels.com/photos/169191/pexels-photo-169191.jpeg?auto=compress&cs=tinysrgb&w=1600',
+        'https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=1600',
+        'https://images.pexels.com/photos/2253870/pexels-photo-2253870.jpeg?auto=compress&cs=tinysrgb&w=1600',
+        'https://images.pexels.com/photos/3171837/pexels-photo-3171837.jpeg?auto=compress&cs=tinysrgb&w=1600'
+      ];
+      for(var i = 0; i < defaultBgs.length; i++) {
+        var img = document.createElement('img');
+        img.src = defaultBgs[i];
+        img.className = 'bg-slide';
+        if(i === 0) img.classList.add('active');
+        img.alt = 'Wedding Background';
+        heroWrapper.insertBefore(img, heroWrapper.firstChild);
+      }
+    }
+    
+    // Start slideshow
     startBackgroundSlideshow();
   }
   
@@ -533,21 +513,19 @@
     var target = new Date(weddingData.weddingDate + 'T' + (weddingData.akadTime || '09:00') + ':00');
     var diff = target - new Date();
     if (diff > 0) {
-      var days = Math.floor(diff / 86400000);
-      var hours = Math.floor((diff % 86400000) / 3600000);
-      var minutes = Math.floor((diff % 3600000) / 60000);
-      var seconds = Math.floor((diff % 60000) / 1000);
-      if(document.getElementById('hari')) document.getElementById('hari').innerText = days;
-      if(document.getElementById('jam')) document.getElementById('jam').innerText = hours;
-      if(document.getElementById('menit')) document.getElementById('menit').innerText = minutes;
-      if(document.getElementById('detik')) document.getElementById('detik').innerText = seconds;
+      document.getElementById('hari').innerText = Math.floor(diff / 86400000);
+      document.getElementById('jam').innerText = Math.floor((diff % 86400000) / 3600000);
+      document.getElementById('menit').innerText = Math.floor((diff % 3600000) / 60000);
+      document.getElementById('detik').innerText = Math.floor((diff % 60000) / 1000);
     }
   }
   
   function renderAllSections() {
+    // Update couple names
     document.getElementById('coupleNames').innerHTML = (weddingData.groomNickname || weddingData.groomName) + ' & ' + (weddingData.brideNickname || weddingData.brideName);
     document.getElementById('guestNameDisplay').innerHTML = escapeHtml(guestName);
     
+    // Mempelai
     document.getElementById('mempelaiContent').innerHTML = 
       '<div class="col-md-6 text-center" data-aos="fade-right">' +
         '<div class="photo-frame"><img src="' + (weddingData.bridePhoto || 'https://randomuser.me/api/portraits/women/68.jpg') + '"></div>' +
@@ -564,6 +542,7 @@
       '<h4 class="fw-bold">' + formatDate(weddingData.weddingDate) + '</h4>' +
       '<div class="gold-text mt-2">' + escapeHtml(weddingData.venueName) + '<br>' + escapeHtml(weddingData.venueAddress) + '</div>';
     
+    // Stories
     var stories = weddingData.stories || [];
     var storiesHtml = '';
     for(var i = 0; i < stories.length; i++) {
@@ -581,6 +560,7 @@
     if(storiesHtml === '') storiesHtml = '<div class="text-center text-muted py-5"><i class="bi bi-emoji-smile fs-1"></i><p class="mt-2">Belum ada cerita yang ditambahkan</p></div>';
     document.getElementById('storyList').innerHTML = storiesHtml;
     
+    // Acara
     document.getElementById('acaraContent').innerHTML = 
       '<div class="col-md-6" data-aos="fade-right">' +
         '<div class="luxury-card text-center"><i class="bi bi-ring-fill fs-1 gold-text"></i><h4 class="mt-2">Akad Nikah</h4><div>📅 ' + formatDate(weddingData.weddingDate) + '</div><div class="fs-4 fw-semibold mt-2">' + (weddingData.akadTime || '09:00') + ' WIB</div><div class="small mt-2">' + escapeHtml(weddingData.venueName) + '<br>' + escapeHtml(weddingData.venueAddress) + '</div><a href="' + weddingData.mapsLink + '" target="_blank" class="btn-outline-gold mt-3 d-inline-block"><i class="bi bi-geo-alt me-2"></i>Buka Maps</a></div>' +
@@ -589,6 +569,7 @@
         '<div class="luxury-card text-center"><i class="bi bi-cake2-fill fs-1 gold-text"></i><h4 class="mt-2">Resepsi Pernikahan</h4><div>📅 ' + formatDate(weddingData.weddingDate) + '</div><div class="fs-4 fw-semibold mt-2">' + (weddingData.receptionTime || '12:00') + ' WIB - Selesai</div><div class="small mt-2">' + escapeHtml(weddingData.venueName) + '<br>' + escapeHtml(weddingData.venueAddress) + '</div></div>' +
       '</div>';
     
+    // Gallery
     var galleries = weddingData.galleries || [];
     var galleriesHtml = '';
     for(var j = 0; j < galleries.length; j++) {
@@ -601,6 +582,7 @@
     if(galleriesHtml === '') galleriesHtml = '<div class="text-center text-muted py-5"><i class="bi bi-images fs-1"></i><p class="mt-2">Belum ada foto galeri</p></div>';
     document.getElementById('galleryList').innerHTML = galleriesHtml;
     
+    // Gallery click event
     var galleryItems = document.querySelectorAll('.gallery-item');
     var modal = new bootstrap.Modal(document.getElementById('galleryModal'));
     var modalImg = document.getElementById('modalGalleryImage');
@@ -612,6 +594,7 @@
       });
     }
     
+    // Banks
     var banks = weddingData.banks || [];
     var banksHtml = '';
     for(var k = 0; k < banks.length; k++) {
@@ -630,6 +613,7 @@
     if(banksHtml === '') banksHtml = '<div class="text-center text-muted col-12">Belum ada rekening yang ditambahkan</div>';
     document.getElementById('bankList').innerHTML = banksHtml;
     
+    // Copy rekening
     var copyBtns = document.querySelectorAll('.copy-rek');
     for(var c = 0; c < copyBtns.length; c++) {
       copyBtns[c].addEventListener('click', function() {
@@ -641,10 +625,10 @@
     
     document.getElementById('footerText').innerHTML = escapeHtml(weddingData.groomName) + ' & ' + escapeHtml(weddingData.brideName);
     
-    // ============ BOTTOM NAVIGATION DENGAN ICON CERITA YANG BENAR ============
+    // Bottom Navigation - Icon untuk Cerita menggunakan bi-journal-bookmark-fill
     var navItems = [
       { id: 'mempelai', icon: 'people-fill', label: 'Mempelai' },
-      { id: 'cerita', icon: 'journal-heart', label: 'Cerita' },
+      { id: 'cerita', icon: 'journal-bookmark-fill', label: 'Cerita' },
       { id: 'acara', icon: 'envelope-paper-heart', label: 'Acara' },
       { id: 'galeri', icon: 'images', label: 'Galeri' },
       { id: 'kado', icon: 'gift-fill', label: 'Kado' },
@@ -761,6 +745,7 @@
     }
   }
   
+  // Music Player - Pink at My Worst
   var isPlaying = false;
   var audio = document.getElementById('bgAudio');
   var muteBtn = document.getElementById('muteBtn');
@@ -770,10 +755,20 @@
         audio.pause(); 
         muteBtn.innerHTML = '<i class="bi bi-vinyl"></i>'; 
       } else { 
-        audio.play().catch(function(e) { console.log('Autoplay prevented'); }); 
+        audio.play().catch(function(e) { console.log('Autoplay prevented:', e); }); 
         muteBtn.innerHTML = '<i class="bi bi-vinyl-fill"></i>'; 
       }
       isPlaying = !isPlaying;
+    });
+    
+    // Try to auto-play (required user interaction first)
+    document.body.addEventListener('click', function initAudio() {
+      if(!isPlaying) {
+        audio.play().catch(function(e) { console.log('Auto-play prevented, click music button to play'); });
+        isPlaying = true;
+        muteBtn.innerHTML = '<i class="bi bi-vinyl-fill"></i>';
+      }
+      document.body.removeEventListener('click', initAudio);
     });
   }
   
