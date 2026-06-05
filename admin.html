@@ -17,7 +17,6 @@
     body.dark { background: #0a0a0a; }
     body.light { background: #f5f0e8; }
     
-    /* Login Styles */
     .login-container {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: linear-gradient(135deg, #1a1a2e, #16213e);
@@ -38,12 +37,10 @@
     .btn-gold { background: linear-gradient(135deg, #c9a03d, #a67c1e); border: none; border-radius: 60px; padding: 12px; font-weight: 600; width: 100%; color: #0a0a0a; }
     .gold-text { color: #c9a03d; }
     
-    /* Admin Wrapper */
     .admin-wrapper { display: none; min-height: 100vh; }
     body.logged-in .admin-wrapper { display: flex; }
     body.logged-in .login-container { display: none; }
     
-    /* Sidebar */
     .sidebar {
       width: 280px; background: #111111; border-right: 1px solid #c9a03d30;
       padding: 1.5rem 1rem; position: fixed; height: 100vh; transition: all 0.3s;
@@ -57,7 +54,6 @@
     .sidebar .nav-link:hover, .sidebar .nav-link.active { background: #c9a03d; color: #000; }
     .content { flex: 1; margin-left: 280px; padding: 1.8rem 2rem; }
     
-    /* Cards */
     .stat-card { background: #1a1a1a; border-radius: 20px; padding: 1.5rem; border: 1px solid #c9a03d30; }
     body.light .stat-card { background: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     .setting-card { background: #1a1a1a; border-radius: 24px; padding: 1.5rem; margin-bottom: 20px; border: 1px solid #c9a03d30; }
@@ -66,14 +62,12 @@
     .story-item, .bank-item { background: #2a2a2a; border-radius: 16px; padding: 1rem; margin-bottom: 1rem; }
     body.light .story-item, body.light .bank-item { background: #f5f0e8; }
     
-    /* Search & Filter */
     .search-bar { background: #2a2a2a; border: 1px solid #c9a03d30; border-radius: 60px; padding: 8px 16px; color: white; width: 100%; }
-    .filter-btn { background: #2a2a2a; border: 1px solid #c9a03d30; color: #c9a03d; border-radius: 60px; padding: 8px 20px; }
+    .filter-btn { background: #2a2a2a; border: 1px solid #c9a03d30; color: #c9a03d; border-radius: 60px; padding: 8px 20px; margin-right: 8px; cursor: pointer; }
     .filter-btn.active { background: #c9a03d; color: #000; }
-    .badge-vip { background: linear-gradient(135deg, #c9a03d, #b8860b); color: #000; }
-    .badge-regular { background: #2a2a2a; color: #aaa; }
+    .badge-vip { background: linear-gradient(135deg, #c9a03d, #b8860b); color: #000; padding: 4px 12px; border-radius: 20px; }
+    .badge-regular { background: #2a2a2a; color: #aaa; padding: 4px 12px; border-radius: 20px; }
     
-    /* Responsive */
     @media (max-width: 768px) {
       .sidebar { left: -280px; position: fixed; z-index: 1000; }
       .sidebar.open { left: 0; }
@@ -82,6 +76,9 @@
     }
     .hamburger { display: none; }
     .dark-mode-fab { position: fixed; bottom: 20px; right: 20px; width: 48px; height: 48px; background: #c9a03d; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1050; border: none; }
+    .form-control, .form-select { background: #2a2a2a; border: 1px solid #c9a03d30; color: white; border-radius: 12px; padding: 10px 14px; }
+    body.light .form-control, body.light .form-select { background: #f5f0e8; color: #000; }
+    .form-control:focus { border-color: #c9a03d; outline: none; box-shadow: 0 0 0 2px rgba(201,160,61,0.3); }
   </style>
 </head>
 <body>
@@ -94,7 +91,7 @@
     <p class="text-white-50 small">GrowthTogether Wedding</p>
     <input type="text" id="adminUsername" placeholder="Username" autocomplete="off">
     <input type="password" id="adminPassword" placeholder="Password">
-    <div id="loginError" class="text-danger small mb-2" style="display:none;">Username atau password salah!</div>
+    <div id="loginError" class="text-danger small mb-2" style="display:none;"></div>
     <button class="btn-gold" id="loginBtn"><i class="bi bi-box-arrow-in-right me-2"></i> Login</button>
     <div class="mt-3"><small class="text-white-50">Login dengan akun yang terdaftar di Firebase</small></div>
   </div>
@@ -109,7 +106,7 @@
       <small class="text-white-50">Admin Panel</small>
     </div>
     <nav class="nav flex-column">
-      <a class="nav-link" data-section="dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+      <a class="nav-link active" data-section="dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
       <a class="nav-link" data-section="wedding"><i class="bi bi-sliders2"></i> Pengaturan Undangan</a>
       <a class="nav-link" data-section="invites"><i class="bi bi-envelope-heart-fill"></i> Buat Undangan</a>
       <a class="nav-link" data-section="guestlist"><i class="bi bi-people-fill"></i> Daftar Tamu</a>
@@ -137,7 +134,7 @@
     
     <!-- PENGATURAN UNDANGAN -->
     <div id="weddingSection" style="display:none;">
-      <div class="d-flex justify-content-between align-items-center mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <h4 class="fw-bold gold-text"><i class="bi bi-sliders2 me-2"></i>Pengaturan Undangan</h4>
         <button class="btn-gold" id="saveWeddingBtn" style="width:auto; padding:8px 24px;"><i class="bi bi-save me-2"></i>Simpan Semua</button>
       </div>
@@ -155,8 +152,8 @@
             <input type="text" id="brideFather" class="form-control mb-2" placeholder="Ayah Wanita">
             <input type="text" id="brideMother" class="form-control mb-2" placeholder="Ibu Wanita">
             <div class="row mt-2">
-              <div class="col-6"><label class="small">Foto Pria</label><input type="file" id="groomPhotoInput" class="form-control mb-2"><img id="groomPhotoPreview" class="image-preview" src=""></div>
-              <div class="col-6"><label class="small">Foto Wanita</label><input type="file" id="bridePhotoInput" class="form-control mb-2"><img id="bridePhotoPreview" class="image-preview" src=""></div>
+              <div class="col-6"><label class="small">Foto Pria</label><input type="file" id="groomPhotoInput" class="form-control mb-2" accept="image/*"><img id="groomPhotoPreview" class="image-preview mt-2" src=""></div>
+              <div class="col-6"><label class="small">Foto Wanita</label><input type="file" id="bridePhotoInput" class="form-control mb-2" accept="image/*"><img id="bridePhotoPreview" class="image-preview mt-2" src=""></div>
             </div>
           </div>
         </div>
@@ -177,7 +174,7 @@
           <div class="setting-card">
             <h5 class="gold-text mb-3"><i class="bi bi-chat-heart-fill me-2"></i>Cerita Cinta</h5>
             <div id="storyList"></div>
-            <button class="btn btn-sm btn-outline-secondary rounded-pill" id="addStoryBtn"><i class="bi bi-plus-lg"></i> Tambah Cerita</button>
+            <button class="btn btn-sm btn-outline-secondary rounded-pill mt-2" id="addStoryBtn"><i class="bi bi-plus-lg"></i> Tambah Cerita</button>
           </div>
         </div>
         
@@ -194,7 +191,7 @@
           <div class="setting-card">
             <h5 class="gold-text mb-3"><i class="bi bi-bank me-2"></i>Rekening Bank</h5>
             <div id="bankList"></div>
-            <button class="btn btn-sm btn-outline-secondary rounded-pill" id="addBankBtn"><i class="bi bi-plus-lg"></i> Tambah Rekening</button>
+            <button class="btn btn-sm btn-outline-secondary rounded-pill mt-2" id="addBankBtn"><i class="bi bi-plus-lg"></i> Tambah Rekening</button>
           </div>
         </div>
       </div>
@@ -209,13 +206,13 @@
             <input type="text" id="guestName" class="form-control mb-2" placeholder="Nama Tamu *">
             <input type="tel" id="guestPhone" class="form-control mb-2" placeholder="No. WhatsApp">
             <textarea id="guestNote" rows="2" class="form-control mb-2" placeholder="Catatan Khusus"></textarea>
-            <select id="guestTier" class="form-control mb-2">
+            <select id="guestTier" class="form-select mb-2">
               <option value="regular">Reguler (Biasa)</option>
               <option value="vip">VIP (Istimewa)</option>
             </select>
             <button class="btn-gold w-100" id="generateInviteBtn"><i class="bi bi-link-45deg me-2"></i>Generate Link</button>
             <div id="linkResult" class="mt-3" style="display:none;">
-              <div class="bg-dark p-2 rounded-3"><code id="inviteLink" class="small"></code></div>
+              <div class="bg-dark p-2 rounded-3"><code id="inviteLink" class="small text-break"></code></div>
               <button class="btn btn-sm btn-outline-secondary mt-2 w-100" id="copyLinkBtn"><i class="bi bi-files"></i> Salin Link</button>
             </div>
           </div>
@@ -233,14 +230,13 @@
     <div id="guestlistSection" style="display:none;">
       <h4 class="fw-bold gold-text mb-4"><i class="bi bi-people-fill me-2"></i>Daftar Tamu Undangan</h4>
       
-      <!-- Search & Filter Bar -->
       <div class="setting-card mb-4">
         <div class="row g-3 align-items-center">
           <div class="col-md-5">
             <input type="text" id="searchGuestInput" class="search-bar" placeholder="🔍 Cari nama tamu...">
           </div>
           <div class="col-md-4">
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-wrap">
               <button class="filter-btn" data-filter="all" id="filterAll">Semua</button>
               <button class="filter-btn" data-filter="vip" id="filterVip">👑 VIP</button>
               <button class="filter-btn" data-filter="regular" id="filterRegular">📋 Reguler</button>
@@ -298,8 +294,8 @@
         <input type="text" id="regUsername" class="form-control mb-2" placeholder="Username *">
         <input type="text" id="regFullname" class="form-control mb-2" placeholder="Nama Lengkap *">
         <input type="password" id="regPassword" class="form-control mb-2" placeholder="Password *">
-        <select id="regLevel" class="form-control mb-2"><option value="trial">Trial</option><option value="basic">Basic</option><option value="pro">Pro</option></select>
-        <select id="regPartner" class="form-control"><option value="">Pilih Pasangan (Opsional)</option></select>
+        <select id="regLevel" class="form-select mb-2"><option value="trial">Trial</option><option value="basic">Basic</option><option value="pro">Pro</option></select>
+        <select id="regPartner" class="form-select"><option value="">Pilih Pasangan (Opsional)</option></select>
       </div>
       <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button><button class="btn-gold" id="confirmRegisterBtn">Daftarkan</button></div>
     </div>
@@ -308,7 +304,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getDatabase, ref, get, set, remove, update, push, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+  import { getDatabase, ref, get, set, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
   
   const firebaseConfig = { 
     apiKey: "AIzaSyBeUaOyesw9ucpBGumNjrzUp3WfUtXu39w", 
@@ -329,46 +325,45 @@
   let currentSearch = '';
   let allInvitations = [];
   
-  // Helper functions
-  function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+  function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m) { if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m; }); }
   
   async function hashPassword(pwd) { 
     const enc = new TextEncoder(); 
     const hash = await crypto.subtle.digest('SHA-256', enc.encode(pwd + "growthogether_salt_2024")); 
-    return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    return Array.from(new Uint8Array(hash)).map(function(b) { return b.toString(16).padStart(2,'0'); }).join('');
   }
   
-  function compressImage(file, maxDim=300) { 
-    return new Promise((resolve) => { 
-      const reader = new FileReader(); 
+  function compressImage(file, maxDim) {
+    maxDim = maxDim || 300;
+    return new Promise(function(resolve) { 
+      var reader = new FileReader(); 
       reader.readAsDataURL(file); 
-      reader.onload = (e) => { 
-        const img = new Image(); 
+      reader.onload = function(e) { 
+        var img = new Image(); 
         img.src = e.target.result; 
-        img.onload = () => { 
-          let w=img.width, h=img.height; 
-          if(w>h && w>maxDim) { h = h*maxDim/w; w=maxDim; } 
-          else if(h>maxDim) { w = w*maxDim/h; h=maxDim; } 
-          const canvas = document.createElement('canvas'); 
-          canvas.width=w; canvas.height=h; 
-          canvas.getContext('2d').drawImage(img,0,0,w,h); 
-          resolve(canvas.toDataURL('image/jpeg',0.8)); 
+        img.onload = function() { 
+          var w = img.width, h = img.height; 
+          if(w > h && w > maxDim) { h = h * maxDim / w; w = maxDim; } 
+          else if(h > maxDim) { w = w * maxDim / h; h = maxDim; } 
+          var canvas = document.createElement('canvas'); 
+          canvas.width = w; canvas.height = h; 
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h); 
+          resolve(canvas.toDataURL('image/jpeg', 0.8)); 
         }; 
       }; 
     }); 
   }
   
-  // LOGIN - Cek dari Firebase
   async function login(username, password) {
-    const upper = username.toUpperCase().trim();
-    const authSnap = await get(ref(db, `data/auth/${upper}`));
-    const userSnap = await get(ref(db, `data/users/${upper}`));
+    var upper = username.toUpperCase().trim();
+    var authSnap = await get(ref(db, "data/auth/" + upper));
+    var userSnap = await get(ref(db, "data/users/" + upper));
     
     if (!authSnap.exists() || !userSnap.exists()) {
       throw new Error('Username tidak terdaftar');
     }
     
-    const hash = await hashPassword(password);
+    var hash = await hashPassword(password);
     if (authSnap.val() === hash) { 
       currentUser = upper; 
       sessionStorage.setItem('admin_logged_in', 'true'); 
@@ -388,14 +383,16 @@
     } 
   }
   
-  // LOAD ALL DATA
   async function loadAllData() {
-    await Promise.all([loadWeddingSettings(), loadInvitations(), loadUsers(), loadStats()]);
+    await loadWeddingSettings();
+    await loadInvitations();
+    await loadUsers();
+    await loadStats();
   }
   
   async function loadWeddingSettings() {
-    const snap = await get(ref(db, "data/wedding_settings"));
-    const s = snap.val() || {};
+    var snap = await get(ref(db, "data/wedding_settings"));
+    var s = snap.val() || {};
     document.getElementById('groomName').value = s.groomName || 'Fachmi';
     document.getElementById('brideName').value = s.brideName || 'Azizah';
     document.getElementById('groomNickname').value = s.groomNickname || 'Fachmi';
@@ -418,211 +415,275 @@
   }
   
   function renderStories(stories) {
-    const container = document.getElementById('storyList');
+    var container = document.getElementById('storyList');
     container.innerHTML = '';
-    stories.forEach((story) => {
-      const div = document.createElement('div');
+    for(var i = 0; i < stories.length; i++) {
+      var story = stories[i];
+      var div = document.createElement('div');
       div.className = 'story-item';
-      div.innerHTML = `<input type="text" class="form-control mb-2 story-title" value="${escapeHtml(story.title)}" placeholder="Judul"><textarea class="form-control mb-2 story-desc" rows="2" placeholder="Deskripsi">${escapeHtml(story.desc)}</textarea><input type="date" class="form-control mb-2 story-date" value="${story.date || ''}"><button class="btn btn-sm btn-danger remove-story">Hapus</button>`;
+      div.innerHTML = '<input type="text" class="form-control mb-2 story-title" value="' + escapeHtml(story.title) + '" placeholder="Judul"><textarea class="form-control mb-2 story-desc" rows="2" placeholder="Deskripsi">' + escapeHtml(story.desc) + '</textarea><input type="date" class="form-control mb-2 story-date" value="' + (story.date || '') + '"><button class="btn btn-sm btn-danger remove-story">Hapus</button>';
       container.appendChild(div);
-    });
+    }
   }
   
   function renderGalleries(galleries) {
-    const container = document.getElementById('galleryList');
+    var container = document.getElementById('galleryList');
     container.innerHTML = '';
-    galleries.forEach((url, idx) => {
-      const col = document.createElement('div');
+    for(var i = 0; i < galleries.length; i++) {
+      var url = galleries[i];
+      var col = document.createElement('div');
       col.className = 'col-4 position-relative';
-      col.innerHTML = `<img src="${url}" class="w-100 rounded-3" style="height:100px; object-fit:cover;"><button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle remove-gallery" data-idx="${idx}" style="width:22px;height:22px;padding:0;">✕</button>`;
+      col.innerHTML = '<img src="' + url + '" class="w-100 rounded-3" style="height:100px; object-fit:cover;"><button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle remove-gallery" data-idx="' + i + '" style="width:22px;height:22px;padding:0;">✕</button>';
       container.appendChild(col);
-    });
+    }
   }
   
   function renderBanks(banks) {
-    const container = document.getElementById('bankList');
+    var container = document.getElementById('bankList');
     container.innerHTML = '';
-    banks.forEach((bank) => {
-      const div = document.createElement('div');
+    for(var i = 0; i < banks.length; i++) {
+      var bank = banks[i];
+      var div = document.createElement('div');
       div.className = 'bank-item';
-      div.innerHTML = `<input type="text" class="form-control mb-2 bank-name" value="${escapeHtml(bank.name)}" placeholder="Nama Bank"><input type="text" class="form-control mb-2 bank-number" value="${escapeHtml(bank.number)}" placeholder="No Rekening"><input type="text" class="form-control mb-2 bank-owner" value="${escapeHtml(bank.owner)}" placeholder="Atas Nama"><button class="btn btn-sm btn-danger remove-bank">Hapus</button>`;
+      div.innerHTML = '<input type="text" class="form-control mb-2 bank-name" value="' + escapeHtml(bank.name) + '" placeholder="Nama Bank"><input type="text" class="form-control mb-2 bank-number" value="' + escapeHtml(bank.number) + '" placeholder="No Rekening"><input type="text" class="form-control mb-2 bank-owner" value="' + escapeHtml(bank.owner) + '" placeholder="Atas Nama"><button class="btn btn-sm btn-danger remove-bank">Hapus</button>';
       container.appendChild(div);
-    });
+    }
   }
   
   async function saveWeddingSettings() {
-    Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
     try {
-      const stories = [];
-      document.querySelectorAll('.story-item').forEach(item => {
-        stories.push({ title: item.querySelector('.story-title').value, desc: item.querySelector('.story-desc').value, date: item.querySelector('.story-date').value });
-      });
-      const galleries = [];
-      document.querySelectorAll('#galleryList .col-4 img').forEach(img => galleries.push(img.src));
-      const banks = [];
-      document.querySelectorAll('.bank-item').forEach(item => {
-        banks.push({ name: item.querySelector('.bank-name').value, number: item.querySelector('.bank-number').value, owner: item.querySelector('.bank-owner').value });
-      });
-      const settings = {
-        groomName: document.getElementById('groomName').value, brideName: document.getElementById('brideName').value,
-        groomNickname: document.getElementById('groomNickname').value, brideNickname: document.getElementById('brideNickname').value,
-        groomFather: document.getElementById('groomFather').value, groomMother: document.getElementById('groomMother').value,
-        brideFather: document.getElementById('brideFather').value, brideMother: document.getElementById('brideMother').value,
-        groomPhoto: document.getElementById('groomPhotoPreview').src, bridePhoto: document.getElementById('bridePhotoPreview').src,
-        weddingDate: document.getElementById('weddingDate').value, akadTime: document.getElementById('akadTime').value,
-        receptionTime: document.getElementById('receptionTime').value, venueName: document.getElementById('venueName').value,
-        venueAddress: document.getElementById('venueAddress').value, mapsLink: document.getElementById('mapsLink').value,
-        stories, galleries, banks, updatedAt: Date.now()
+      var stories = [];
+      var storyItems = document.querySelectorAll('.story-item');
+      for(var i = 0; i < storyItems.length; i++) {
+        var item = storyItems[i];
+        stories.push({ 
+          title: item.querySelector('.story-title').value, 
+          desc: item.querySelector('.story-desc').value, 
+          date: item.querySelector('.story-date').value 
+        });
+      }
+      
+      var galleries = [];
+      var galleryImages = document.querySelectorAll('#galleryList .col-4 img');
+      for(var j = 0; j < galleryImages.length; j++) {
+        galleries.push(galleryImages[j].src);
+      }
+      
+      var banks = [];
+      var bankItems = document.querySelectorAll('.bank-item');
+      for(var k = 0; k < bankItems.length; k++) {
+        var bitem = bankItems[k];
+        banks.push({ 
+          name: bitem.querySelector('.bank-name').value, 
+          number: bitem.querySelector('.bank-number').value, 
+          owner: bitem.querySelector('.bank-owner').value 
+        });
+      }
+      
+      var settings = {
+        groomName: document.getElementById('groomName').value,
+        brideName: document.getElementById('brideName').value,
+        groomNickname: document.getElementById('groomNickname').value,
+        brideNickname: document.getElementById('brideNickname').value,
+        groomFather: document.getElementById('groomFather').value,
+        groomMother: document.getElementById('groomMother').value,
+        brideFather: document.getElementById('brideFather').value,
+        brideMother: document.getElementById('brideMother').value,
+        groomPhoto: document.getElementById('groomPhotoPreview').src,
+        bridePhoto: document.getElementById('bridePhotoPreview').src,
+        weddingDate: document.getElementById('weddingDate').value,
+        akadTime: document.getElementById('akadTime').value,
+        receptionTime: document.getElementById('receptionTime').value,
+        venueName: document.getElementById('venueName').value,
+        venueAddress: document.getElementById('venueAddress').value,
+        mapsLink: document.getElementById('mapsLink').value,
+        stories: stories,
+        galleries: galleries,
+        banks: banks,
+        updatedAt: Date.now()
       };
       await set(ref(db, "data/wedding_settings"), settings);
       Swal.fire('Berhasil!', 'Pengaturan undangan tersimpan', 'success');
-    } catch(e) { Swal.fire('Error', 'Gagal menyimpan', 'error'); }
+    } catch(e) { 
+      Swal.fire('Error', 'Gagal menyimpan: ' + e.message, 'error'); 
+    }
   }
   
-  // INVITATIONS dengan TIER (VIP/REGULAR)
   async function loadInvitations() {
-    const snap = await get(ref(db, "data/invitations"));
-    const invites = snap.val() || {};
-    allInvitations = Object.entries(invites).map(([id, inv]) => ({ id, ...inv }));
+    var snap = await get(ref(db, "data/invitations"));
+    var invites = snap.val() || {};
+    allInvitations = [];
+    for(var id in invites) {
+      if(invites.hasOwnProperty(id)) {
+        allInvitations.push({ id: id, guestName: invites[id].guestName, phone: invites[id].phone, note: invites[id].note, tier: invites[id].tier || 'regular', createdAt: invites[id].createdAt });
+      }
+    }
     renderGuestTable();
     await loadStats();
   }
   
   function renderGuestTable() {
-    const tbody = document.getElementById('guestTableBody');
+    var tbody = document.getElementById('guestTableBody');
     if(!tbody) return;
     
-    let filtered = allInvitations;
+    var filtered = allInvitations.slice();
     
-    // Filter berdasarkan status
-    if (currentFilter === 'vip') filtered = filtered.filter(inv => inv.tier === 'vip');
-    if (currentFilter === 'regular') filtered = filtered.filter(inv => inv.tier !== 'vip');
-    
-    // Filter berdasarkan search
-    if (currentSearch) {
-      filtered = filtered.filter(inv => inv.guestName.toLowerCase().includes(currentSearch.toLowerCase()));
+    if (currentFilter === 'vip') {
+      filtered = filtered.filter(function(inv) { return inv.tier === 'vip'; });
+    }
+    if (currentFilter === 'regular') {
+      filtered = filtered.filter(function(inv) { return inv.tier !== 'vip'; });
     }
     
+    if (currentSearch) {
+      filtered = filtered.filter(function(inv) { 
+        return inv.guestName.toLowerCase().indexOf(currentSearch.toLowerCase()) !== -1; 
+      });
+    }
+    
+    filtered.reverse();
     tbody.innerHTML = '';
-    filtered.reverse().forEach(inv => {
-      const link = `${INVITE_BASE_URL}?invite=${inv.id}`;
-      const tierBadge = inv.tier === 'vip' ? '<span class="badge badge-vip">👑 VIP</span>' : '<span class="badge badge-regular">📋 Reguler</span>';
-      tbody.innerHTML += `
-        <tr>
-          <td><strong>${escapeHtml(inv.guestName)}</strong></td>
-          <td>${tierBadge}</td>
-          <td>${inv.phone || '-'}</td>
-          <td><small class="text-truncate d-inline-block" style="max-width:200px;">${link}</small></td>
-          <td>${inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('id') : '-'}</td>
-          <td>
-            <button class="btn btn-sm btn-outline-danger rounded-pill delete-invite" data-id="${inv.id}">Hapus</button>
-            <button class="btn btn-sm btn-outline-warning rounded-pill edit-tier" data-id="${inv.id}" data-tier="${inv.tier || 'regular'}">Ubah Status</button>
-          </td>
-        </tr>
-      `;
-    });
     
-    // Event listeners untuk tombol hapus
-    document.querySelectorAll('.delete-invite').forEach(btn => {
-      btn.addEventListener('click', async () => { 
+    for(var i = 0; i < filtered.length; i++) {
+      var inv = filtered[i];
+      var link = INVITE_BASE_URL + '?invite=' + inv.id;
+      var tierBadge = (inv.tier === 'vip') ? '<span class="badge-vip">👑 VIP</span>' : '<span class="badge-regular">📋 Reguler</span>';
+      var row = '<tr>';
+      row += '<td><strong>' + escapeHtml(inv.guestName) + '</strong></td>';
+      row += '<td>' + tierBadge + '</td>';
+      row += '<td>' + (inv.phone || '-') + '</td>';
+      row += '<td><small class="text-break" style="max-width:200px; display:inline-block;">' + link + '</small></td>';
+      row += '<td>' + (inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('id') : '-') + '</td>';
+      row += '<td><button class="btn btn-sm btn-outline-danger rounded-pill delete-invite" data-id="' + inv.id + '">Hapus</button> <button class="btn btn-sm btn-outline-warning rounded-pill edit-tier" data-id="' + inv.id + '" data-tier="' + (inv.tier || 'regular') + '">Ubah Status</button></td>';
+      row += '</tr>';
+      tbody.innerHTML += row;
+    }
+    
+    var deleteBtns = document.querySelectorAll('.delete-invite');
+    for(var j = 0; j < deleteBtns.length; j++) {
+      deleteBtns[j].addEventListener('click', function(e) {
+        var id = this.getAttribute('data-id');
         if(confirm('Hapus undangan ini?')) { 
-          await remove(ref(db, `data/invitations/${btn.dataset.id}`)); 
-          await loadInvitations(); 
-        } 
+          remove(ref(db, "data/invitations/" + id)).then(function() { loadInvitations(); });
+        }
       });
-    });
+    }
     
-    // Event listeners untuk ubah status
-    document.querySelectorAll('.edit-tier').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const newTier = btn.dataset.tier === 'vip' ? 'regular' : 'vip';
-        await update(ref(db, `data/invitations/${btn.dataset.id}`), { tier: newTier });
-        await loadInvitations();
-        Swal.fire('Berhasil', `Status diubah menjadi ${newTier === 'vip' ? 'VIP' : 'Reguler'}`, 'success');
+    var editBtns = document.querySelectorAll('.edit-tier');
+    for(var k = 0; k < editBtns.length; k++) {
+      editBtns[k].addEventListener('click', function(e) {
+        var id = this.getAttribute('data-id');
+        var newTier = (this.getAttribute('data-tier') === 'vip') ? 'regular' : 'vip';
+        update(ref(db, "data/invitations/" + id), { tier: newTier }).then(function() { 
+          loadInvitations(); 
+          Swal.fire('Berhasil', 'Status diubah menjadi ' + (newTier === 'vip' ? 'VIP' : 'Reguler'), 'success');
+        });
       });
-    });
+    }
   }
   
   function setupSearchAndFilter() {
-    const searchInput = document.getElementById('searchGuestInput');
+    var searchInput = document.getElementById('searchGuestInput');
     if(searchInput) {
-      searchInput.addEventListener('input', (e) => {
+      searchInput.addEventListener('input', function(e) {
         currentSearch = e.target.value;
         renderGuestTable();
       });
     }
     
-    document.getElementById('filterAll')?.addEventListener('click', () => {
+    document.getElementById('filterAll').addEventListener('click', function() {
       currentFilter = 'all';
-      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-      document.getElementById('filterAll').classList.add('active');
+      var btns = document.querySelectorAll('.filter-btn');
+      for(var i = 0; i < btns.length; i++) { btns[i].classList.remove('active'); }
+      this.classList.add('active');
       renderGuestTable();
     });
     
-    document.getElementById('filterVip')?.addEventListener('click', () => {
+    document.getElementById('filterVip').addEventListener('click', function() {
       currentFilter = 'vip';
-      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-      document.getElementById('filterVip').classList.add('active');
+      var btns = document.querySelectorAll('.filter-btn');
+      for(var i = 0; i < btns.length; i++) { btns[i].classList.remove('active'); }
+      this.classList.add('active');
       renderGuestTable();
     });
     
-    document.getElementById('filterRegular')?.addEventListener('click', () => {
+    document.getElementById('filterRegular').addEventListener('click', function() {
       currentFilter = 'regular';
-      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-      document.getElementById('filterRegular').classList.add('active');
+      var btns = document.querySelectorAll('.filter-btn');
+      for(var i = 0; i < btns.length; i++) { btns[i].classList.remove('active'); }
+      this.classList.add('active');
       renderGuestTable();
     });
     
-    document.getElementById('refreshGuestList')?.addEventListener('click', () => {
+    document.getElementById('refreshGuestList').addEventListener('click', function() {
       loadInvitations();
     });
   }
   
   async function generateInvite(guestName, phone, note, tier) {
     if(!guestName.trim()) throw new Error('Nama tamu wajib diisi');
-    const id = Date.now().toString() + Math.random().toString(36).substring(2,8);
-    await set(ref(db, `data/invitations/${id}`), { 
+    var id = Date.now().toString() + Math.random().toString(36).substring(2,8);
+    await set(ref(db, "data/invitations/" + id), { 
       guestName: guestName.trim(), 
       phone: phone || '', 
       note: note || '', 
       tier: tier || 'regular',
       createdAt: Date.now() 
     });
-    return `${INVITE_BASE_URL}?invite=${id}`;
+    return INVITE_BASE_URL + '?invite=' + id;
   }
   
   async function loadUsers() {
-    const snap = await get(ref(db, "data/users"));
-    const users = snap.val() || {};
-    const tbody = document.getElementById('usersTableBody');
+    var snap = await get(ref(db, "data/users"));
+    var users = snap.val() || {};
+    var tbody = document.getElementById('usersTableBody');
     if(tbody) {
       tbody.innerHTML = '';
-      for(const [uname, data] of Object.entries(users)) {
-        tbody.innerHTML += `<tr><td>${escapeHtml(uname)}</td><td>${escapeHtml(data.fullname || uname)}</td><td><span class="badge bg-warning">${data.level || 'trial'}</span></td><td><button class="btn btn-sm btn-outline-danger delete-user" data-username="${uname}">Hapus</button></td></tr>`;
+      for(var uname in users) {
+        if(users.hasOwnProperty(uname)) {
+          var data = users[uname];
+          tbody.innerHTML += '<tr><td>' + escapeHtml(uname) + '</td><td>' + escapeHtml(data.fullname || uname) + '</td><td><span class="badge bg-warning">' + (data.level || 'trial') + '</span></td><td><button class="btn btn-sm btn-outline-danger delete-user" data-username="' + uname + '">Hapus</button></td></tr>';
+        }
       }
-      document.querySelectorAll('.delete-user').forEach(btn => btn.addEventListener('click', async () => { if(confirm('Hapus user?')) { await remove(ref(db, `data/users/${btn.dataset.username}`)); await remove(ref(db, `data/auth/${btn.dataset.username}`)); loadUsers(); } }));
+      var deleteBtns = document.querySelectorAll('.delete-user');
+      for(var i = 0; i < deleteBtns.length; i++) {
+        deleteBtns[i].addEventListener('click', function(e) {
+          var username = this.getAttribute('data-username');
+          if(confirm('Hapus user ' + username + '?')) { 
+            remove(ref(db, "data/users/" + username));
+            remove(ref(db, "data/auth/" + username));
+            loadUsers();
+          }
+        });
+      }
     }
   }
   
   async function registerUser(username, fullname, password, level, partner) {
-    const upper = username.toUpperCase().trim();
-    const usersSnap = await get(ref(db, "data/users"));
-    if(usersSnap.val()?.[upper]) throw new Error('Username sudah ada');
+    var upper = username.toUpperCase().trim();
+    var usersSnap = await get(ref(db, "data/users"));
+    if(usersSnap.val() && usersSnap.val()[upper]) throw new Error('Username sudah ada');
     if(password.length < 4) throw new Error('Password minimal 4 karakter');
-    const userId = Date.now().toString().slice(-5);
-    const hashedPassword = await hashPassword(password);
-    await set(ref(db, `data/auth/${upper}`), hashedPassword);
-    await set(ref(db, `data/users/${upper}`), { userId, username: upper, fullname, level, active: true, createdAt: Date.now() });
-    if(partner) { const p = partner.toUpperCase().trim(); if(usersSnap.val()?.[p]) { await set(ref(db, `data/partners/${upper}`), p); await set(ref(db, `data/partners/${p}`), upper); } }
+    var userId = Date.now().toString().slice(-5);
+    var hashedPassword = await hashPassword(password);
+    await set(ref(db, "data/auth/" + upper), hashedPassword);
+    await set(ref(db, "data/users/" + upper), { userId: userId, username: upper, fullname: fullname, level: level, active: true, createdAt: Date.now() });
+    if(partner) { 
+      var p = partner.toUpperCase().trim(); 
+      if(usersSnap.val() && usersSnap.val()[p]) { 
+        await set(ref(db, "data/partners/" + upper), p); 
+        await set(ref(db, "data/partners/" + p), upper); 
+      } 
+    }
     return upper;
   }
   
   async function loadStats() {
-    const invites = allInvitations;
-    const totalInvites = invites.length;
-    const totalVip = invites.filter(i => i.tier === 'vip').length;
-    const totalRegular = totalInvites - totalVip;
-    const messages = JSON.parse(localStorage.getItem('wedding_messages_general') || '[]');
+    var totalInvites = allInvitations.length;
+    var totalVip = allInvitations.filter(function(i) { return i.tier === 'vip'; }).length;
+    var totalRegular = totalInvites - totalVip;
+    var messages = JSON.parse(localStorage.getItem('wedding_messages_general') || '[]');
     
     document.getElementById('totalInvites').innerText = totalInvites;
     document.getElementById('totalVip').innerText = totalVip;
@@ -630,111 +691,205 @@
     document.getElementById('totalMessages').innerText = messages.length;
     
     if(chartInstance) chartInstance.destroy();
-    const ctx = document.getElementById('dashboardChart')?.getContext('2d');
-    if(ctx) chartInstance = new Chart(ctx, { 
-      type: 'doughnut', 
-      data: { 
-        labels: ['VIP', 'Reguler', 'Ucapan'], 
-        datasets: [{ data: [totalVip, totalRegular, messages.length], backgroundColor: ['#c9a03d', '#2a2a2a', '#1a5a3a'] }] 
-      }, 
-      options: { responsive: true } 
-    });
+    var ctx = document.getElementById('dashboardChart') ? document.getElementById('dashboardChart').getContext('2d') : null;
+    if(ctx) {
+      chartInstance = new Chart(ctx, { 
+        type: 'doughnut', 
+        data: { 
+          labels: ['VIP', 'Reguler', 'Ucapan'], 
+          datasets: [{ data: [totalVip, totalRegular, messages.length], backgroundColor: ['#c9a03d', '#2a2a2a', '#1a5a3a'] }] 
+        }, 
+        options: { responsive: true, maintainAspectRatio: true } 
+      });
+    }
   }
   
-  // Navigation
   function showSection(section) {
-    document.querySelectorAll('#dashboardSection, #weddingSection, #invitesSection, #guestlistSection, #usersSection').forEach(el => el.style.display = 'none');
-    document.getElementById(`${section}Section`).style.display = 'block';
-    document.querySelectorAll('.sidebar .nav-link').forEach(link => link.classList.remove('active'));
-    document.querySelector(`.sidebar .nav-link[data-section="${section}"]`).classList.add('active');
+    var sections = ['dashboardSection', 'weddingSection', 'invitesSection', 'guestlistSection', 'usersSection'];
+    for(var i = 0; i < sections.length; i++) {
+      var el = document.getElementById(sections[i]);
+      if(el) el.style.display = 'none';
+    }
+    document.getElementById(section + 'Section').style.display = 'block';
+    var navLinks = document.querySelectorAll('.sidebar .nav-link');
+    for(var j = 0; j < navLinks.length; j++) {
+      navLinks[j].classList.remove('active');
+      if(navLinks[j].getAttribute('data-section') === section) {
+        navLinks[j].classList.add('active');
+      }
+    }
   }
   
   // Event Listeners
-  document.getElementById('loginBtn')?.addEventListener('click', async () => { 
-    try { 
-      await login(document.getElementById('adminUsername').value, document.getElementById('adminPassword').value); 
+  document.getElementById('loginBtn').addEventListener('click', function() { 
+    var username = document.getElementById('adminUsername').value;
+    var password = document.getElementById('adminPassword').value;
+    login(username, password).then(function() { 
       location.reload(); 
-    } catch(e) { 
-      document.getElementById('loginError').style.display='block'; 
-      document.getElementById('loginError').innerText = e.message;
-    } 
+    }).catch(function(e) { 
+      var errDiv = document.getElementById('loginError');
+      errDiv.style.display = 'block';
+      errDiv.innerText = e.message;
+    });
   });
   
-  document.getElementById('logoutBtn')?.addEventListener('click', logout);
-  document.getElementById('saveWeddingBtn')?.addEventListener('click', saveWeddingSettings);
-  document.getElementById('addStoryBtn')?.addEventListener('click', () => { const cont = document.getElementById('storyList'); const div = document.createElement('div'); div.className='story-item'; div.innerHTML=`<input type="text" class="form-control mb-2 story-title" placeholder="Judul"><textarea class="form-control mb-2 story-desc" rows="2" placeholder="Deskripsi"></textarea><input type="date" class="form-control mb-2 story-date"><button class="btn btn-sm btn-danger remove-story">Hapus</button>`; cont.appendChild(div); });
-  document.getElementById('addBankBtn')?.addEventListener('click', () => { const cont = document.getElementById('bankList'); const div = document.createElement('div'); div.className='bank-item'; div.innerHTML=`<input type="text" class="form-control mb-2 bank-name" placeholder="Nama Bank"><input type="text" class="form-control mb-2 bank-number" placeholder="No Rekening"><input type="text" class="form-control mb-2 bank-owner" placeholder="Atas Nama"><button class="btn btn-sm btn-danger remove-bank">Hapus</button>`; cont.appendChild(div); });
+  document.getElementById('logoutBtn').addEventListener('click', logout);
+  document.getElementById('saveWeddingBtn').addEventListener('click', saveWeddingSettings);
+  document.getElementById('addStoryBtn').addEventListener('click', function() { 
+    var container = document.getElementById('storyList'); 
+    var div = document.createElement('div'); 
+    div.className = 'story-item'; 
+    div.innerHTML = '<input type="text" class="form-control mb-2 story-title" placeholder="Judul"><textarea class="form-control mb-2 story-desc" rows="2" placeholder="Deskripsi"></textarea><input type="date" class="form-control mb-2 story-date"><button class="btn btn-sm btn-danger remove-story">Hapus</button>'; 
+    container.appendChild(div); 
+  });
   
-  document.addEventListener('click', (e) => { 
-    if(e.target.classList.contains('remove-story')) e.target.closest('.story-item').remove(); 
-    if(e.target.classList.contains('remove-bank')) e.target.closest('.bank-item').remove(); 
+  document.getElementById('addBankBtn').addEventListener('click', function() { 
+    var container = document.getElementById('bankList'); 
+    var div = document.createElement('div'); 
+    div.className = 'bank-item'; 
+    div.innerHTML = '<input type="text" class="form-control mb-2 bank-name" placeholder="Nama Bank"><input type="text" class="form-control mb-2 bank-number" placeholder="No Rekening"><input type="text" class="form-control mb-2 bank-owner" placeholder="Atas Nama"><button class="btn btn-sm btn-danger remove-bank">Hapus</button>'; 
+    container.appendChild(div); 
+  });
+  
+  document.addEventListener('click', function(e) { 
+    if(e.target.classList.contains('remove-story')) { e.target.closest('.story-item').remove(); }
+    if(e.target.classList.contains('remove-bank')) { e.target.closest('.bank-item').remove(); }
     if(e.target.classList.contains('remove-gallery')) { 
-      const idx = e.target.dataset.idx; 
-      const galleries = []; 
-      document.querySelectorAll('#galleryList .col-4 img').forEach((img,i) => { if(i != idx) galleries.push(img.src); }); 
+      var idx = parseInt(e.target.getAttribute('data-idx')); 
+      var galleries = []; 
+      var imgs = document.querySelectorAll('#galleryList .col-4 img');
+      for(var i = 0; i < imgs.length; i++) {
+        if(i !== idx) galleries.push(imgs[i].src);
+      }
       renderGalleries(galleries); 
+    }
+  });
+  
+  document.getElementById('groomPhotoInput').addEventListener('change', function(e) { 
+    if(e.target.files[0]) { 
+      compressImage(e.target.files[0], 300).then(function(data) { 
+        document.getElementById('groomPhotoPreview').src = data; 
+      });
     } 
   });
   
-  document.getElementById('groomPhotoInput')?.addEventListener('change', async (e) => { if(e.target.files[0]) { const data = await compressImage(e.target.files[0]); document.getElementById('groomPhotoPreview').src = data; } });
-  document.getElementById('bridePhotoInput')?.addEventListener('change', async (e) => { if(e.target.files[0]) { const data = await compressImage(e.target.files[0]); document.getElementById('bridePhotoPreview').src = data; } });
-  document.getElementById('galleryPhotoInput')?.addEventListener('change', async (e) => { if(e.target.files[0]) { const data = await compressImage(e.target.files[0], 300); const galleries = []; document.querySelectorAll('#galleryList .col-4 img').forEach(img => galleries.push(img.src)); galleries.push(data); renderGalleries(galleries); } });
-  document.getElementById('addGalleryBtn')?.addEventListener('click', () => document.getElementById('galleryPhotoInput').click());
+  document.getElementById('bridePhotoInput').addEventListener('change', function(e) { 
+    if(e.target.files[0]) { 
+      compressImage(e.target.files[0], 300).then(function(data) { 
+        document.getElementById('bridePhotoPreview').src = data; 
+      });
+    } 
+  });
   
-  document.getElementById('generateInviteBtn')?.addEventListener('click', async () => { 
-    const name = document.getElementById('guestName').value.trim(); 
-    if(!name) return Swal.fire('Info','Nama tamu wajib diisi','warning'); 
-    const tier = document.getElementById('guestTier').value;
-    try { 
-      const link = await generateInvite(name, document.getElementById('guestPhone').value, document.getElementById('guestNote').value, tier); 
-      document.getElementById('linkResult').style.display='block'; 
-      document.getElementById('inviteLink').innerText=link; 
-      Swal.fire('Berhasil','Link undangan dibuat','success'); 
-      await loadInvitations(); 
+  document.getElementById('galleryPhotoInput').addEventListener('change', function(e) { 
+    if(e.target.files[0]) { 
+      compressImage(e.target.files[0], 300).then(function(data) { 
+        var galleries = []; 
+        var imgs = document.querySelectorAll('#galleryList .col-4 img');
+        for(var i = 0; i < imgs.length; i++) {
+          galleries.push(imgs[i].src);
+        }
+        galleries.push(data); 
+        renderGalleries(galleries); 
+      });
+    } 
+  });
+  
+  document.getElementById('addGalleryBtn').addEventListener('click', function() { 
+    document.getElementById('galleryPhotoInput').click(); 
+  });
+  
+  document.getElementById('generateInviteBtn').addEventListener('click', function() { 
+    var name = document.getElementById('guestName').value.trim(); 
+    if(!name) { Swal.fire('Info', 'Nama tamu wajib diisi', 'warning'); return; }
+    var tier = document.getElementById('guestTier').value;
+    generateInvite(name, document.getElementById('guestPhone').value, document.getElementById('guestNote').value, tier).then(function(link) { 
+      document.getElementById('linkResult').style.display = 'block'; 
+      document.getElementById('inviteLink').innerText = link; 
+      Swal.fire('Berhasil', 'Link undangan dibuat', 'success'); 
+      loadInvitations(); 
       document.getElementById('guestName').value = '';
       document.getElementById('guestPhone').value = '';
       document.getElementById('guestNote').value = '';
-    } catch(e) { Swal.fire('Error',e.message,'error'); } 
+    }).catch(function(e) { Swal.fire('Error', e.message, 'error'); });
   });
   
-  document.getElementById('copyLinkBtn')?.addEventListener('click', () => { navigator.clipboard.writeText(document.getElementById('inviteLink').innerText); Swal.fire('Disalin','Link disalin ke clipboard','success'); });
-  
-  document.getElementById('guestName')?.addEventListener('input', () => { 
-    const name = document.getElementById('guestName').value; 
-    const preview = document.getElementById('previewCard'); 
-    if(name) preview.innerHTML = `<div class="text-center"><i class="bi bi-envelope-heart-fill fs-1 gold-text"></i><h5>Undangan untuk ${escapeHtml(name)}</h5><p class="small text-white-50">Pernikahan ${document.getElementById('groomName').value || 'Fachmi'} & ${document.getElementById('brideName').value || 'Azizah'}</p></div>`; 
-    else preview.innerHTML = `<i class="bi bi-envelope-paper-heart fs-1 gold-text"></i><p class="mt-2 text-white-50">Isi nama tamu untuk pratinjau</p>`; 
+  document.getElementById('copyLinkBtn').addEventListener('click', function() { 
+    var link = document.getElementById('inviteLink').innerText;
+    navigator.clipboard.writeText(link); 
+    Swal.fire('Disalin', 'Link disalin ke clipboard', 'success'); 
   });
   
-  document.getElementById('openRegisterModal')?.addEventListener('click', async () => { 
-    const users = await get(ref(db, "data/users")); 
-    const select = document.getElementById('regPartner'); 
-    select.innerHTML = '<option value="">Pilih Pasangan</option>'; 
-    Object.keys(users.val() || {}).forEach(u => select.innerHTML += `<option value="${u}">${u}</option>`); 
-    new bootstrap.Modal(document.getElementById('registerModal')).show(); 
+  document.getElementById('guestName').addEventListener('input', function() { 
+    var name = document.getElementById('guestName').value; 
+    var preview = document.getElementById('previewCard'); 
+    var groomName = document.getElementById('groomName').value || 'Fachmi';
+    var brideName = document.getElementById('brideName').value || 'Azizah';
+    if(name) {
+      preview.innerHTML = '<div class="text-center"><i class="bi bi-envelope-heart-fill fs-1 gold-text"></i><h5>Undangan untuk ' + escapeHtml(name) + '</h5><p class="small text-white-50">Pernikahan ' + escapeHtml(groomName) + ' & ' + escapeHtml(brideName) + '</p></div>';
+    } else {
+      preview.innerHTML = '<i class="bi bi-envelope-paper-heart fs-1 gold-text"></i><p class="mt-2 text-white-50">Isi nama tamu untuk pratinjau</p>';
+    }
   });
   
-  document.getElementById('confirmRegisterBtn')?.addEventListener('click', async () => { 
-    try { 
-      await registerUser(document.getElementById('regUsername').value, document.getElementById('regFullname').value, document.getElementById('regPassword').value, document.getElementById('regLevel').value, document.getElementById('regPartner').value); 
-      Swal.fire('Berhasil','User terdaftar','success'); 
+  document.getElementById('openRegisterModal').addEventListener('click', function() { 
+    get(ref(db, "data/users")).then(function(usersSnap) {
+      var users = usersSnap.val() || {};
+      var select = document.getElementById('regPartner'); 
+      select.innerHTML = '<option value="">Pilih Pasangan</option>'; 
+      for(var u in users) {
+        if(users.hasOwnProperty(u)) {
+          select.innerHTML += '<option value="' + u + '">' + u + '</option>';
+        }
+      }
+      new bootstrap.Modal(document.getElementById('registerModal')).show(); 
+    });
+  });
+  
+  document.getElementById('confirmRegisterBtn').addEventListener('click', function() { 
+    var username = document.getElementById('regUsername').value;
+    var fullname = document.getElementById('regFullname').value;
+    var password = document.getElementById('regPassword').value;
+    var level = document.getElementById('regLevel').value;
+    var partner = document.getElementById('regPartner').value;
+    registerUser(username, fullname, password, level, partner).then(function() { 
+      Swal.fire('Berhasil', 'User terdaftar', 'success'); 
       loadUsers(); 
-      bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide(); 
-    } catch(e) { Swal.fire('Error',e.message,'error'); } 
+      var modal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
+      if(modal) modal.hide();
+    }).catch(function(e) { Swal.fire('Error', e.message, 'error'); });
   });
   
-  document.querySelectorAll('.sidebar .nav-link').forEach(link => link.addEventListener('click', () => { showSection(link.dataset.section); if(window.innerWidth<=768) document.getElementById('sidebar').classList.remove('open'); }));
-  document.getElementById('hamburgerBtn')?.addEventListener('click', () => document.getElementById('sidebar').classList.toggle('open'));
-  document.getElementById('viewInvitationBtn')?.addEventListener('click', () => window.open(INVITE_BASE_URL, '_blank'));
-  document.getElementById('darkModeFab')?.addEventListener('click', () => { document.body.classList.toggle('light'); localStorage.setItem('adminLight', document.body.classList.contains('light')); });
-  if(localStorage.getItem('adminLight') === 'true') document.body.classList.add('light');
+  var navLinks = document.querySelectorAll('.sidebar .nav-link');
+  for(var nl = 0; nl < navLinks.length; nl++) {
+    navLinks[nl].addEventListener('click', function() { 
+      var section = this.getAttribute('data-section');
+      showSection(section); 
+      if(window.innerWidth <= 768) { 
+        document.getElementById('sidebar').classList.remove('open'); 
+      }
+    });
+  }
   
-  // Initialize search & filter
+  document.getElementById('hamburgerBtn').addEventListener('click', function() { 
+    document.getElementById('sidebar').classList.toggle('open'); 
+  });
+  
+  document.getElementById('viewInvitationBtn').addEventListener('click', function() { 
+    window.open(INVITE_BASE_URL, '_blank'); 
+  });
+  
+  document.getElementById('darkModeFab').addEventListener('click', function() { 
+    document.body.classList.toggle('light'); 
+    localStorage.setItem('adminLight', document.body.classList.contains('light')); 
+  });
+  
+  if(localStorage.getItem('adminLight') === 'true') { 
+    document.body.classList.add('light'); 
+  }
+  
   setupSearchAndFilter();
-  
-  // Set active filter default
-  document.getElementById('filterAll')?.classList.add('active');
-  
+  document.getElementById('filterAll').classList.add('active');
   checkSession();
 </script>
 </body>
