@@ -17,6 +17,7 @@
     body.dark { background: #0a0a0a; }
     body.light { background: #f5f0e8; }
     
+    /* Login Styles */
     .login-container {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: linear-gradient(135deg, #1a1a2e, #16213e);
@@ -37,10 +38,12 @@
     .btn-gold { background: linear-gradient(135deg, #c9a03d, #a67c1e); border: none; border-radius: 60px; padding: 12px; font-weight: 600; width: 100%; color: #0a0a0a; }
     .gold-text { color: #c9a03d; }
     
+    /* Admin Wrapper */
     .admin-wrapper { display: none; min-height: 100vh; }
     body.logged-in .admin-wrapper { display: flex; }
     body.logged-in .login-container { display: none; }
     
+    /* Sidebar */
     .sidebar {
       width: 280px; background: #111111; border-right: 1px solid #c9a03d30;
       padding: 1.5rem 1rem; position: fixed; height: 100vh; transition: all 0.3s;
@@ -54,20 +57,29 @@
     .sidebar .nav-link:hover, .sidebar .nav-link.active { background: #c9a03d; color: #000; }
     .content { flex: 1; margin-left: 280px; padding: 1.8rem 2rem; }
     
+    /* Cards */
     .stat-card { background: #1a1a1a; border-radius: 20px; padding: 1.5rem; border: 1px solid #c9a03d30; }
     body.light .stat-card { background: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     .setting-card { background: #1a1a1a; border-radius: 24px; padding: 1.5rem; margin-bottom: 20px; border: 1px solid #c9a03d30; }
     body.light .setting-card { background: #ffffff; }
     .image-preview { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #c9a03d; cursor: pointer; }
-    .story-item, .bank-item { background: #2a2a2a; border-radius: 16px; padding: 1rem; margin-bottom: 1rem; }
-    body.light .story-item, body.light .bank-item { background: #f5f0e8; }
+    .story-item, .bank-item, .bg-item { background: #2a2a2a; border-radius: 16px; padding: 1rem; margin-bottom: 1rem; }
+    body.light .story-item, body.light .bank-item, body.light .bg-item { background: #f5f0e8; }
     
+    /* Search & Filter */
     .search-bar { background: #2a2a2a; border: 1px solid #c9a03d30; border-radius: 60px; padding: 8px 16px; color: white; width: 100%; }
     .filter-btn { background: #2a2a2a; border: 1px solid #c9a03d30; color: #c9a03d; border-radius: 60px; padding: 8px 20px; margin-right: 8px; cursor: pointer; }
     .filter-btn.active { background: #c9a03d; color: #000; }
     .badge-vip { background: linear-gradient(135deg, #c9a03d, #b8860b); color: #000; padding: 4px 12px; border-radius: 20px; }
     .badge-regular { background: #2a2a2a; color: #aaa; padding: 4px 12px; border-radius: 20px; }
     
+    /* Background preview grid */
+    .bg-preview-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+    .bg-preview-item { position: relative; width: 80px; height: 80px; border-radius: 12px; overflow: hidden; border: 2px solid #c9a03d30; }
+    .bg-preview-item img { width: 100%; height: 100%; object-fit: cover; }
+    .bg-preview-item button { position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; background: red; border: none; border-radius: 50%; color: white; font-size: 10px; cursor: pointer; }
+    
+    /* Responsive */
     @media (max-width: 768px) {
       .sidebar { left: -280px; position: fixed; z-index: 1000; }
       .sidebar.open { left: 0; }
@@ -132,7 +144,7 @@
       <div class="setting-card"><canvas id="dashboardChart" style="max-height: 250px;"></canvas></div>
     </div>
     
-    <!-- PENGATURAN UNDANGAN -->
+    <!-- PENGATURAN UNDANGAN (DENGAN BACKGROUND SLIDESHOW) -->
     <div id="weddingSection" style="display:none;">
       <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <h4 class="fw-bold gold-text"><i class="bi bi-sliders2 me-2"></i>Pengaturan Undangan</h4>
@@ -140,6 +152,7 @@
       </div>
       
       <div class="row g-4">
+        <!-- Data Pasangan -->
         <div class="col-md-6">
           <div class="setting-card">
             <h5 class="gold-text mb-3"><i class="bi bi-people-fill me-2"></i>Pasangan Pengantin</h5>
@@ -158,6 +171,7 @@
           </div>
         </div>
         
+        <!-- Waktu & Lokasi -->
         <div class="col-md-6">
           <div class="setting-card">
             <h5 class="gold-text mb-3"><i class="bi bi-calendar-heart me-2"></i>Waktu & Lokasi</h5>
@@ -170,6 +184,20 @@
           </div>
         </div>
         
+        <!-- Background Slideshow (FITUR BARU) -->
+        <div class="col-md-12">
+          <div class="setting-card">
+            <h5 class="gold-text mb-3"><i class="bi bi-images me-2"></i>Background Slideshow Hero</h5>
+            <p class="small text-white-50 mb-2">Upload foto-foto untuk background slideshow di halaman undangan (minimal 2 foto untuk efek slideshow)</p>
+            <div id="bgList" class="bg-preview-grid"></div>
+            <div class="mt-3 d-flex gap-2">
+              <input type="file" id="bgPhotoInput" class="form-control" accept="image/*">
+              <button class="btn btn-sm btn-outline-secondary rounded-pill" id="addBgBtn"><i class="bi bi-plus-lg"></i> Tambah Background</button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Cerita Cinta -->
         <div class="col-md-6">
           <div class="setting-card">
             <h5 class="gold-text mb-3"><i class="bi bi-chat-heart-fill me-2"></i>Cerita Cinta</h5>
@@ -178,15 +206,17 @@
           </div>
         </div>
         
+        <!-- Galeri Foto -->
         <div class="col-md-6">
           <div class="setting-card">
-            <h5 class="gold-text mb-3"><i class="bi bi-images me-2"></i>Galeri Foto</h5>
+            <h5 class="gold-text mb-3"><i class="bi bi-camera-fill me-2"></i>Galeri Foto</h5>
             <div id="galleryList" class="row g-2"></div>
             <input type="file" id="galleryPhotoInput" class="form-control mt-2" accept="image/*">
             <button class="btn btn-sm btn-outline-secondary rounded-pill mt-2" id="addGalleryBtn"><i class="bi bi-plus-lg"></i> Tambah ke Galeri</button>
           </div>
         </div>
         
+        <!-- Rekening Bank -->
         <div class="col-md-12">
           <div class="setting-card">
             <h5 class="gold-text mb-3"><i class="bi bi-bank me-2"></i>Rekening Bank</h5>
@@ -252,14 +282,7 @@
         <div class="table-responsive">
           <table class="table table-dark table-hover mb-0">
             <thead>
-              <tr>
-                <th>Nama Tamu</th>
-                <th>Status</th>
-                <th>Telepon</th>
-                <th>Link</th>
-                <th>Dibuat</th>
-                <th>Aksi</th>
-              </tr>
+              <tr><th>Nama Tamu</th><th>Status</th><th>Telepon</th><th>Link Undangan</th><th>Dibuat</th><th>Aksi</th></tr>
             </thead>
             <tbody id="guestTableBody"></tbody>
           </table>
@@ -304,7 +327,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getDatabase, ref, get, set, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+  import { getDatabase, ref, get, set, remove, update, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
   
   const firebaseConfig = { 
     apiKey: "AIzaSyBeUaOyesw9ucpBGumNjrzUp3WfUtXu39w", 
@@ -325,27 +348,36 @@
   let currentSearch = '';
   let allInvitations = [];
   
-  function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m) { if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m; }); }
+  // ============ ENKRIPSI ============
+  const SALT = "wedding2025";
+  
+  function encryptInviteId(id) {
+    const combined = id + "|" + SALT;
+    return btoa(combined).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  }
+  
+  // Helper functions
+  function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
   
   async function hashPassword(pwd) { 
     const enc = new TextEncoder(); 
     const hash = await crypto.subtle.digest('SHA-256', enc.encode(pwd + "growthogether_salt_2024")); 
-    return Array.from(new Uint8Array(hash)).map(function(b) { return b.toString(16).padStart(2,'0'); }).join('');
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
   }
   
   function compressImage(file, maxDim) {
     maxDim = maxDim || 300;
-    return new Promise(function(resolve) { 
-      var reader = new FileReader(); 
+    return new Promise((resolve) => { 
+      const reader = new FileReader(); 
       reader.readAsDataURL(file); 
-      reader.onload = function(e) { 
-        var img = new Image(); 
+      reader.onload = (e) => { 
+        const img = new Image(); 
         img.src = e.target.result; 
-        img.onload = function() { 
-          var w = img.width, h = img.height; 
+        img.onload = () => { 
+          let w = img.width, h = img.height; 
           if(w > h && w > maxDim) { h = h * maxDim / w; w = maxDim; } 
           else if(h > maxDim) { w = w * maxDim / h; h = maxDim; } 
-          var canvas = document.createElement('canvas'); 
+          const canvas = document.createElement('canvas'); 
           canvas.width = w; canvas.height = h; 
           canvas.getContext('2d').drawImage(img, 0, 0, w, h); 
           resolve(canvas.toDataURL('image/jpeg', 0.8)); 
@@ -354,16 +386,17 @@
     }); 
   }
   
+  // LOGIN
   async function login(username, password) {
-    var upper = username.toUpperCase().trim();
-    var authSnap = await get(ref(db, "data/auth/" + upper));
-    var userSnap = await get(ref(db, "data/users/" + upper));
+    const upper = username.toUpperCase().trim();
+    const authSnap = await get(ref(db, "data/auth/" + upper));
+    const userSnap = await get(ref(db, "data/users/" + upper));
     
     if (!authSnap.exists() || !userSnap.exists()) {
       throw new Error('Username tidak terdaftar');
     }
     
-    var hash = await hashPassword(password);
+    const hash = await hashPassword(password);
     if (authSnap.val() === hash) { 
       currentUser = upper; 
       sessionStorage.setItem('admin_logged_in', 'true'); 
@@ -390,9 +423,10 @@
     await loadStats();
   }
   
+  // ============ WEDDING SETTINGS (dengan backgrounds) ============
   async function loadWeddingSettings() {
-    var snap = await get(ref(db, "data/wedding_settings"));
-    var s = snap.val() || {};
+    const snap = await get(ref(db, "data/wedding_settings"));
+    const s = snap.val() || {};
     document.getElementById('groomName').value = s.groomName || 'Fachmi';
     document.getElementById('brideName').value = s.brideName || 'Azizah';
     document.getElementById('groomNickname').value = s.groomNickname || 'Fachmi';
@@ -412,76 +446,81 @@
     renderStories(s.stories || []);
     renderGalleries(s.galleries || []);
     renderBanks(s.banks || []);
+    renderBackgrounds(s.backgrounds || []);
   }
   
   function renderStories(stories) {
-    var container = document.getElementById('storyList');
+    const container = document.getElementById('storyList');
     container.innerHTML = '';
-    for(var i = 0; i < stories.length; i++) {
-      var story = stories[i];
-      var div = document.createElement('div');
+    stories.forEach((story) => {
+      const div = document.createElement('div');
       div.className = 'story-item';
-      div.innerHTML = '<input type="text" class="form-control mb-2 story-title" value="' + escapeHtml(story.title) + '" placeholder="Judul"><textarea class="form-control mb-2 story-desc" rows="2" placeholder="Deskripsi">' + escapeHtml(story.desc) + '</textarea><input type="date" class="form-control mb-2 story-date" value="' + (story.date || '') + '"><button class="btn btn-sm btn-danger remove-story">Hapus</button>';
+      div.innerHTML = `<input type="text" class="form-control mb-2 story-title" value="${escapeHtml(story.title)}" placeholder="Judul"><textarea class="form-control mb-2 story-desc" rows="2" placeholder="Deskripsi">${escapeHtml(story.desc)}</textarea><input type="date" class="form-control mb-2 story-date" value="${story.date || ''}"><button class="btn btn-sm btn-danger remove-story">Hapus</button>`;
       container.appendChild(div);
-    }
+    });
   }
   
   function renderGalleries(galleries) {
-    var container = document.getElementById('galleryList');
+    const container = document.getElementById('galleryList');
     container.innerHTML = '';
-    for(var i = 0; i < galleries.length; i++) {
-      var url = galleries[i];
-      var col = document.createElement('div');
+    galleries.forEach((url, idx) => {
+      const col = document.createElement('div');
       col.className = 'col-4 position-relative';
-      col.innerHTML = '<img src="' + url + '" class="w-100 rounded-3" style="height:100px; object-fit:cover;"><button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle remove-gallery" data-idx="' + i + '" style="width:22px;height:22px;padding:0;">✕</button>';
+      col.innerHTML = `<img src="${url}" class="w-100 rounded-3" style="height:100px; object-fit:cover;"><button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle remove-gallery" data-idx="${idx}" style="width:22px;height:22px;padding:0;">✕</button>`;
       container.appendChild(col);
-    }
+    });
   }
   
   function renderBanks(banks) {
-    var container = document.getElementById('bankList');
+    const container = document.getElementById('bankList');
     container.innerHTML = '';
-    for(var i = 0; i < banks.length; i++) {
-      var bank = banks[i];
-      var div = document.createElement('div');
+    banks.forEach((bank) => {
+      const div = document.createElement('div');
       div.className = 'bank-item';
-      div.innerHTML = '<input type="text" class="form-control mb-2 bank-name" value="' + escapeHtml(bank.name) + '" placeholder="Nama Bank"><input type="text" class="form-control mb-2 bank-number" value="' + escapeHtml(bank.number) + '" placeholder="No Rekening"><input type="text" class="form-control mb-2 bank-owner" value="' + escapeHtml(bank.owner) + '" placeholder="Atas Nama"><button class="btn btn-sm btn-danger remove-bank">Hapus</button>';
+      div.innerHTML = `<input type="text" class="form-control mb-2 bank-name" value="${escapeHtml(bank.name)}" placeholder="Nama Bank"><input type="text" class="form-control mb-2 bank-number" value="${escapeHtml(bank.number)}" placeholder="No Rekening"><input type="text" class="form-control mb-2 bank-owner" value="${escapeHtml(bank.owner)}" placeholder="Atas Nama"><button class="btn btn-sm btn-danger remove-bank">Hapus</button>`;
       container.appendChild(div);
-    }
+    });
+  }
+  
+  function renderBackgrounds(backgrounds) {
+    const container = document.getElementById('bgList');
+    container.innerHTML = '';
+    backgrounds.forEach((url, idx) => {
+      const div = document.createElement('div');
+      div.className = 'bg-preview-item';
+      div.innerHTML = `<img src="${url}"><button class="remove-bg" data-idx="${idx}">✕</button>`;
+      container.appendChild(div);
+    });
+    
+    document.querySelectorAll('.remove-bg').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt(btn.dataset.idx);
+        const currentBg = [];
+        document.querySelectorAll('#bgList .bg-preview-item img').forEach((img, i) => {
+          if(i !== idx) currentBg.push(img.src);
+        });
+        renderBackgrounds(currentBg);
+      });
+    });
   }
   
   async function saveWeddingSettings() {
-    Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
+    Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
     try {
-      var stories = [];
-      var storyItems = document.querySelectorAll('.story-item');
-      for(var i = 0; i < storyItems.length; i++) {
-        var item = storyItems[i];
-        stories.push({ 
-          title: item.querySelector('.story-title').value, 
-          desc: item.querySelector('.story-desc').value, 
-          date: item.querySelector('.story-date').value 
-        });
-      }
+      const stories = [];
+      document.querySelectorAll('.story-item').forEach(item => {
+        stories.push({ title: item.querySelector('.story-title').value, desc: item.querySelector('.story-desc').value, date: item.querySelector('.story-date').value });
+      });
+      const galleries = [];
+      document.querySelectorAll('#galleryList .col-4 img').forEach(img => galleries.push(img.src));
+      const banks = [];
+      document.querySelectorAll('.bank-item').forEach(item => {
+        banks.push({ name: item.querySelector('.bank-name').value, number: item.querySelector('.bank-number').value, owner: item.querySelector('.bank-owner').value });
+      });
+      const backgrounds = [];
+      document.querySelectorAll('#bgList .bg-preview-item img').forEach(img => backgrounds.push(img.src));
       
-      var galleries = [];
-      var galleryImages = document.querySelectorAll('#galleryList .col-4 img');
-      for(var j = 0; j < galleryImages.length; j++) {
-        galleries.push(galleryImages[j].src);
-      }
-      
-      var banks = [];
-      var bankItems = document.querySelectorAll('.bank-item');
-      for(var k = 0; k < bankItems.length; k++) {
-        var bitem = bankItems[k];
-        banks.push({ 
-          name: bitem.querySelector('.bank-name').value, 
-          number: bitem.querySelector('.bank-number').value, 
-          owner: bitem.querySelector('.bank-owner').value 
-        });
-      }
-      
-      var settings = {
+      const settings = {
         groomName: document.getElementById('groomName').value,
         brideName: document.getElementById('brideName').value,
         groomNickname: document.getElementById('groomNickname').value,
@@ -501,6 +540,7 @@
         stories: stories,
         galleries: galleries,
         banks: banks,
+        backgrounds: backgrounds,
         updatedAt: Date.now()
       };
       await set(ref(db, "data/wedding_settings"), settings);
@@ -510,13 +550,14 @@
     }
   }
   
+  // ============ INVITATIONS ============
   async function loadInvitations() {
-    var snap = await get(ref(db, "data/invitations"));
-    var invites = snap.val() || {};
+    const snap = await get(ref(db, "data/invitations"));
+    const invites = snap.val() || {};
     allInvitations = [];
-    for(var id in invites) {
+    for(const id in invites) {
       if(invites.hasOwnProperty(id)) {
-        allInvitations.push({ id: id, guestName: invites[id].guestName, phone: invites[id].phone, note: invites[id].note, tier: invites[id].tier || 'regular', createdAt: invites[id].createdAt });
+        allInvitations.push({ id: id, ...invites[id] });
       }
     }
     renderGuestTable();
@@ -524,106 +565,58 @@
   }
   
   function renderGuestTable() {
-    var tbody = document.getElementById('guestTableBody');
+    const tbody = document.getElementById('guestTableBody');
     if(!tbody) return;
     
-    var filtered = allInvitations.slice();
-    
-    if (currentFilter === 'vip') {
-      filtered = filtered.filter(function(inv) { return inv.tier === 'vip'; });
-    }
-    if (currentFilter === 'regular') {
-      filtered = filtered.filter(function(inv) { return inv.tier !== 'vip'; });
-    }
-    
-    if (currentSearch) {
-      filtered = filtered.filter(function(inv) { 
-        return inv.guestName.toLowerCase().indexOf(currentSearch.toLowerCase()) !== -1; 
-      });
-    }
+    let filtered = allInvitations.slice();
+    if (currentFilter === 'vip') filtered = filtered.filter(inv => inv.tier === 'vip');
+    if (currentFilter === 'regular') filtered = filtered.filter(inv => inv.tier !== 'vip');
+    if (currentSearch) filtered = filtered.filter(inv => inv.guestName.toLowerCase().indexOf(currentSearch.toLowerCase()) !== -1);
     
     filtered.reverse();
     tbody.innerHTML = '';
     
-    for(var i = 0; i < filtered.length; i++) {
-      var inv = filtered[i];
-      var link = INVITE_BASE_URL + '?invite=' + inv.id;
-      var tierBadge = (inv.tier === 'vip') ? '<span class="badge-vip">👑 VIP</span>' : '<span class="badge-regular">📋 Reguler</span>';
-      var row = '<tr>';
-      row += '<td><strong>' + escapeHtml(inv.guestName) + '</strong></td>';
-      row += '<td>' + tierBadge + '</td>';
-      row += '<td>' + (inv.phone || '-') + '</td>';
-      row += '<td><small class="text-break" style="max-width:200px; display:inline-block;">' + link + '</small></td>';
-      row += '<td>' + (inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('id') : '-') + '</td>';
-      row += '<td><button class="btn btn-sm btn-outline-danger rounded-pill delete-invite" data-id="' + inv.id + '">Hapus</button> <button class="btn btn-sm btn-outline-warning rounded-pill edit-tier" data-id="' + inv.id + '" data-tier="' + (inv.tier || 'regular') + '">Ubah Status</button></td>';
-      row += '</tr>';
-      tbody.innerHTML += row;
+    for(const inv of filtered) {
+      const encryptedId = encryptInviteId(inv.id);
+      const link = `${INVITE_BASE_URL}?invite=${encryptedId}`;
+      const tierBadge = inv.tier === 'vip' ? '<span class="badge-vip">👑 VIP</span>' : '<span class="badge-regular">📋 Reguler</span>';
+      tbody.innerHTML += `
+        <tr>
+          <td><strong>${escapeHtml(inv.guestName)}</strong></td>
+          <td>${tierBadge}</td>
+          <td>${inv.phone || '-'}</td>
+          <td><small class="text-break" style="max-width:200px; display:inline-block;">${link}</small></td>
+          <td>${inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('id') : '-'}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-danger rounded-pill delete-invite" data-id="${inv.id}">Hapus</button>
+            <button class="btn btn-sm btn-outline-warning rounded-pill edit-tier" data-id="${inv.id}" data-tier="${inv.tier || 'regular'}">Ubah Status</button>
+           </td>
+        </tr>
+      `;
     }
     
-    var deleteBtns = document.querySelectorAll('.delete-invite');
-    for(var j = 0; j < deleteBtns.length; j++) {
-      deleteBtns[j].addEventListener('click', function(e) {
-        var id = this.getAttribute('data-id');
+    document.querySelectorAll('.delete-invite').forEach(btn => {
+      btn.addEventListener('click', async () => { 
         if(confirm('Hapus undangan ini?')) { 
-          remove(ref(db, "data/invitations/" + id)).then(function() { loadInvitations(); });
-        }
+          await remove(ref(db, "data/invitations/" + btn.dataset.id)); 
+          await loadInvitations(); 
+        } 
       });
-    }
-    
-    var editBtns = document.querySelectorAll('.edit-tier');
-    for(var k = 0; k < editBtns.length; k++) {
-      editBtns[k].addEventListener('click', function(e) {
-        var id = this.getAttribute('data-id');
-        var newTier = (this.getAttribute('data-tier') === 'vip') ? 'regular' : 'vip';
-        update(ref(db, "data/invitations/" + id), { tier: newTier }).then(function() { 
-          loadInvitations(); 
-          Swal.fire('Berhasil', 'Status diubah menjadi ' + (newTier === 'vip' ? 'VIP' : 'Reguler'), 'success');
-        });
-      });
-    }
-  }
-  
-  function setupSearchAndFilter() {
-    var searchInput = document.getElementById('searchGuestInput');
-    if(searchInput) {
-      searchInput.addEventListener('input', function(e) {
-        currentSearch = e.target.value;
-        renderGuestTable();
-      });
-    }
-    
-    document.getElementById('filterAll').addEventListener('click', function() {
-      currentFilter = 'all';
-      var btns = document.querySelectorAll('.filter-btn');
-      for(var i = 0; i < btns.length; i++) { btns[i].classList.remove('active'); }
-      this.classList.add('active');
-      renderGuestTable();
     });
     
-    document.getElementById('filterVip').addEventListener('click', function() {
-      currentFilter = 'vip';
-      var btns = document.querySelectorAll('.filter-btn');
-      for(var i = 0; i < btns.length; i++) { btns[i].classList.remove('active'); }
-      this.classList.add('active');
-      renderGuestTable();
-    });
-    
-    document.getElementById('filterRegular').addEventListener('click', function() {
-      currentFilter = 'regular';
-      var btns = document.querySelectorAll('.filter-btn');
-      for(var i = 0; i < btns.length; i++) { btns[i].classList.remove('active'); }
-      this.classList.add('active');
-      renderGuestTable();
-    });
-    
-    document.getElementById('refreshGuestList').addEventListener('click', function() {
-      loadInvitations();
+    document.querySelectorAll('.edit-tier').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const newTier = btn.dataset.tier === 'vip' ? 'regular' : 'vip';
+        await update(ref(db, "data/invitations/" + btn.dataset.id), { tier: newTier });
+        await loadInvitations();
+        Swal.fire('Berhasil', `Status diubah menjadi ${newTier === 'vip' ? 'VIP' : 'Reguler'}`, 'success');
+      });
     });
   }
   
   async function generateInvite(guestName, phone, note, tier) {
     if(!guestName.trim()) throw new Error('Nama tamu wajib diisi');
-    var id = Date.now().toString() + Math.random().toString(36).substring(2,8);
+    const id = Date.now().toString() + Math.random().toString(36).substring(2,8);
     await set(ref(db, "data/invitations/" + id), { 
       guestName: guestName.trim(), 
       phone: phone || '', 
@@ -631,46 +624,45 @@
       tier: tier || 'regular',
       createdAt: Date.now() 
     });
-    return INVITE_BASE_URL + '?invite=' + id;
+    return encryptInviteId(id);
   }
   
+  // ============ USERS ============
   async function loadUsers() {
-    var snap = await get(ref(db, "data/users"));
-    var users = snap.val() || {};
-    var tbody = document.getElementById('usersTableBody');
+    const snap = await get(ref(db, "data/users"));
+    const users = snap.val() || {};
+    const tbody = document.getElementById('usersTableBody');
     if(tbody) {
       tbody.innerHTML = '';
-      for(var uname in users) {
+      for(const uname in users) {
         if(users.hasOwnProperty(uname)) {
-          var data = users[uname];
-          tbody.innerHTML += '<tr><td>' + escapeHtml(uname) + '</td><td>' + escapeHtml(data.fullname || uname) + '</td><td><span class="badge bg-warning">' + (data.level || 'trial') + '</span></td><td><button class="btn btn-sm btn-outline-danger delete-user" data-username="' + uname + '">Hapus</button></td></tr>';
+          const data = users[uname];
+          tbody.innerHTML += `<td><td>${escapeHtml(uname)}</td><td>${escapeHtml(data.fullname || uname)}</td><td><span class="badge bg-warning">${data.level || 'trial'}</span></td><td><button class="btn btn-sm btn-outline-danger delete-user" data-username="${uname}">Hapus</button></td></tr>`;
         }
       }
-      var deleteBtns = document.querySelectorAll('.delete-user');
-      for(var i = 0; i < deleteBtns.length; i++) {
-        deleteBtns[i].addEventListener('click', function(e) {
-          var username = this.getAttribute('data-username');
-          if(confirm('Hapus user ' + username + '?')) { 
-            remove(ref(db, "data/users/" + username));
-            remove(ref(db, "data/auth/" + username));
-            loadUsers();
+      document.querySelectorAll('.delete-user').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if(confirm('Hapus user ini?')) { 
+            await remove(ref(db, "data/users/" + btn.dataset.username)); 
+            await remove(ref(db, "data/auth/" + btn.dataset.username)); 
+            await loadUsers(); 
           }
         });
-      }
+      });
     }
   }
   
   async function registerUser(username, fullname, password, level, partner) {
-    var upper = username.toUpperCase().trim();
-    var usersSnap = await get(ref(db, "data/users"));
+    const upper = username.toUpperCase().trim();
+    const usersSnap = await get(ref(db, "data/users"));
     if(usersSnap.val() && usersSnap.val()[upper]) throw new Error('Username sudah ada');
     if(password.length < 4) throw new Error('Password minimal 4 karakter');
-    var userId = Date.now().toString().slice(-5);
-    var hashedPassword = await hashPassword(password);
+    const userId = Date.now().toString().slice(-5);
+    const hashedPassword = await hashPassword(password);
     await set(ref(db, "data/auth/" + upper), hashedPassword);
-    await set(ref(db, "data/users/" + upper), { userId: userId, username: upper, fullname: fullname, level: level, active: true, createdAt: Date.now() });
+    await set(ref(db, "data/users/" + upper), { userId, username: upper, fullname, level, active: true, createdAt: Date.now() });
     if(partner) { 
-      var p = partner.toUpperCase().trim(); 
+      const p = partner.toUpperCase().trim(); 
       if(usersSnap.val() && usersSnap.val()[p]) { 
         await set(ref(db, "data/partners/" + upper), p); 
         await set(ref(db, "data/partners/" + p), upper); 
@@ -679,11 +671,12 @@
     return upper;
   }
   
+  // ============ STATS ============
   async function loadStats() {
-    var totalInvites = allInvitations.length;
-    var totalVip = allInvitations.filter(function(i) { return i.tier === 'vip'; }).length;
-    var totalRegular = totalInvites - totalVip;
-    var messages = JSON.parse(localStorage.getItem('wedding_messages_general') || '[]');
+    const totalInvites = allInvitations.length;
+    const totalVip = allInvitations.filter(i => i.tier === 'vip').length;
+    const totalRegular = totalInvites - totalVip;
+    const messages = JSON.parse(localStorage.getItem('wedding_messages_general') || '[]');
     
     document.getElementById('totalInvites').innerText = totalInvites;
     document.getElementById('totalVip').innerText = totalVip;
@@ -691,7 +684,7 @@
     document.getElementById('totalMessages').innerText = messages.length;
     
     if(chartInstance) chartInstance.destroy();
-    var ctx = document.getElementById('dashboardChart') ? document.getElementById('dashboardChart').getContext('2d') : null;
+    const ctx = document.getElementById('dashboardChart')?.getContext('2d');
     if(ctx) {
       chartInstance = new Chart(ctx, { 
         type: 'doughnut', 
@@ -704,127 +697,161 @@
     }
   }
   
-  function showSection(section) {
-    var sections = ['dashboardSection', 'weddingSection', 'invitesSection', 'guestlistSection', 'usersSection'];
-    for(var i = 0; i < sections.length; i++) {
-      var el = document.getElementById(sections[i]);
-      if(el) el.style.display = 'none';
+  // ============ SEARCH & FILTER ============
+  function setupSearchAndFilter() {
+    const searchInput = document.getElementById('searchGuestInput');
+    if(searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        currentSearch = e.target.value;
+        renderGuestTable();
+      });
     }
-    document.getElementById(section + 'Section').style.display = 'block';
-    var navLinks = document.querySelectorAll('.sidebar .nav-link');
-    for(var j = 0; j < navLinks.length; j++) {
-      navLinks[j].classList.remove('active');
-      if(navLinks[j].getAttribute('data-section') === section) {
-        navLinks[j].classList.add('active');
-      }
-    }
+    
+    document.getElementById('filterAll')?.addEventListener('click', () => {
+      currentFilter = 'all';
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('filterAll').classList.add('active');
+      renderGuestTable();
+    });
+    
+    document.getElementById('filterVip')?.addEventListener('click', () => {
+      currentFilter = 'vip';
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('filterVip').classList.add('active');
+      renderGuestTable();
+    });
+    
+    document.getElementById('filterRegular')?.addEventListener('click', () => {
+      currentFilter = 'regular';
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('filterRegular').classList.add('active');
+      renderGuestTable();
+    });
+    
+    document.getElementById('refreshGuestList')?.addEventListener('click', () => {
+      loadInvitations();
+    });
   }
   
-  // Event Listeners
-  document.getElementById('loginBtn').addEventListener('click', function() { 
-    var username = document.getElementById('adminUsername').value;
-    var password = document.getElementById('adminPassword').value;
-    login(username, password).then(function() { 
+  // ============ NAVIGATION ============
+  function showSection(section) {
+    const sections = ['dashboardSection', 'weddingSection', 'invitesSection', 'guestlistSection', 'usersSection'];
+    sections.forEach(sec => {
+      const el = document.getElementById(sec);
+      if(el) el.style.display = 'none';
+    });
+    document.getElementById(section + 'Section').style.display = 'block';
+    document.querySelectorAll('.sidebar .nav-link').forEach(link => link.classList.remove('active'));
+    document.querySelector(`.sidebar .nav-link[data-section="${section}"]`).classList.add('active');
+  }
+  
+  // ============ EVENT LISTENERS ============
+  document.getElementById('loginBtn')?.addEventListener('click', async () => { 
+    try { 
+      await login(document.getElementById('adminUsername').value, document.getElementById('adminPassword').value); 
       location.reload(); 
-    }).catch(function(e) { 
-      var errDiv = document.getElementById('loginError');
+    } catch(e) { 
+      const errDiv = document.getElementById('loginError');
       errDiv.style.display = 'block';
       errDiv.innerText = e.message;
-    });
+    } 
   });
   
-  document.getElementById('logoutBtn').addEventListener('click', logout);
-  document.getElementById('saveWeddingBtn').addEventListener('click', saveWeddingSettings);
-  document.getElementById('addStoryBtn').addEventListener('click', function() { 
-    var container = document.getElementById('storyList'); 
-    var div = document.createElement('div'); 
+  document.getElementById('logoutBtn')?.addEventListener('click', logout);
+  document.getElementById('saveWeddingBtn')?.addEventListener('click', saveWeddingSettings);
+  document.getElementById('addStoryBtn')?.addEventListener('click', () => { 
+    const container = document.getElementById('storyList'); 
+    const div = document.createElement('div'); 
     div.className = 'story-item'; 
     div.innerHTML = '<input type="text" class="form-control mb-2 story-title" placeholder="Judul"><textarea class="form-control mb-2 story-desc" rows="2" placeholder="Deskripsi"></textarea><input type="date" class="form-control mb-2 story-date"><button class="btn btn-sm btn-danger remove-story">Hapus</button>'; 
     container.appendChild(div); 
   });
   
-  document.getElementById('addBankBtn').addEventListener('click', function() { 
-    var container = document.getElementById('bankList'); 
-    var div = document.createElement('div'); 
+  document.getElementById('addBankBtn')?.addEventListener('click', () => { 
+    const container = document.getElementById('bankList'); 
+    const div = document.createElement('div'); 
     div.className = 'bank-item'; 
     div.innerHTML = '<input type="text" class="form-control mb-2 bank-name" placeholder="Nama Bank"><input type="text" class="form-control mb-2 bank-number" placeholder="No Rekening"><input type="text" class="form-control mb-2 bank-owner" placeholder="Atas Nama"><button class="btn btn-sm btn-danger remove-bank">Hapus</button>'; 
     container.appendChild(div); 
   });
   
-  document.addEventListener('click', function(e) { 
-    if(e.target.classList.contains('remove-story')) { e.target.closest('.story-item').remove(); }
-    if(e.target.classList.contains('remove-bank')) { e.target.closest('.bank-item').remove(); }
+  document.addEventListener('click', (e) => { 
+    if(e.target.classList.contains('remove-story')) e.target.closest('.story-item').remove(); 
+    if(e.target.classList.contains('remove-bank')) e.target.closest('.bank-item').remove(); 
     if(e.target.classList.contains('remove-gallery')) { 
-      var idx = parseInt(e.target.getAttribute('data-idx')); 
-      var galleries = []; 
-      var imgs = document.querySelectorAll('#galleryList .col-4 img');
-      for(var i = 0; i < imgs.length; i++) {
-        if(i !== idx) galleries.push(imgs[i].src);
-      }
+      const idx = parseInt(e.target.dataset.idx); 
+      const galleries = []; 
+      document.querySelectorAll('#galleryList .col-4 img').forEach((img,i) => { if(i !== idx) galleries.push(img.src); }); 
       renderGalleries(galleries); 
     }
   });
   
-  document.getElementById('groomPhotoInput').addEventListener('change', function(e) { 
+  // Image upload handlers
+  document.getElementById('groomPhotoInput')?.addEventListener('change', async (e) => { 
     if(e.target.files[0]) { 
-      compressImage(e.target.files[0], 300).then(function(data) { 
-        document.getElementById('groomPhotoPreview').src = data; 
-      });
+      const data = await compressImage(e.target.files[0]); 
+      document.getElementById('groomPhotoPreview').src = data; 
     } 
   });
   
-  document.getElementById('bridePhotoInput').addEventListener('change', function(e) { 
+  document.getElementById('bridePhotoInput')?.addEventListener('change', async (e) => { 
     if(e.target.files[0]) { 
-      compressImage(e.target.files[0], 300).then(function(data) { 
-        document.getElementById('bridePhotoPreview').src = data; 
-      });
+      const data = await compressImage(e.target.files[0]); 
+      document.getElementById('bridePhotoPreview').src = data; 
     } 
   });
   
-  document.getElementById('galleryPhotoInput').addEventListener('change', function(e) { 
+  document.getElementById('galleryPhotoInput')?.addEventListener('change', async (e) => { 
     if(e.target.files[0]) { 
-      compressImage(e.target.files[0], 300).then(function(data) { 
-        var galleries = []; 
-        var imgs = document.querySelectorAll('#galleryList .col-4 img');
-        for(var i = 0; i < imgs.length; i++) {
-          galleries.push(imgs[i].src);
-        }
-        galleries.push(data); 
-        renderGalleries(galleries); 
-      });
+      const data = await compressImage(e.target.files[0], 300); 
+      const galleries = []; 
+      document.querySelectorAll('#galleryList .col-4 img').forEach(img => galleries.push(img.src)); 
+      galleries.push(data); 
+      renderGalleries(galleries); 
     } 
   });
   
-  document.getElementById('addGalleryBtn').addEventListener('click', function() { 
-    document.getElementById('galleryPhotoInput').click(); 
+  document.getElementById('bgPhotoInput')?.addEventListener('change', async (e) => { 
+    if(e.target.files[0]) { 
+      const data = await compressImage(e.target.files[0], 800); 
+      const backgrounds = []; 
+      document.querySelectorAll('#bgList .bg-preview-item img').forEach(img => backgrounds.push(img.src)); 
+      backgrounds.push(data); 
+      renderBackgrounds(backgrounds); 
+    } 
   });
   
-  document.getElementById('generateInviteBtn').addEventListener('click', function() { 
-    var name = document.getElementById('guestName').value.trim(); 
+  document.getElementById('addGalleryBtn')?.addEventListener('click', () => document.getElementById('galleryPhotoInput').click());
+  document.getElementById('addBgBtn')?.addEventListener('click', () => document.getElementById('bgPhotoInput').click());
+  
+  document.getElementById('generateInviteBtn')?.addEventListener('click', async () => { 
+    const name = document.getElementById('guestName').value.trim(); 
     if(!name) { Swal.fire('Info', 'Nama tamu wajib diisi', 'warning'); return; }
-    var tier = document.getElementById('guestTier').value;
-    generateInvite(name, document.getElementById('guestPhone').value, document.getElementById('guestNote').value, tier).then(function(link) { 
+    const tier = document.getElementById('guestTier').value;
+    try { 
+      const encryptedId = await generateInvite(name, document.getElementById('guestPhone').value, document.getElementById('guestNote').value, tier); 
+      const link = `${INVITE_BASE_URL}?invite=${encryptedId}`;
       document.getElementById('linkResult').style.display = 'block'; 
       document.getElementById('inviteLink').innerText = link; 
       Swal.fire('Berhasil', 'Link undangan dibuat', 'success'); 
-      loadInvitations(); 
+      await loadInvitations(); 
       document.getElementById('guestName').value = '';
       document.getElementById('guestPhone').value = '';
       document.getElementById('guestNote').value = '';
-    }).catch(function(e) { Swal.fire('Error', e.message, 'error'); });
+    } catch(e) { Swal.fire('Error', e.message, 'error'); }
   });
   
-  document.getElementById('copyLinkBtn').addEventListener('click', function() { 
-    var link = document.getElementById('inviteLink').innerText;
+  document.getElementById('copyLinkBtn')?.addEventListener('click', () => { 
+    const link = document.getElementById('inviteLink').innerText;
     navigator.clipboard.writeText(link); 
     Swal.fire('Disalin', 'Link disalin ke clipboard', 'success'); 
   });
   
-  document.getElementById('guestName').addEventListener('input', function() { 
-    var name = document.getElementById('guestName').value; 
-    var preview = document.getElementById('previewCard'); 
-    var groomName = document.getElementById('groomName').value || 'Fachmi';
-    var brideName = document.getElementById('brideName').value || 'Azizah';
+  document.getElementById('guestName')?.addEventListener('input', () => { 
+    const name = document.getElementById('guestName').value; 
+    const preview = document.getElementById('previewCard'); 
+    const groomName = document.getElementById('groomName').value || 'Fachmi';
+    const brideName = document.getElementById('brideName').value || 'Azizah';
     if(name) {
       preview.innerHTML = '<div class="text-center"><i class="bi bi-envelope-heart-fill fs-1 gold-text"></i><h5>Undangan untuk ' + escapeHtml(name) + '</h5><p class="small text-white-50">Pernikahan ' + escapeHtml(groomName) + ' & ' + escapeHtml(brideName) + '</p></div>';
     } else {
@@ -832,64 +859,44 @@
     }
   });
   
-  document.getElementById('openRegisterModal').addEventListener('click', function() { 
-    get(ref(db, "data/users")).then(function(usersSnap) {
-      var users = usersSnap.val() || {};
-      var select = document.getElementById('regPartner'); 
-      select.innerHTML = '<option value="">Pilih Pasangan</option>'; 
-      for(var u in users) {
-        if(users.hasOwnProperty(u)) {
-          select.innerHTML += '<option value="' + u + '">' + u + '</option>';
-        }
+  document.getElementById('openRegisterModal')?.addEventListener('click', async () => { 
+    const usersSnap = await get(ref(db, "data/users"));
+    const users = usersSnap.val() || {};
+    const select = document.getElementById('regPartner'); 
+    select.innerHTML = '<option value="">Pilih Pasangan</option>'; 
+    for(const u in users) {
+      if(users.hasOwnProperty(u)) {
+        select.innerHTML += `<option value="${u}">${u}</option>`;
       }
-      new bootstrap.Modal(document.getElementById('registerModal')).show(); 
-    });
+    }
+    new bootstrap.Modal(document.getElementById('registerModal')).show(); 
   });
   
-  document.getElementById('confirmRegisterBtn').addEventListener('click', function() { 
-    var username = document.getElementById('regUsername').value;
-    var fullname = document.getElementById('regFullname').value;
-    var password = document.getElementById('regPassword').value;
-    var level = document.getElementById('regLevel').value;
-    var partner = document.getElementById('regPartner').value;
-    registerUser(username, fullname, password, level, partner).then(function() { 
+  document.getElementById('confirmRegisterBtn')?.addEventListener('click', async () => { 
+    try { 
+      await registerUser(document.getElementById('regUsername').value, document.getElementById('regFullname').value, document.getElementById('regPassword').value, document.getElementById('regLevel').value, document.getElementById('regPartner').value); 
       Swal.fire('Berhasil', 'User terdaftar', 'success'); 
-      loadUsers(); 
-      var modal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
-      if(modal) modal.hide();
-    }).catch(function(e) { Swal.fire('Error', e.message, 'error'); });
+      await loadUsers(); 
+      bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide(); 
+    } catch(e) { Swal.fire('Error', e.message, 'error'); }
   });
   
-  var navLinks = document.querySelectorAll('.sidebar .nav-link');
-  for(var nl = 0; nl < navLinks.length; nl++) {
-    navLinks[nl].addEventListener('click', function() { 
-      var section = this.getAttribute('data-section');
-      showSection(section); 
-      if(window.innerWidth <= 768) { 
-        document.getElementById('sidebar').classList.remove('open'); 
-      }
-    });
-  }
+  document.querySelectorAll('.sidebar .nav-link').forEach(link => link.addEventListener('click', () => { 
+    showSection(link.dataset.section); 
+    if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open'); 
+  }));
   
-  document.getElementById('hamburgerBtn').addEventListener('click', function() { 
-    document.getElementById('sidebar').classList.toggle('open'); 
-  });
-  
-  document.getElementById('viewInvitationBtn').addEventListener('click', function() { 
-    window.open(INVITE_BASE_URL, '_blank'); 
-  });
-  
-  document.getElementById('darkModeFab').addEventListener('click', function() { 
+  document.getElementById('hamburgerBtn')?.addEventListener('click', () => document.getElementById('sidebar').classList.toggle('open'));
+  document.getElementById('viewInvitationBtn')?.addEventListener('click', () => window.open(INVITE_BASE_URL, '_blank'));
+  document.getElementById('darkModeFab')?.addEventListener('click', () => { 
     document.body.classList.toggle('light'); 
     localStorage.setItem('adminLight', document.body.classList.contains('light')); 
   });
   
-  if(localStorage.getItem('adminLight') === 'true') { 
-    document.body.classList.add('light'); 
-  }
+  if(localStorage.getItem('adminLight') === 'true') document.body.classList.add('light');
   
   setupSearchAndFilter();
-  document.getElementById('filterAll').classList.add('active');
+  document.getElementById('filterAll')?.classList.add('active');
   checkSession();
 </script>
 </body>
