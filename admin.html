@@ -72,6 +72,9 @@
     .filter-btn.active { background: #c9a03d; color: #000; }
     .badge-vip { background: linear-gradient(135deg, #c9a03d, #b8860b); color: #000; padding: 4px 12px; border-radius: 20px; }
     .badge-regular { background: #2a2a2a; color: #aaa; padding: 4px 12px; border-radius: 20px; }
+    .badge-pro { background: #10b981; color: white; padding: 4px 12px; border-radius: 20px; }
+    .badge-basic { background: #3b82f6; color: white; padding: 4px 12px; border-radius: 20px; }
+    .badge-trial { background: #f59e0b; color: white; padding: 4px 12px; border-radius: 20px; }
     
     /* Background preview grid */
     .bg-preview-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
@@ -91,6 +94,12 @@
     .form-control, .form-select { background: #2a2a2a; border: 1px solid #c9a03d30; color: white; border-radius: 12px; padding: 10px 14px; }
     body.light .form-control, body.light .form-select { background: #f5f0e8; color: #000; }
     .form-control:focus { border-color: #c9a03d; outline: none; box-shadow: 0 0 0 2px rgba(201,160,61,0.3); }
+    
+    /* Table styles */
+    .table { color: #f5f0e8; }
+    body.light .table { color: #1a1a1a; }
+    .table-dark { background-color: #1a1a1a; }
+    body.light .table-dark { background-color: #ffffff; }
   </style>
 </head>
 <body>
@@ -184,7 +193,7 @@
           </div>
         </div>
         
-        <!-- Background Slideshow (FITUR BARU) -->
+        <!-- Background Slideshow -->
         <div class="col-md-12">
           <div class="setting-card">
             <h5 class="gold-text mb-3"><i class="bi bi-images me-2"></i>Background Slideshow Hero</h5>
@@ -282,7 +291,13 @@
         <div class="table-responsive">
           <table class="table table-dark table-hover mb-0">
             <thead>
-              <tr><th>Nama Tamu</th><th>Status</th><th>Telepon</th><th>Link Undangan</th><th>Dibuat</th><th>Aksi</th></tr>
+              <tr>
+                <th style="width: 25%">Nama Tamu</th>
+                <th style="width: 15%">Status</th>
+                <th style="width: 15%">Telepon</th>
+                <th style="width: 30%">Link Undangan</th>
+                <th style="width: 15%">Aksi</th>
+              </tr>
             </thead>
             <tbody id="guestTableBody"></tbody>
           </table>
@@ -290,14 +305,21 @@
       </div>
     </div>
     
-    <!-- KELOLA PENGGUNA -->
+    <!-- KELOLA PENGGUNA - FIXED TABLE (4 KOLOM) -->
     <div id="usersSection" style="display:none;">
       <h4 class="fw-bold gold-text mb-4"><i class="bi bi-person-badge me-2"></i>Kelola Pengguna</h4>
       <button class="btn-gold mb-3" id="openRegisterModal" style="width:auto;"><i class="bi bi-person-plus-fill me-2"></i>Daftar User Baru</button>
       <div class="setting-card p-0">
         <div class="table-responsive">
           <table class="table table-dark table-hover mb-0">
-            <thead><tr><th>Username</th><th>Nama</th><th>Level</th><th>Aksi</th></tr></thead>
+            <thead>
+              <tr>
+                <th style="width: 25%">Username</th>
+                <th style="width: 35%">Nama Lengkap</th>
+                <th style="width: 20%">Level</th>
+                <th style="width: 20%">Aksi</th>
+              </tr>
+            </thead>
             <tbody id="usersTableBody"></tbody>
           </table>
         </div>
@@ -317,7 +339,11 @@
         <input type="text" id="regUsername" class="form-control mb-2" placeholder="Username *">
         <input type="text" id="regFullname" class="form-control mb-2" placeholder="Nama Lengkap *">
         <input type="password" id="regPassword" class="form-control mb-2" placeholder="Password *">
-        <select id="regLevel" class="form-select mb-2"><option value="trial">Trial</option><option value="basic">Basic</option><option value="pro">Pro</option></select>
+        <select id="regLevel" class="form-select mb-2">
+          <option value="trial">Trial (1 minggu - terbatas)</option>
+          <option value="basic">Basic (Rp 25.000/bulan)</option>
+          <option value="pro">Pro (Rp 50.000/bulan - unlimited)</option>
+        </select>
         <select id="regPartner" class="form-select"><option value="">Pilih Pasangan (Opsional)</option></select>
       </div>
       <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button><button class="btn-gold" id="confirmRegisterBtn">Daftarkan</button></div>
@@ -586,10 +612,9 @@
           <td>${tierBadge}</td>
           <td>${inv.phone || '-'}</td>
           <td><small class="text-break" style="max-width:200px; display:inline-block;">${link}</small></td>
-          <td>${inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('id') : '-'}</td>
           <td>
             <button class="btn btn-sm btn-outline-danger rounded-pill delete-invite" data-id="${inv.id}">Hapus</button>
-            <button class="btn btn-sm btn-outline-warning rounded-pill edit-tier" data-id="${inv.id}" data-tier="${inv.tier || 'regular'}">Ubah Status</button>
+            <button class="btn btn-sm btn-outline-warning rounded-pill edit-tier mt-1" data-id="${inv.id}" data-tier="${inv.tier || 'regular'}">Ubah Status</button>
            </td>
         </tr>
       `;
@@ -637,15 +662,50 @@
       for(const uname in users) {
         if(users.hasOwnProperty(uname)) {
           const data = users[uname];
-          tbody.innerHTML += `<td><td>${escapeHtml(uname)}</td><td>${escapeHtml(data.fullname || uname)}</td><td><span class="badge bg-warning">${data.level || 'trial'}</span></td><td><button class="btn btn-sm btn-outline-danger delete-user" data-username="${uname}">Hapus</button></td></tr>`;
+          const level = data.level || 'trial';
+          let levelBadge = '';
+          let levelText = level.toUpperCase();
+          if(level === 'pro') levelBadge = 'badge-pro';
+          else if(level === 'basic') levelBadge = 'badge-basic';
+          else levelBadge = 'badge-trial';
+          
+          const row = tbody.insertRow();
+          row.insertCell(0).innerHTML = `<strong>${escapeHtml(uname)}</strong>`;
+          row.insertCell(1).innerHTML = escapeHtml(data.fullname || uname);
+          row.insertCell(2).innerHTML = `<span class="${levelBadge}">${levelText}</span>`;
+          
+          // Aksi: admin tidak bisa dihapus
+          if(uname !== 'FACHMI' && uname !== 'AZIZAH') {
+            row.insertCell(3).innerHTML = `<button class="btn btn-sm btn-outline-danger rounded-pill delete-user" data-username="${uname}"><i class="bi bi-trash3 me-1"></i>Hapus</button>`;
+          } else {
+            row.insertCell(3).innerHTML = '<span class="text-muted small"><i class="bi bi-shield-check"></i> Super Admin</span>';
+          }
         }
       }
+      
+      // Event listener untuk hapus user
       document.querySelectorAll('.delete-user').forEach(btn => {
         btn.addEventListener('click', async () => {
-          if(confirm('Hapus user ini?')) { 
-            await remove(ref(db, "data/users/" + btn.dataset.username)); 
-            await remove(ref(db, "data/auth/" + btn.dataset.username)); 
-            await loadUsers(); 
+          const username = btn.dataset.username;
+          const result = await Swal.fire({
+            title: 'Hapus Pengguna?',
+            text: `Yakin ingin menghapus ${username}? Semua data akan hilang.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+          });
+          if(result.isConfirmed) {
+            await remove(ref(db, "data/users/" + username));
+            await remove(ref(db, "data/auth/" + username));
+            await remove(ref(db, "data/keuangan/" + username));
+            await remove(ref(db, "data/impian/" + username));
+            await remove(ref(db, "data/profiles/" + username));
+            await remove(ref(db, "data/partners/" + username));
+            await loadUsers();
+            Swal.fire('Terhapus!', `Pengguna ${username} telah dihapus.`, 'success');
           }
         });
       });
@@ -759,6 +819,7 @@
   
   document.getElementById('logoutBtn')?.addEventListener('click', logout);
   document.getElementById('saveWeddingBtn')?.addEventListener('click', saveWeddingSettings);
+  
   document.getElementById('addStoryBtn')?.addEventListener('click', () => { 
     const container = document.getElementById('storyList'); 
     const div = document.createElement('div'); 
