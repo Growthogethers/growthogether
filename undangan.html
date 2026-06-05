@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Undangan Pernikahan - Fachmi & Azizah</title>
   
-  <!-- Favicon / Icon Tab -->
+  <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c9a03d'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c9a03d'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E">
   
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -17,26 +16,96 @@
   
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #f5f0e8; overflow-x: hidden; }
+    body { 
+      font-family: 'Inter', sans-serif; 
+      background: #0a0a0a; 
+      color: #f5f0e8; 
+      overflow-x: hidden;
+      position: relative;
+    }
     
-    /* Gold Text Gradient */
+    /* Background Pattern & Floral Decoration */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(201,160,61,0.03) 0%, transparent 50%),
+        radial-gradient(circle at 90% 80%, rgba(201,160,61,0.04) 0%, transparent 50%),
+        repeating-linear-gradient(45deg, rgba(201,160,61,0.01) 0px, rgba(201,160,61,0.01) 2px, transparent 2px, transparent 8px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    /* Floral Corner Decorations */
+    .corner-decoration {
+      position: fixed;
+      width: 150px;
+      height: 150px;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+    .corner-top-left {
+      top: 0;
+      left: 0;
+      background: radial-gradient(circle at 0% 0%, rgba(201,160,61,0.2) 0%, transparent 70%);
+      border-bottom-right-radius: 100%;
+    }
+    .corner-top-right {
+      top: 0;
+      right: 0;
+      background: radial-gradient(circle at 100% 0%, rgba(201,160,61,0.2) 0%, transparent 70%);
+      border-bottom-left-radius: 100%;
+    }
+    .corner-bottom-left {
+      bottom: 0;
+      left: 0;
+      background: radial-gradient(circle at 0% 100%, rgba(201,160,61,0.2) 0%, transparent 70%);
+      border-top-right-radius: 100%;
+    }
+    .corner-bottom-right {
+      bottom: 0;
+      right: 0;
+      background: radial-gradient(circle at 100% 100%, rgba(201,160,61,0.2) 0%, transparent 70%);
+      border-top-left-radius: 100%;
+    }
+    
+    /* Container relative untuk z-index */
+    .container, .hero-wrapper, .bottom-nav, .music-floating {
+      position: relative;
+      z-index: 2;
+    }
+    
+    /* Gold Text */
     .gold-text { background: linear-gradient(135deg, #e4c580, #c9a03d, #b8860b); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 600; }
     
-    /* Button Gold */
+    /* Buttons */
     .btn-gold { background: linear-gradient(135deg, #c9a03d, #a67c1e); border: none; border-radius: 50px; padding: 12px 36px; font-weight: 600; color: #0a0a0a; transition: all 0.3s; text-decoration: none; display: inline-block; }
     .btn-gold:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(201,160,61,0.4); }
     .btn-outline-gold { background: transparent; border: 1.5px solid #c9a03d; border-radius: 30px; padding: 8px 20px; text-decoration: none; color: #c9a03d; display: inline-block; transition: all 0.3s; }
     .btn-outline-gold:hover { background: #c9a03d; color: #0a0a0a; }
     
     /* Hero Background Slideshow */
-    .hero-wrapper { position: relative; min-height: 100vh; overflow: hidden; }
+    .hero-wrapper { position: relative; min-height: 100vh; overflow: hidden; border-radius: 0 0 40px 40px; }
     .bg-slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1); filter: brightness(0.45) contrast(1.1); }
     .bg-slide.active { opacity: 1; }
     .hero-overlay { position: relative; z-index: 2; min-height: 100vh; background: radial-gradient(circle at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%); display: flex; align-items: center; text-align: center; padding: 60px 20px; }
     
-    /* Luxury Card */
-    .luxury-card { background: rgba(20, 18, 22, 0.85); backdrop-filter: blur(12px); border-radius: 32px; border: 1px solid rgba(201,160,61,0.25); padding: 24px; transition: all 0.3s; }
-    .luxury-card:hover { border-color: rgba(201,160,61,0.5); transform: translateY(-3px); }
+    /* Luxury Card dengan background transparan dan border gold */
+    .luxury-card { 
+      background: rgba(20, 18, 22, 0.75); 
+      backdrop-filter: blur(12px); 
+      border-radius: 32px; 
+      border: 1px solid rgba(201,160,61,0.3); 
+      padding: 24px; 
+      transition: all 0.3s;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .luxury-card:hover { border-color: rgba(201,160,61,0.6); transform: translateY(-3px); }
     
     /* Photo Frame */
     .photo-frame { position: relative; display: inline-block; }
@@ -53,18 +122,18 @@
     
     /* Timeline Cerita */
     .timeline-wrapper { position: relative; padding-left: 30px; }
-    .timeline-wrapper::before { content: ''; position: absolute; left: 20px; top: 10px; bottom: 10px; width: 2px; background: linear-gradient(to bottom, #c9a03d, rgba(201,160,61,0.2)); }
+    .timeline-wrapper::before { content: ''; position: absolute; left: 20px; top: 10px; bottom: 10px; width: 2px; background: linear-gradient(to bottom, #c9a03d, rgba(201,160,61,0.1)); }
     .timeline-item { display: flex; gap: 20px; margin-bottom: 35px; position: relative; }
     .timeline-icon { width: 48px; height: 48px; background: linear-gradient(135deg, #c9a03d, #a67c1e); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(201,160,61,0.2); }
     .timeline-icon i { font-size: 1.4rem; color: #0a0a0a; }
-    .timeline-content { flex: 1; background: rgba(255,255,255,0.03); padding: 18px; border-radius: 20px; border-left: 3px solid #c9a03d; }
+    .timeline-content { flex: 1; background: rgba(255,255,255,0.05); padding: 18px; border-radius: 20px; border-left: 3px solid #c9a03d; backdrop-filter: blur(4px); }
     
     /* Gallery Grid dengan Modal */
     .gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; }
-    .gallery-item { position: relative; border-radius: 20px; overflow: hidden; cursor: pointer; aspect-ratio: 1/1; }
+    .gallery-item { position: relative; border-radius: 20px; overflow: hidden; cursor: pointer; aspect-ratio: 1/1; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
     .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
     .gallery-item:hover img { transform: scale(1.08); }
-    .gallery-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
+    .gallery-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
     .gallery-item:hover .gallery-overlay { opacity: 1; }
     .gallery-overlay i { font-size: 2rem; color: #c9a03d; }
     
@@ -72,12 +141,12 @@
     .gallery-modal-img { max-width: 90vw; max-height: 80vh; object-fit: contain; border-radius: 16px; }
     
     /* Bank Card */
-    .bank-card { background: rgba(0,0,0,0.5); border-radius: 24px; padding: 24px; text-align: center; border: 1px solid rgba(201,160,61,0.3); transition: all 0.3s; }
+    .bank-card { background: rgba(0,0,0,0.6); border-radius: 24px; padding: 24px; text-align: center; border: 1px solid rgba(201,160,61,0.3); transition: all 0.3s; backdrop-filter: blur(8px); }
     .bank-card:hover { border-color: #c9a03d; transform: translateY(-5px); }
     .bank-number { font-family: monospace; font-size: 1.2rem; letter-spacing: 2px; background: #1a1a1a; display: inline-block; padding: 8px 20px; border-radius: 50px; color: #c9a03d; }
     
     /* Message Card */
-    .message-card { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 16px; margin-bottom: 16px; border-left: 3px solid #c9a03d; transition: all 0.2s; }
+    .message-card { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 16px; margin-bottom: 16px; border-left: 3px solid #c9a03d; transition: all 0.2s; backdrop-filter: blur(4px); }
     .message-card:hover { background: rgba(255,255,255,0.08); transform: translateX(5px); }
     
     /* Form */
@@ -86,9 +155,29 @@
     .form-luxury::placeholder { color: rgba(255,255,255,0.5); }
     
     /* Bottom Navigation */
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(10,10,10,0.95); backdrop-filter: blur(20px); padding: 10px 12px; display: flex; justify-content: space-around; z-index: 100; border-top: 1px solid rgba(201,160,61,0.3); }
-    .bottom-nav a { color: #aaa; text-decoration: none; font-size: 11px; text-align: center; transition: all 0.2s; }
-    .bottom-nav a i { font-size: 22px; display: block; margin-bottom: 4px; }
+    .bottom-nav { 
+      position: fixed; bottom: 0; left: 0; right: 0; 
+      background: rgba(10,10,10,0.95); 
+      backdrop-filter: blur(20px); 
+      padding: 10px 12px; 
+      display: flex; 
+      justify-content: space-around; 
+      z-index: 100; 
+      border-top: 1px solid rgba(201,160,61,0.3);
+    }
+    .bottom-nav a { 
+      color: #aaa; 
+      text-decoration: none; 
+      font-size: 11px; 
+      text-align: center; 
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .bottom-nav a i { font-size: 22px; display: block; }
+    .bottom-nav a span { font-size: 10px; }
     .bottom-nav a:hover, .bottom-nav a.active { color: #c9a03d; transform: translateY(-2px); }
     
     /* Music Button */
@@ -105,11 +194,43 @@
     /* Loading Animation */
     @keyframes loadingAnim { 0% { width: 0; opacity: 0; } 50% { width: 200px; opacity: 1; } 100% { width: 0; opacity: 0; } }
     
+    /* Section Title Decoration */
+    .section-title {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 20px;
+    }
+    .section-title::before,
+    .section-title::after {
+      content: '✦';
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #c9a03d;
+      font-size: 1rem;
+    }
+    .section-title::before { left: -30px; }
+    .section-title::after { right: -30px; }
+    
     /* Responsive */
-    @media (max-width: 576px) { .container { padding-left: 16px; padding-right: 16px; } .timeline-wrapper { padding-left: 15px; } .timeline-icon { width: 40px; height: 40px; } .timeline-icon i { font-size: 1rem; } .gallery-grid { gap: 12px; } }
+    @media (max-width: 576px) { 
+      .container { padding-left: 16px; padding-right: 16px; } 
+      .timeline-wrapper { padding-left: 15px; } 
+      .timeline-icon { width: 40px; height: 40px; } 
+      .timeline-icon i { font-size: 1rem; } 
+      .gallery-grid { gap: 12px; }
+      .section-title::before,
+      .section-title::after { display: none; }
+    }
   </style>
 </head>
 <body>
+
+<!-- Floral Corner Decorations -->
+<div class="corner-decoration corner-top-left"></div>
+<div class="corner-decoration corner-top-right"></div>
+<div class="corner-decoration corner-bottom-left"></div>
+<div class="corner-decoration corner-bottom-right"></div>
 
 <!-- Background Music -->
 <audio id="bgAudio" loop>
@@ -169,7 +290,7 @@
   <div class="container py-5" id="mempelai">
     <div class="text-center mb-4" data-aos="fade-up">
       <i class="bi bi-flower2 fs-1 gold-text"></i>
-      <h2 class="gold-text fw-bold mt-2" style="font-family:'Playfair';">Mempelai Berbahagia</h2>
+      <h2 class="gold-text fw-bold mt-2 section-title" style="font-family:'Playfair';">Mempelai Berbahagia</h2>
       <div class="divider-gold"></div>
     </div>
     
@@ -182,7 +303,7 @@
   <div class="container py-5" id="cerita">
     <div class="text-center" data-aos="fade-up">
       <i class="bi bi-suit-heart-fill fs-1 gold-text"></i>
-      <h2 class="gold-text" style="font-family:'Playfair';">Our Love Story</h2>
+      <h2 class="gold-text section-title" style="font-family:'Playfair';">Our Love Story</h2>
       <div class="divider-gold"></div>
     </div>
     <div class="timeline-wrapper mt-4" id="storyList"></div>
@@ -192,7 +313,7 @@
   <div class="container py-5" id="acara">
     <div class="text-center" data-aos="fade-up">
       <i class="bi bi-bell-fill fs-1 gold-text"></i>
-      <h2 class="gold-text" style="font-family:'Playfair';">Rangkaian Acara</h2>
+      <h2 class="gold-text section-title" style="font-family:'Playfair';">Rangkaian Acara</h2>
       <div class="divider-gold"></div>
     </div>
     <div class="row g-4 mt-2" id="acaraContent"></div>
@@ -202,7 +323,7 @@
   <div class="container py-5" id="galeri">
     <div class="text-center" data-aos="fade-up">
       <i class="bi bi-camera-fill fs-1 gold-text"></i>
-      <h2 class="gold-text" style="font-family:'Playfair';">Momen Bahagia</h2>
+      <h2 class="gold-text section-title" style="font-family:'Playfair';">Momen Bahagia</h2>
       <div class="divider-gold"></div>
     </div>
     <div class="gallery-grid mt-4" id="galleryList"></div>
@@ -212,7 +333,7 @@
   <div class="container py-5" id="kado">
     <div class="text-center" data-aos="fade-up">
       <i class="bi bi-gift-fill fs-1 gold-text"></i>
-      <h2 class="gold-text" style="font-family:'Playfair';">Kirim Kado & Doa</h2>
+      <h2 class="gold-text section-title" style="font-family:'Playfair';">Kirim Kado & Doa</h2>
       <div class="divider-gold"></div>
       <p class="text-white-50">Terima kasih atas kasih sayang Anda, kado dapat dikirim melalui rekening berikut:</p>
     </div>
@@ -223,7 +344,7 @@
   <div class="container py-5" id="doa">
     <div class="text-center" data-aos="fade-up">
       <i class="bi bi-chat-heart-fill fs-1 gold-text"></i>
-      <h2 class="gold-text" style="font-family:'Playfair';">Ucapan & Doa Restu</h2>
+      <h2 class="gold-text section-title" style="font-family:'Playfair';">Ucapan & Doa Restu</h2>
       <div class="divider-gold"></div>
     </div>
     
@@ -280,7 +401,7 @@
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getDatabase, ref, get, set, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+  import { getDatabase, ref, get, set, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
   
   // Firebase Configuration
   var firebaseConfig = { 
@@ -296,9 +417,36 @@
   var app = initializeApp(firebaseConfig);
   var db = getDatabase(app);
   
-  // Get URL parameters
+  // ============ ENKRIPSI PARAMETER INVITE ============
+  // Simple encryption using Base64 + salt (not for high security, but prevents casual tampering)
+  var SALT = "wedding2025";
+  
+  function encryptInviteId(id) {
+    // Combine with salt and encode to Base64
+    var combined = id + "|" + SALT;
+    return btoa(combined).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  }
+  
+  function decryptInviteId(encrypted) {
+    try {
+      // Restore padding
+      var base64 = encrypted.replace(/-/g, '+').replace(/_/g, '/');
+      while (base64.length % 4) base64 += '=';
+      var decoded = atob(base64);
+      var parts = decoded.split('|');
+      if (parts.length === 2 && parts[1] === SALT) {
+        return parts[0];
+      }
+      return null;
+    } catch(e) {
+      return null;
+    }
+  }
+  
+  // Get URL parameters with decryption
   var urlParams = new URLSearchParams(window.location.search);
-  var inviteId = urlParams.get('invite');
+  var encryptedId = urlParams.get('invite');
+  var inviteId = encryptedId ? decryptInviteId(encryptedId) : null;
   var isPreview = urlParams.get('preview') === 'true';
   var weddingData = null;
   var guestName = "Tamu Undangan";
@@ -340,7 +488,7 @@
       if(!weddingData[key]) weddingData[key] = defaults[key];
     }
     
-    // Get guest name from invitation
+    // Get guest name from invitation using decrypted inviteId
     if (inviteId && !isPreview) {
       var inviteSnap = await get(ref(db, "data/invitations/" + inviteId));
       if (inviteSnap.exists()) {
@@ -511,20 +659,20 @@
     // Footer
     document.getElementById('footerText').innerHTML = escapeHtml(weddingData.groomName) + ' & ' + escapeHtml(weddingData.brideName);
     
-    // Bottom Navigation
-    var navItems = ['mempelai', 'cerita', 'acara', 'galeri', 'kado', 'doa'];
-    var navIcons = { 'mempelai':'people-fill', 'cerita':'journal-heart', 'acara':'envelope-paper-heart', 'galeri':'images', 'kado':'gift-fill', 'doa':'chat-square-heart' };
+    // Bottom Navigation - dengan icon yang benar
+    var navItems = [
+      { id: 'mempelai', icon: 'people-fill', label: 'Mempelai' },
+      { id: 'cerita', icon: 'journal-heart', label: 'Cerita' },
+      { id: 'acara', icon: 'envelope-paper-heart', label: 'Acara' },
+      { id: 'galeri', icon: 'images', label: 'Galeri' },
+      { id: 'kado', icon: 'gift-fill', label: 'Kado' },
+      { id: 'doa', icon: 'chat-square-heart', label: 'Doa' }
+    ];
+    
     var bottomHtml = '';
     for(var n = 0; n < navItems.length; n++) {
-      var id = navItems[n];
-      var label = id.charAt(0).toUpperCase() + id.slice(1);
-      if(id === 'mempelai') label = 'Mempelai';
-      if(id === 'cerita') label = 'Cerita';
-      if(id === 'acara') label = 'Acara';
-      if(id === 'galeri') label = 'Galeri';
-      if(id === 'kado') label = 'Kado';
-      if(id === 'doa') label = 'Doa';
-      bottomHtml += '<a href="#' + id + '" class="nav-link-bottom"><i class="bi bi-' + navIcons[id] + '"></i><span>' + label + '</span></a>';
+      var item = navItems[n];
+      bottomHtml += '<a href="#' + item.id + '" class="nav-link-bottom"><i class="bi bi-' + item.icon + '"></i><span>' + item.label + '</span></a>';
     }
     document.getElementById('bottomNav').innerHTML = bottomHtml;
     
@@ -534,13 +682,12 @@
     setupNavScroll();
   }
   
-  // Load messages from Firebase (bukan localStorage)
+  // Load messages from Firebase
   async function loadMessagesFromFirebase() {
     var messagesRef = ref(db, "data/messages");
     var snapshot = await get(messagesRef);
     var allMessages = snapshot.val() || {};
     
-    // Filter messages berdasarkan undangan (jika ada inviteId)
     var container = document.getElementById('messagesList');
     if (!container) return;
     
@@ -612,18 +759,10 @@
         timestamp: Date.now()
       });
       
-      // Also save to localStorage as backup
-      var backupKey = 'wedding_messages_' + (inviteId || 'general');
-      var backupMsgs = JSON.parse(localStorage.getItem(backupKey) || '[]');
-      backupMsgs.unshift({ nama: nama, alamat: alamat, doa: doaVal, hadir: hadir, tanggal: new Date().toISOString() });
-      localStorage.setItem(backupKey, JSON.stringify(backupMsgs.slice(0, 50)));
-      
       form.style.display = 'none';
       if(successMsg) successMsg.style.display = 'block';
       
-      // Reload messages
       await loadMessagesFromFirebase();
-      
       Swal.fire('Terima Kasih!', 'Doa dan ucapan Anda telah terkirim ❤️', 'success');
     });
   }
