@@ -7,157 +7,147 @@
   <link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c9a03d'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&family=Amiri:wght@400;700&family=Dancing+Script:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #0a0a0a; transition: background 0.2s; font-family: 'Inter', sans-serif; }
+    body { background: #0a0a0a; font-family: 'Inter', sans-serif; transition: background 0.2s; }
     body.dark { background: #0a0a0a; }
     body.light { background: #f5f0e8; }
     
-    /* Login Styles */
     .login-container {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f0f1a);
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
       z-index: 10000; display: flex; align-items: center; justify-content: center;
       transition: opacity 0.4s;
     }
     .login-card {
-      background: rgba(255,255,255,0.06);
-      backdrop-filter: blur(20px);
-      border-radius: 48px; padding: 2.5rem; width: 100%; max-width: 420px;
-      border: 1px solid rgba(201,160,61,0.4); text-align: center;
-      box-shadow: 0 25px 45px rgba(0,0,0,0.3);
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(15px);
+      border-radius: 32px; padding: 2.5rem; width: 100%; max-width: 400px;
+      border: 1px solid rgba(201,160,61,0.3); text-align: center;
     }
     .login-card input {
       width: 100%; background: rgba(0,0,0,0.5); border: 1px solid #c9a03d;
-      border-radius: 60px; padding: 14px 20px; color: white; margin-bottom: 1rem;
-      transition: all 0.2s;
+      border-radius: 60px; padding: 12px 20px; color: white; margin-bottom: 1rem;
     }
-    .login-card input:focus { outline: none; border-color: #e4c580; box-shadow: 0 0 0 3px rgba(201,160,61,0.2); }
+    .login-card input:focus { outline: none; border-color: #e4c580; }
     .btn-gold { background: linear-gradient(135deg, #c9a03d, #a67c1e); border: none; border-radius: 60px; padding: 12px; font-weight: 600; width: 100%; color: #0a0a0a; transition: all 0.3s; }
     .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(201,160,61,0.4); }
     .gold-text { color: #c9a03d; }
     
-    /* Admin Wrapper */
     .admin-wrapper { display: none; min-height: 100vh; }
     body.logged-in .admin-wrapper { display: flex; }
     body.logged-in .login-container { display: none; }
     
-    /* Sidebar Modern */
     .sidebar {
       width: 280px; background: #111111; 
       border-right: 1px solid rgba(201,160,61,0.2); 
-      padding: 2rem 1rem; position: fixed; height: 100vh;
+      padding: 1.5rem 1rem; position: fixed; height: 100vh;
       transition: all 0.3s; overflow-y: auto;
     }
-    body.light .sidebar { background: #ffffff; box-shadow: 4px 0 20px rgba(0,0,0,0.05); }
+    body.light .sidebar { background: #ffffff; }
     .sidebar .nav-link {
-      display: flex; align-items: center; gap: 14px; padding: 14px 20px;
-      border-radius: 16px; color: #aaa; cursor: pointer; transition: all 0.2s;
-      margin-bottom: 6px; font-weight: 500;
+      display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+      border-radius: 14px; color: #aaa; cursor: pointer; transition: all 0.2s;
     }
-    .sidebar .nav-link i { font-size: 1.3rem; width: 28px; }
-    .sidebar .nav-link:hover, .sidebar .nav-link.active { 
-      background: linear-gradient(135deg, rgba(201,160,61,0.2), rgba(201,160,61,0.05)); 
-      color: #c9a03d; 
-    }
-    .content { flex: 1; margin-left: 280px; padding: 2rem 2rem; }
+    .sidebar .nav-link:hover, .sidebar .nav-link.active { background: #c9a03d; color: #000; }
+    .content { flex: 1; margin-left: 280px; padding: 1.8rem 2rem; }
     
-    /* Cards Modern */
-    .stat-card { 
-      background: rgba(255,255,255,0.05); 
-      backdrop-filter: blur(10px);
-      border-radius: 24px; padding: 1.5rem; 
-      border: 1px solid rgba(201,160,61,0.2); 
-      transition: all 0.3s;
-    }
-    .stat-card:hover { transform: translateY(-5px); border-color: rgba(201,160,61,0.5); }
-    body.light .stat-card { background: #ffffff; box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
-    
-    .setting-card { 
-      background: rgba(255,255,255,0.05); 
-      backdrop-filter: blur(8px);
-      border-radius: 28px; padding: 1.8rem; margin-bottom: 24px; 
-      border: 1px solid rgba(201,160,61,0.2); 
-      transition: all 0.2s;
-    }
-    .setting-card:hover { border-color: rgba(201,160,61,0.4); }
-    body.light .setting-card { background: #ffffff; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
-    
-    .image-preview { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #c9a03d; cursor: pointer; transition: transform 0.2s; }
-    .image-preview:hover { transform: scale(1.05); }
-    
-    .story-item, .bank-item, .bg-item, .music-item { 
-      background: rgba(0,0,0,0.3); 
-      border-radius: 20px; padding: 1rem; margin-bottom: 1rem; 
-      backdrop-filter: blur(4px);
-    }
+    .stat-card { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border-radius: 20px; padding: 1.5rem; border: 1px solid rgba(201,160,61,0.2); }
+    body.light .stat-card { background: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .setting-card { background: rgba(255,255,255,0.05); backdrop-filter: blur(8px); border-radius: 24px; padding: 1.5rem; margin-bottom: 20px; border: 1px solid rgba(201,160,61,0.2); }
+    body.light .setting-card { background: #ffffff; }
+    .image-preview { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #c9a03d; cursor: pointer; }
+    .story-item, .bank-item { background: rgba(0,0,0,0.3); border-radius: 16px; padding: 1rem; margin-bottom: 1rem; }
     body.light .story-item, body.light .bank-item { background: #f5f0e8; }
     
-    .search-bar { 
-      background: rgba(0,0,0,0.4); 
-      border: 1px solid rgba(201,160,61,0.3); 
-      border-radius: 60px; padding: 10px 20px; 
-      color: white; width: 100%; 
-    }
-    .filter-btn { 
-      background: transparent; 
-      border: 1px solid rgba(201,160,61,0.5); 
-      color: #c9a03d; 
-      border-radius: 60px; padding: 8px 24px; 
-      margin-right: 8px; cursor: pointer; 
-      transition: all 0.2s;
-    }
-    .filter-btn.active, .filter-btn:hover { background: #c9a03d; color: #0a0a0a; border-color: #c9a03d; }
+    .search-bar { background: rgba(0,0,0,0.4); border: 1px solid rgba(201,160,61,0.3); border-radius: 60px; padding: 8px 16px; color: white; width: 100%; }
+    .filter-btn { background: transparent; border: 1px solid rgba(201,160,61,0.5); color: #c9a03d; border-radius: 60px; padding: 8px 20px; margin-right: 8px; cursor: pointer; transition: all 0.2s; }
+    .filter-btn.active, .filter-btn:hover { background: #c9a03d; color: #000; }
+    .badge-vip { background: linear-gradient(135deg, #c9a03d, #b8860b); color: #000; padding: 4px 12px; border-radius: 20px; }
+    .badge-regular { background: #2a2a2a; color: #aaa; padding: 4px 12px; border-radius: 20px; }
+    .badge-pro { background: #10b981; color: white; }
+    .badge-basic { background: #3b82f6; color: white; }
+    .badge-trial { background: #f59e0b; color: white; }
     
-    .badge-vip { background: linear-gradient(135deg, #c9a03d, #b8860b); color: #000; padding: 5px 14px; border-radius: 60px; font-weight: 600; }
-    .badge-regular { background: #2a2a2a; color: #ccc; padding: 5px 14px; border-radius: 60px; }
-    .badge-pro { background: #10b981; color: white; padding: 4px 12px; border-radius: 20px; }
-    .badge-basic { background: #3b82f6; color: white; padding: 4px 12px; border-radius: 20px; }
-    .badge-trial { background: #f59e0b; color: white; padding: 4px 12px; border-radius: 20px; }
-    
-    .bg-preview-grid { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
-    .bg-preview-item { position: relative; width: 80px; height: 80px; border-radius: 16px; overflow: hidden; border: 2px solid rgba(201,160,61,0.5); }
+    .bg-preview-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+    .bg-preview-item { position: relative; width: 80px; height: 80px; border-radius: 12px; overflow: hidden; border: 2px solid rgba(201,160,61,0.5); }
     .bg-preview-item img { width: 100%; height: 100%; object-fit: cover; }
-    .bg-preview-item button { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; background: #c9a03d; border: none; border-radius: 50%; color: black; font-size: 12px; cursor: pointer; }
+    .bg-preview-item button { position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; background: red; border: none; border-radius: 50%; color: white; font-size: 10px; cursor: pointer; }
     
-    .preview-modal .modal-content { background: #0a0a0a; border-radius: 32px; border: 1px solid #c9a03d; }
-    .preview-iframe { width: 100%; height: 500px; border: none; border-radius: 24px; }
+    .preview-modal .modal-content { background: #0a0a0a; border-radius: 24px; border: 1px solid #c9a03d; }
+    .preview-iframe { width: 100%; height: 500px; border: none; border-radius: 16px; }
     
     .arabic-input { font-family: 'Amiri', serif; font-size: 1.1rem; direction: rtl; background: #1e1a16; color: #f5e6d3; }
     
-    .hamburger { display: none; background: #c9a03d; width: 48px; height: 48px; border-radius: 30px; align-items: center; justify-content: center; position: fixed; top: 16px; left: 16px; z-index: 1060; cursor: pointer; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-    .dark-mode-fab { position: fixed; bottom: 24px; right: 24px; width: 52px; height: 52px; background: #c9a03d; border-radius: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1050; border: none; box-shadow: 0 6px 14px rgba(0,0,0,0.2); transition: all 0.2s; }
-    .dark-mode-fab:hover { transform: scale(1.05); }
+    .hamburger { display: none; background: #c9a03d; width: 48px; height: 48px; border-radius: 30px; align-items: center; justify-content: center; position: fixed; top: 16px; left: 16px; z-index: 1060; cursor: pointer; border: none; }
+    .dark-mode-fab { position: fixed; bottom: 20px; right: 20px; width: 48px; height: 48px; background: #c9a03d; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1050; border: none; }
     
-    .form-control, .form-select { 
-      background: #1e1a16; 
-      border: 1px solid rgba(201,160,61,0.4); 
-      color: #f5e6d3; 
-      border-radius: 20px; 
-      padding: 12px 16px; 
-      transition: all 0.2s;
-    }
-    .form-control:focus, .form-select:focus { 
-      border-color: #c9a03d; 
-      outline: none; 
-      box-shadow: 0 0 0 3px rgba(201,160,61,0.2);
-    }
-    body.light .form-control, body.light .form-select { background: #f8f3ec; color: #1a1a1a; }
+    .form-control, .form-select { background: #1e1a16; border: 1px solid rgba(201,160,61,0.4); color: #f5e6d3; border-radius: 12px; padding: 10px 14px; }
+    body.light .form-control, body.light .form-select { background: #f5f0e8; color: #000; }
+    .form-control:focus { border-color: #c9a03d; outline: none; box-shadow: 0 0 0 2px rgba(201,160,61,0.3); }
     
-    .table { color: #f5e6d3; border-collapse: separate; border-spacing: 0 8px; }
+    .table { color: #f5e6d3; }
     body.light .table { color: #1a1a1a; }
-    .table td, .table th { background: transparent; vertical-align: middle; padding: 16px; }
-    .table tr { background: rgba(255,255,255,0.03); border-radius: 16px; }
-    body.light .table tr { background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+    .table-dark { background-color: #1a1a1a; }
+    body.light .table-dark { background-color: #ffffff; }
     
     .date-filter { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .date-filter input { width: auto; min-width: 130px; }
     
-    @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+    /* Fixed Guest Table */
+    .guest-table-container {
+      overflow-x: auto;
+      border-radius: 20px;
+    }
+    .guest-table {
+      width: 100%;
+      min-width: 800px;
+    }
+    .guest-table th, .guest-table td {
+      padding: 12px 16px;
+      vertical-align: middle;
+    }
+    .action-buttons {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .action-buttons .btn {
+      padding: 4px 8px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .link-cell {
+      max-width: 200px;
+      word-break: break-all;
+      font-size: 11px;
+    }
+    
+    /* Live Preview */
+    .live-preview-card {
+      background: rgba(0,0,0,0.5);
+      border-radius: 20px;
+      padding: 20px;
+      text-align: center;
+      min-height: 300px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .live-preview-card .preview-name {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .live-preview-card .preview-couple {
+      color: #c9a03d;
+      font-size: 0.9rem;
+    }
     
     @media (max-width: 768px) {
       .sidebar { left: -280px; position: fixed; z-index: 1050; }
@@ -165,6 +155,7 @@
       .content { margin-left: 0; padding: 1rem; padding-top: 80px; }
       .hamburger { display: flex; }
       .preview-iframe { height: 400px; }
+      .guest-table-container { overflow-x: scroll; }
     }
   </style>
 </head>
@@ -173,24 +164,23 @@
 <!-- LOGIN SCREEN -->
 <div class="login-container" id="loginContainer">
   <div class="login-card">
-    <i class="bi bi-gem fs-1 gold-text"></i>
-    <h3 class="gold-text mt-2 fw-bold">GrowthTogether</h3>
-    <p class="text-white-50 small">Wedding Admin Suite</p>
+    <i class="bi bi-shield-lock-fill fs-1 gold-text"></i>
+    <h3 class="gold-text mt-2">Admin Panel</h3>
+    <p class="text-white-50 small">GrowthTogether Wedding</p>
     <input type="text" id="adminUsername" placeholder="Username" autocomplete="off">
     <input type="password" id="adminPassword" placeholder="Password">
     <div id="loginError" class="text-danger small mb-2" style="display:none;"></div>
-    <button class="btn-gold mt-2" id="loginBtn"><i class="bi bi-box-arrow-in-right me-2"></i> Masuk Dashboard</button>
-    <div class="mt-3"><small class="text-white-50">Login dengan akun yang terdaftar di Firebase</small></div>
+    <button class="btn-gold" id="loginBtn"><i class="bi bi-box-arrow-in-right me-2"></i> Login</button>
   </div>
 </div>
 
 <!-- MAIN ADMIN PANEL -->
 <div class="admin-wrapper">
   <div class="sidebar" id="sidebar">
-    <div class="text-center mb-5">
+    <div class="text-center mb-4">
       <i class="bi bi-arrow-through-heart-fill fs-1 gold-text"></i>
-      <h5 class="gold-text mt-2 fw-bold">growthogether</h5>
-      <div class="small text-white-50">Premium Wedding</div>
+      <h5 class="gold-text mt-2">growthogether</h5>
+      <small class="text-white-50">Admin Panel</small>
     </div>
     <nav class="nav flex-column">
       <a class="nav-link active" data-section="dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
@@ -199,42 +189,37 @@
       <a class="nav-link" data-section="guestlist"><i class="bi bi-people-fill"></i> Daftar Tamu</a>
       <a class="nav-link" data-section="users"><i class="bi bi-person-badge"></i> Kelola Pengguna</a>
     </nav>
-    <div class="mt-auto pt-5">
-      <button class="btn btn-sm btn-outline-secondary w-100 rounded-pill mb-2" id="logoutBtn"><i class="bi bi-box-arrow-right me-2"></i> Keluar</button>
-      <button class="btn btn-sm btn-outline-secondary w-100 rounded-pill" id="viewInvitationBtn"><i class="bi bi-eye me-2"></i> Lihat Undangan</button>
+    <div class="mt-auto pt-4">
+      <button class="btn btn-sm btn-outline-secondary w-100 rounded-pill" id="logoutBtn"><i class="bi bi-box-arrow-right me-2"></i> Keluar</button>
+      <button class="btn btn-sm btn-outline-secondary w-100 rounded-pill mt-2" id="viewInvitationBtn"><i class="bi bi-eye me-2"></i> Lihat Undangan</button>
     </div>
   </div>
-  <button class="hamburger" id="hamburgerBtn"><i class="bi bi-list fs-3"></i></button>
+  <button class="hamburger" id="hamburgerBtn"><i class="bi bi-list fs-4"></i></button>
   
   <div class="content" id="content">
     <!-- DASHBOARD -->
     <div id="dashboardSection">
-      <h4 class="fw-bold gold-text mb-4"><i class="bi bi-activity me-2"></i>Dashboard Overview</h4>
+      <h4 class="fw-bold gold-text mb-4"><i class="bi bi-activity me-2"></i>Dashboard</h4>
       <div class="row g-4 mb-4">
-        <div class="col-md-3"><div class="stat-card"><small class="text-white-50">Total Undangan</small><h2 class="gold-text fw-bold" id="totalInvites">0</h2></div></div>
+        <div class="col-md-3"><div class="stat-card"><small class="text-white-50">Total Undangan</small><h2 class="gold-text" id="totalInvites">0</h2></div></div>
         <div class="col-md-3"><div class="stat-card"><small class="text-white-50">VIP Tamu</small><h2 class="gold-text" id="totalVip">0</h2></div></div>
         <div class="col-md-3"><div class="stat-card"><small class="text-white-50">Reguler Tamu</small><h2 class="gold-text" id="totalRegular">0</h2></div></div>
         <div class="col-md-3"><div class="stat-card"><small class="text-white-50">Total Views</small><h2 class="gold-text" id="totalViews">0</h2></div></div>
       </div>
       <div class="row g-4">
-        <div class="col-md-6">
-          <div class="setting-card"><canvas id="dashboardChart" style="max-height: 250px;"></canvas></div>
-        </div>
-        <div class="col-md-6">
-          <div class="setting-card"><h5 class="gold-text mb-3"><i class="bi bi-graph-up"></i> Statistik Pengunjung (7 Hari)</h5><canvas id="viewsChart" style="max-height: 200px;"></canvas></div>
-        </div>
+        <div class="col-md-6"><div class="setting-card"><canvas id="dashboardChart" style="max-height: 250px;"></canvas></div></div>
+        <div class="col-md-6"><div class="setting-card"><h5 class="gold-text mb-3"><i class="bi bi-graph-up"></i> Statistik 7 Hari</h5><canvas id="viewsChart" style="max-height: 200px;"></canvas></div></div>
       </div>
     </div>
     
-    <!-- PENGATURAN UNDANGAN (SEMUA FITUR LENGKAP) -->
+    <!-- PENGATURAN UNDANGAN -->
     <div id="weddingSection" style="display:none;">
       <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <h4 class="fw-bold gold-text"><i class="bi bi-sliders2 me-2"></i>Pengaturan Undangan</h4>
-        <button class="btn-gold" id="saveWeddingBtn" style="width:auto; padding:10px 32px;"><i class="bi bi-save me-2"></i>Simpan Semua</button>
+        <button class="btn-gold" id="saveWeddingBtn" style="width:auto; padding:8px 24px;"><i class="bi bi-save me-2"></i>Simpan Semua</button>
       </div>
       
       <div class="row g-4">
-        <!-- Data Pasangan -->
         <div class="col-md-6">
           <div class="setting-card">
             <h5 class="gold-text mb-3"><i class="bi bi-people-fill me-2"></i>Pasangan Pengantin</h5>
@@ -253,7 +238,6 @@
           </div>
         </div>
         
-        <!-- Waktu & Lokasi -->
         <div class="col-md-6">
           <div class="setting-card">
             <h5 class="gold-text mb-3"><i class="bi bi-calendar-heart me-2"></i>Waktu & Lokasi</h5>
@@ -266,45 +250,25 @@
           </div>
         </div>
         
-        <!-- Pengaturan Lagu Latar -->
         <div class="col-md-12">
           <div class="setting-card">
             <h5 class="gold-text mb-3"><i class="bi bi-music-note-beamed me-2"></i>Pengaturan Lagu Latar</h5>
-            <p class="small text-white-50 mb-2">Pilih lagu untuk diputar di halaman undangan</p>
             <div class="row g-3">
-              <div class="col-md-8">
-                <input type="text" id="musicUrl" class="form-control" placeholder="URL MP3 lagu">
-                <small class="text-muted">Masukkan URL langsung file MP3, atau gunakan preset di bawah</small>
-              </div>
-              <div class="col-md-4">
-                <select id="musicPreset" class="form-select">
-                  <option value="">-- Pilih Lagu Preset --</option>
-                  <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">SoundHelix - Song 1</option>
-                  <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3">SoundHelix - Song 2</option>
-                  <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3">SoundHelix - Song 3</option>
-                </select>
-              </div>
+              <div class="col-md-8"><input type="text" id="musicUrl" class="form-control" placeholder="URL MP3 lagu"></div>
+              <div class="col-md-4"><select id="musicPreset" class="form-select"><option value="">-- Pilih Lagu Preset --</option><option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">SoundHelix - Song 1</option><option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3">SoundHelix - Song 2</option><option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3">SoundHelix - Song 3</option></select></div>
             </div>
-            <div class="mt-3">
-              <button class="btn btn-sm btn-outline-secondary rounded-pill" id="testMusicBtn"><i class="bi bi-play-circle"></i> Test Lagu</button>
-            </div>
+            <button class="btn btn-sm btn-outline-secondary rounded-pill mt-2" id="testMusicBtn"><i class="bi bi-play-circle"></i> Test Lagu</button>
           </div>
         </div>
         
-        <!-- Background Slideshow -->
         <div class="col-md-12">
           <div class="setting-card">
             <h5 class="gold-text mb-3"><i class="bi bi-images me-2"></i>Background Slideshow Hero</h5>
-            <p class="small text-white-50 mb-2">Upload foto-foto untuk background slideshow di halaman undangan</p>
             <div id="bgList" class="bg-preview-grid"></div>
-            <div class="mt-3 d-flex gap-2">
-              <input type="file" id="bgPhotoInput" class="form-control" accept="image/*">
-              <button class="btn btn-sm btn-outline-secondary rounded-pill" id="addBgBtn"><i class="bi bi-plus-lg"></i> Tambah Background</button>
-            </div>
+            <div class="mt-3 d-flex gap-2"><input type="file" id="bgPhotoInput" class="form-control" accept="image/*"><button class="btn btn-sm btn-outline-secondary rounded-pill" id="addBgBtn"><i class="bi bi-plus-lg"></i> Tambah</button></div>
           </div>
         </div>
         
-        <!-- Cerita Cinta -->
         <div class="col-md-6">
           <div class="setting-card">
             <h5 class="gold-text mb-3"><i class="bi bi-chat-heart-fill me-2"></i>Cerita Cinta</h5>
@@ -313,7 +277,6 @@
           </div>
         </div>
         
-        <!-- Galeri Foto -->
         <div class="col-md-6">
           <div class="setting-card">
             <h5 class="gold-text mb-3"><i class="bi bi-camera-fill me-2"></i>Galeri Foto</h5>
@@ -323,7 +286,6 @@
           </div>
         </div>
         
-        <!-- Rekening Bank -->
         <div class="col-md-12">
           <div class="setting-card">
             <h5 class="gold-text mb-3"><i class="bi bi-bank me-2"></i>Rekening Bank</h5>
@@ -332,56 +294,22 @@
           </div>
         </div>
         
-        <!-- PENGATURAN TEKS UNDANGAN & WHATSAPP -->
         <div class="col-md-12">
           <div class="setting-card">
             <h5 class="gold-text mb-3"><i class="bi bi-chat-text-fill me-2"></i>Pengaturan Teks Undangan & WhatsApp</h5>
-            
-            <div class="mb-3">
-              <label class="form-label fw-semibold gold-text">Teks Ayat (Q.S. Ar-Rum:21) - Bahasa Arab</label>
-              <textarea id="weddingAyat" class="form-control arabic-input" rows="4"></textarea>
-              <small class="text-muted">Teks Arab ayat yang akan ditampilkan di halaman undangan</small>
-            </div>
-            
-            <div class="mb-3">
-              <label class="form-label fw-semibold gold-text">Terjemahan Ayat</label>
-              <textarea id="weddingAyatTranslation" class="form-control" rows="2" placeholder="Terjemahan ayat dalam bahasa Indonesia"></textarea>
-            </div>
-            
-            <div class="mb-3">
-              <label class="form-label fw-semibold gold-text">Teks Pembuka Undangan</label>
-              <textarea id="weddingOpeningText" class="form-control" rows="6" style="white-space: pre-line;"></textarea>
-            </div>
-            
-            <div class="mb-3">
-              <label class="form-label fw-semibold gold-text">Teks Penutup Undangan</label>
-              <textarea id="weddingClosingText" class="form-control" rows="5" style="white-space: pre-line;"></textarea>
-            </div>
-            
-            <div class="mb-3">
-              <label class="form-label fw-semibold gold-text">Template Pesan WhatsApp</label>
-              <textarea id="whatsappTemplate" class="form-control" rows="12" style="white-space: pre-line; font-family: monospace; font-size: 12px;"></textarea>
-              <small class="text-muted">
-                <strong>Variable yang tersedia:</strong><br>
-                <code>{nama_tamu}</code> - Nama tamu undangan<br>
-                <code>{link_undangan}</code> - Link undangan unik<br>
-                <code>{groom_name}</code> - Nama pengantin pria<br>
-                <code>{bride_name}</code> - Nama pengantin wanita<br>
-                <code>{wedding_date}</code> - Tanggal pernikahan<br>
-                <code>{venue_name}</code> - Nama tempat acara
-              </small>
-            </div>
-            
-            <div class="alert alert-info mt-2">
-              <i class="bi bi-info-circle-fill me-2"></i>
-              Perubahan akan tersimpan saat klik "Simpan Semua"
+            <div class="mb-3"><label class="form-label fw-semibold gold-text">Teks Ayat (Arab)</label><textarea id="weddingAyat" class="form-control arabic-input" rows="4"></textarea></div>
+            <div class="mb-3"><label class="form-label fw-semibold gold-text">Terjemahan Ayat</label><textarea id="weddingAyatTranslation" class="form-control" rows="2"></textarea></div>
+            <div class="mb-3"><label class="form-label fw-semibold gold-text">Teks Pembuka</label><textarea id="weddingOpeningText" class="form-control" rows="6"></textarea></div>
+            <div class="mb-3"><label class="form-label fw-semibold gold-text">Teks Penutup</label><textarea id="weddingClosingText" class="form-control" rows="5"></textarea></div>
+            <div class="mb-3"><label class="form-label fw-semibold gold-text">Template WhatsApp</label><textarea id="whatsappTemplate" class="form-control" rows="10" style="font-family: monospace; font-size: 12px;"></textarea>
+              <small class="text-muted">Variable: {nama_tamu}, {link_undangan}, {groom_name}, {bride_name}, {wedding_date}, {venue_name}</small>
             </div>
           </div>
         </div>
       </div>
     </div>
     
-    <!-- BUAT UNDANGAN -->
+    <!-- BUAT UNDANGAN dengan LIVE PREVIEW -->
     <div id="invitesSection" style="display:none;">
       <h4 class="fw-bold gold-text mb-4"><i class="bi bi-envelope-heart-fill me-2"></i>Buat Link Undangan</h4>
       <div class="row g-4">
@@ -406,15 +334,20 @@
           </div>
         </div>
         <div class="col-md-7">
-          <div class="setting-card text-center" id="previewCard">
-            <i class="bi bi-envelope-paper-heart fs-1 gold-text"></i>
-            <p class="mt-2 text-white-50">Isi nama tamu untuk pratinjau</p>
+          <div class="setting-card" id="livePreviewCard">
+            <h5 class="gold-text mb-3"><i class="bi bi-eye-fill me-2"></i>Live Preview</h5>
+            <div class="live-preview-card" id="livePreviewContent">
+              <i class="bi bi-envelope-paper-heart fs-1 gold-text"></i>
+              <div class="preview-name mt-3" id="previewGuestName">-</div>
+              <div class="preview-couple" id="previewCoupleName">- & -</div>
+              <div class="mt-3 small text-muted">Ketik nama tamu untuk pratinjau</div>
+            </div>
           </div>
         </div>
       </div>
     </div>
     
-    <!-- DAFTAR TAMU -->
+    <!-- DAFTAR TAMU - FIXED UI -->
     <div id="guestlistSection" style="display:none;">
       <h4 class="fw-bold gold-text mb-4"><i class="bi bi-people-fill me-2"></i>Daftar Tamu Undangan</h4>
       
@@ -435,23 +368,23 @@
             <input type="date" id="filterEndDate" class="form-control" placeholder="Sampai tgl">
           </div>
           <div class="col-md-2 text-end">
-            <button id="refreshGuestList" class="btn btn-sm btn-outline-secondary rounded-pill"><i class="bi bi-arrow-repeat"></i> Refresh</button>
-            <button id="clearDateFilter" class="btn btn-sm btn-outline-danger rounded-pill mt-1"><i class="bi bi-x-circle"></i> Hapus Filter</button>
+            <button id="refreshGuestList" class="btn btn-sm btn-outline-secondary rounded-pill w-100 mb-1"><i class="bi bi-arrow-repeat"></i> Refresh</button>
+            <button id="clearDateFilter" class="btn btn-sm btn-outline-danger rounded-pill w-100"><i class="bi bi-x-circle"></i> Hapus Filter</button>
           </div>
         </div>
       </div>
       
       <div class="setting-card p-0">
-        <div class="table-responsive">
-          <table class="table table-hover mb-0">
+        <div class="guest-table-container">
+          <table class="table guest-table">
             <thead>
-              <tr>
-                <th style="width: 20%">Nama Tamu</th>
-                <th style="width: 10%">Status</th>
-                <th style="width: 15%">Telepon</th>
+              <tr style="background: rgba(201,160,61,0.1);">
+                <th style="width: 18%">Nama Tamu</th>
+                <th style="width: 8%">Status</th>
+                <th style="width: 12%">Telepon</th>
                 <th style="width: 30%">Link Undangan</th>
-                <th style="width: 10%">Dibuat</th>
-                <th style="width: 15%">Aksi</th>
+                <th style="width: 12%">Dibuat</th>
+                <th style="width: 20%">Aksi</th>
               </tr>
             </thead>
             <tbody id="guestTableBody"></tbody>
@@ -466,8 +399,8 @@
       <button class="btn-gold mb-3" id="openRegisterModal" style="width:auto;"><i class="bi bi-person-plus-fill me-2"></i>Daftar User Baru</button>
       <div class="setting-card p-0">
         <div class="table-responsive">
-          <table class="table table-hover mb-0">
-            <thead><tr><th style="width: 25%">Username</th><th style="width: 35%">Nama Lengkap</th><th style="width: 20%">Level</th><th style="width: 20%">Aksi</th></tr></thead>
+          <table class="table table-dark table-hover mb-0">
+            <thead><tr><th>Username</th><th>Nama Lengkap</th><th>Level</th><th>Aksi</th></tr></thead>
             <tbody id="usersTableBody"></tbody>
           </table>
         </div>
@@ -475,61 +408,15 @@
     </div>
   </div>
   
-  <button class="dark-mode-fab" id="darkModeFab"><i class="bi bi-moon-stars-fill"></i></button>
+  <button class="dark-mode-fab" id="darkModeFab"><i class="bi bi-moon-stars"></i></button>
 </div>
 
-<!-- MODAL REGISTER -->
-<div class="modal fade" id="registerModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content bg-dark text-white">
-      <div class="modal-header border-secondary"><h5 class="gold-text">Daftar Pengguna Baru</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-      <div class="modal-body">
-        <input type="text" id="regUsername" class="form-control mb-2" placeholder="Username *">
-        <input type="text" id="regFullname" class="form-control mb-2" placeholder="Nama Lengkap *">
-        <input type="password" id="regPassword" class="form-control mb-2" placeholder="Password *">
-        <select id="regLevel" class="form-select mb-2">
-          <option value="trial">Trial (1 minggu - terbatas)</option>
-          <option value="basic">Basic (Rp 25.000/bulan)</option>
-          <option value="pro">Pro (Rp 50.000/bulan - unlimited)</option>
-        </select>
-        <select id="regPartner" class="form-select"><option value="">Pilih Pasangan (Opsional)</option></select>
-      </div>
-      <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button><button class="btn-gold" id="confirmRegisterBtn">Daftarkan</button></div>
-    </div>
-  </div>
-</div>
+<!-- MODALS -->
+<div class="modal fade" id="registerModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content bg-dark text-white"><div class="modal-header border-secondary"><h5 class="gold-text">Daftar Pengguna Baru</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="text" id="regUsername" class="form-control mb-2" placeholder="Username"><input type="text" id="regFullname" class="form-control mb-2" placeholder="Nama Lengkap"><input type="password" id="regPassword" class="form-control mb-2" placeholder="Password"><select id="regLevel" class="form-select mb-2"><option value="trial">Trial</option><option value="basic">Basic</option><option value="pro">Pro</option></select><select id="regPartner" class="form-select"><option value="">Pilih Pasangan</option></select></div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button><button class="btn-gold" id="confirmRegisterBtn">Daftarkan</button></div></div></div></div>
 
-<!-- MODAL EDIT TAMU -->
-<div class="modal fade" id="editGuestModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content bg-dark text-white">
-      <div class="modal-header border-secondary"><h5 class="gold-text"><i class="bi bi-pencil-square me-2"></i>Edit Data Tamu</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-      <div class="modal-body">
-        <input type="text" id="editGuestName" class="form-control mb-3" placeholder="Nama Tamu *">
-        <input type="tel" id="editGuestPhone" class="form-control mb-3" placeholder="No. WhatsApp">
-        <textarea id="editGuestNote" rows="3" class="form-control mb-3" placeholder="Catatan Khusus"></textarea>
-        <select id="editGuestTier" class="form-select mb-3">
-          <option value="regular">Reguler (Biasa)</option>
-          <option value="vip">VIP (Istimewa)</option>
-        </select>
-        <input type="hidden" id="editGuestId">
-      </div>
-      <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button><button class="btn-gold" id="saveEditGuestBtn">Simpan Perubahan</button></div>
-    </div>
-  </div>
-</div>
+<div class="modal fade" id="editGuestModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content bg-dark text-white"><div class="modal-header border-secondary"><h5 class="gold-text">Edit Data Tamu</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="text" id="editGuestName" class="form-control mb-3" placeholder="Nama Tamu"><input type="tel" id="editGuestPhone" class="form-control mb-3" placeholder="No WhatsApp"><textarea id="editGuestNote" rows="3" class="form-control mb-3" placeholder="Catatan"></textarea><select id="editGuestTier" class="form-select mb-3"><option value="regular">Reguler</option><option value="vip">VIP</option></select><input type="hidden" id="editGuestId"></div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button><button class="btn-gold" id="saveEditGuestBtn">Simpan</button></div></div></div></div>
 
-<!-- MODAL PREVIEW UNDANGAN -->
-<div class="modal fade" id="previewModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-xl">
-    <div class="modal-content preview-modal">
-      <div class="modal-header border-secondary"><h5 class="gold-text"><i class="bi bi-eye-fill me-2"></i>Preview Undangan</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-      <div class="modal-body p-0">
-        <iframe id="previewIframe" class="preview-iframe" src=""></iframe>
-      </div>
-    </div>
-  </div>
-</div>
+<div class="modal fade" id="previewModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-xl"><div class="modal-content preview-modal"><div class="modal-header border-secondary"><h5 class="gold-text">Preview Undangan</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body p-0"><iframe id="previewIframe" class="preview-iframe" src=""></iframe></div></div></div></div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -594,7 +481,6 @@
     }); 
   }
   
-  // LOGIN
   async function login(username, password) {
     const upper = username.toUpperCase().trim();
     const authSnap = await get(ref(db, "data/auth/" + upper));
@@ -628,7 +514,6 @@
     await loadViewStats();
   }
   
-  // WEDDING SETTINGS
   async function loadWeddingSettings() {
     const snap = await get(ref(db, "data/wedding_settings"));
     const s = snap.val() || {};
@@ -654,15 +539,27 @@
     document.getElementById('musicUrl').value = s.musicUrl || '';
     
     document.getElementById('weddingAyat').value = s.weddingAyat || 'وَمِنْ اٰيٰتِهٖٓ اَنْ خَلَقَ لَكُمْ مِّنْ اَنْفُسِكُمْ اَزْوَاجًا لِّتَسْكُنُوْٓا اِلَيْهَا وَجَعَلَ بَيْنَكُمْ مَّوَدَّةً وَّرَحْمَةً ۗاِنَّ فِيْ ذٰلِكَ لَاٰيٰتٍ لِّقَوْمٍ يَّتَفَكَّرُوْنَ';
-    document.getElementById('weddingAyatTranslation').value = s.weddingAyatTranslation || '"Dan di antara tanda-tanda kekuasaan-Nya diciptakan-Nya untukmu pasangan hidup dari jenismu sendiri supaya kamu dapat ketenangan hati..."';
-    document.getElementById('weddingOpeningText').value = s.weddingOpeningText || 'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيْمِ\n\nMaha suci Allah SWT yang telah menciptakan makhluk-Nya berpasang-pasangan.\nTanpa mengurangi rasa hormat, dengan ini kami bermaksud mengundang Bapak/Ibu/Saudara/i untuk hadir pada acara pernikahan kami :';
-    document.getElementById('weddingClosingText').value = s.weddingClosingText || 'Menjadi sebuah kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dalam hari bahagia ini.\n\nTerima kasih atas segala ucapan, doa, dan perhatian yang diberikan.\n\nSee you on our wedding day!';
-    document.getElementById('whatsappTemplate').value = s.whatsappTemplate || 'Assalamu\'alaikum warahmatullahi wabarakatuh\n\nKepada Yth. {nama_tamu} & Partner,\n\nDengan memohon rahmat dan ridha Allah SWT, kami bermaksud mengundang Bapak/Ibu/Saudara/i untuk menghadiri acara pernikahan kami:\n\n🌿 {groom_name} & {bride_name} 🌿\n\nMerupakan kehormatan dan kebahagiaan bagi kami apabila {nama_tamu} & Partner berkenan hadir dan memberikan doa restu.\n\nUntuk informasi lengkap mengenai waktu, tempat, serta konfirmasi kehadiran, silakan membuka tautan undangan berikut:\n{link_undangan}\n\nAtas kehadiran serta doa restunya, kami ucapkan terima kasih.\n\nWassalamu\'alaikum warahmatullahi wabarakatuh';
+    document.getElementById('weddingAyatTranslation').value = s.weddingAyatTranslation || '"Dan di antara tanda-tanda kekuasaan-Nya..."';
+    document.getElementById('weddingOpeningText').value = s.weddingOpeningText || 'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيْمِ\n\nMaha suci Allah SWT...';
+    document.getElementById('weddingClosingText').value = s.weddingClosingText || 'Menjadi sebuah kebahagiaan bagi kami...';
+    document.getElementById('whatsappTemplate').value = s.whatsappTemplate || 'Assalamu\'alaikum Wr. Wb.\n\nKepada Yth. {nama_tamu}\n\nKami mengundang Anda untuk hadir di pernikahan kami:\n\n{groom_name} & {bride_name}\n\n📅 {wedding_date}\n📍 {venue_name}\n\nLink undangan: {link_undangan}\n\nTerima kasih.';
     
     renderStories(s.stories || []);
     renderGalleries(s.galleries || []);
     renderBanks(s.banks || []);
     renderBackgrounds(s.backgrounds || []);
+    
+    // Update live preview
+    updateLivePreview();
+  }
+  
+  function updateLivePreview() {
+    const guestName = document.getElementById('guestName')?.value || '';
+    const groomName = document.getElementById('groomName')?.value || weddingDataCache.groomName || 'Fachmi';
+    const brideName = document.getElementById('brideName')?.value || weddingDataCache.brideName || 'Azizah';
+    
+    document.getElementById('previewGuestName').innerHTML = guestName || '<span class="text-muted">-</span>';
+    document.getElementById('previewCoupleName').innerHTML = `${groomName} & ${brideName}`;
   }
   
   function renderStories(stories) {
@@ -772,7 +669,6 @@
     }
   }
   
-  // INVITATIONS
   async function loadInvitations() {
     const snap = await get(ref(db, "data/invitations"));
     const invites = snap.val() || {};
@@ -811,10 +707,10 @@
           <td><strong>${escapeHtml(inv.guestName)}</strong><br><small class="text-muted"><i class="bi bi-eye"></i> ${viewCount}</small></td>
           <td>${tierBadge}</td>
           <td>${inv.phone || '-'}</td>
-          <td><small class="text-break" style="max-width:200px; display:inline-block;">${link}</small></td>
+          <td class="link-cell"><small>${link}</small></td>
           <td>${inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('id') : '-'}</td>
           <td>
-            <div class="d-flex flex-wrap gap-1">
+            <div class="action-buttons">
               <button class="btn btn-sm btn-outline-primary edit-guest" data-id="${inv.id}" data-name="${escapeHtml(inv.guestName)}" data-phone="${inv.phone || ''}" data-note="${inv.note || ''}" data-tier="${inv.tier || 'regular'}"><i class="bi bi-pencil"></i> Edit</button>
               <button class="btn btn-sm btn-success send-wa" data-name="${escapeHtml(inv.guestName)}" data-link="${link}"><i class="bi bi-whatsapp"></i> WA</button>
               <button class="btn btn-sm btn-info preview-guest" data-link="${link}"><i class="bi bi-eye"></i> Preview</button>
@@ -849,17 +745,23 @@
       btn.addEventListener('click', () => {
         const name = btn.dataset.name;
         const link = btn.dataset.link;
-        const template = weddingDataCache.whatsappTemplate || '';
+        let template = weddingDataCache.whatsappTemplate || document.getElementById('whatsappTemplate')?.value || '';
+        
+        if (!template) {
+          template = 'Assalamu\'alaikum Wr. Wb.\n\nKepada Yth. {nama_tamu}\n\nKami mengundang Anda untuk hadir di pernikahan kami:\n\n{groom_name} & {bride_name}\n\n📅 {wedding_date}\n📍 {venue_name}\n\nLink undangan: {link_undangan}\n\nTerima kasih.';
+        }
+        
         let message = template
-          .replace(/{nama_tamu}/g, encodeURIComponent(name))
-          .replace(/{link_undangan}/g, encodeURIComponent(link))
-          .replace(/{groom_name}/g, encodeURIComponent(weddingDataCache.groomName || 'Fachmi'))
-          .replace(/{bride_name}/g, encodeURIComponent(weddingDataCache.brideName || 'Azizah'))
-          .replace(/{groom_nickname}/g, encodeURIComponent(weddingDataCache.groomNickname || 'Fachmi'))
-          .replace(/{bride_nickname}/g, encodeURIComponent(weddingDataCache.brideNickname || 'Azizah'))
-          .replace(/{wedding_date}/g, encodeURIComponent(weddingDataCache.weddingDate || '2025-06-15'))
-          .replace(/{venue_name}/g, encodeURIComponent(weddingDataCache.venueName || 'Aula Serbaguna'));
-        window.open(`https://wa.me/?text=${message}`, '_blank');
+          .replace(/{nama_tamu}/g, name)
+          .replace(/{link_undangan}/g, link)
+          .replace(/{groom_name}/g, weddingDataCache.groomName || 'Fachmi')
+          .replace(/{bride_name}/g, weddingDataCache.brideName || 'Azizah')
+          .replace(/{groom_nickname}/g, weddingDataCache.groomNickname || 'Fachmi')
+          .replace(/{bride_nickname}/g, weddingDataCache.brideNickname || 'Azizah')
+          .replace(/{wedding_date}/g, weddingDataCache.weddingDate || '2025-06-15')
+          .replace(/{venue_name}/g, weddingDataCache.venueName || 'Aula Serbaguna');
+        
+        window.open(`https://wa.me/send?text=${encodeURIComponent(message)}`, '_blank');
       });
     });
     
@@ -886,7 +788,6 @@
     return encryptInviteId(id);
   }
   
-  // VIEW STATISTICS
   async function loadViewStats() {
     const snap = await get(ref(db, "data/invitations"));
     const invites = snap.val() || {};
@@ -929,7 +830,6 @@
     }
   }
   
-  // USERS
   async function loadUsers() {
     const snap = await get(ref(db, "data/users"));
     const users = snap.val() || {};
@@ -963,7 +863,7 @@
           const username = btn.dataset.username;
           const result = await Swal.fire({
             title: 'Hapus Pengguna?',
-            text: `Yakin ingin menghapus ${username}? Semua data akan hilang.`,
+            text: `Yakin ingin menghapus ${username}?`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -999,7 +899,6 @@
     return upper;
   }
   
-  // STATS
   async function loadStats() {
     const totalInvites = allInvitations.length;
     const totalVip = allInvitations.filter(i => i.tier === 'vip').length;
@@ -1023,7 +922,6 @@
     }
   }
   
-  // SEARCH & FILTER
   function setupSearchAndFilter() {
     const searchInput = document.getElementById('searchGuestInput');
     if(searchInput) {
@@ -1070,7 +968,6 @@
     document.getElementById('refreshGuestList')?.addEventListener('click', () => { loadInvitations(); });
   }
   
-  // NAVIGATION
   function showSection(section) {
     const sections = ['dashboardSection', 'weddingSection', 'invitesSection', 'guestlistSection', 'usersSection'];
     sections.forEach(sec => {
@@ -1096,6 +993,11 @@
   
   document.getElementById('logoutBtn')?.addEventListener('click', logout);
   document.getElementById('saveWeddingBtn')?.addEventListener('click', saveWeddingSettings);
+  
+  // Live preview on guest name input
+  document.getElementById('guestName')?.addEventListener('input', updateLivePreview);
+  document.getElementById('groomName')?.addEventListener('input', updateLivePreview);
+  document.getElementById('brideName')?.addEventListener('input', updateLivePreview);
   
   document.getElementById('addStoryBtn')?.addEventListener('click', () => { 
     const container = document.getElementById('storyList'); 
@@ -1171,7 +1073,7 @@
     const url = document.getElementById('musicUrl').value;
     if(url) {
       const audio = new Audio(url);
-      audio.play().catch(e => Swal.fire('Error', 'Tidak dapat memutar lagu. Periksa URL.', 'error'));
+      audio.play().catch(e => Swal.fire('Error', 'Tidak dapat memutar lagu.', 'error'));
       setTimeout(() => audio.pause(), 5000);
     } else {
       Swal.fire('Info', 'Masukkan URL lagu terlebih dahulu', 'info');
@@ -1202,15 +1104,22 @@
     const link = document.getElementById('inviteLink').innerText;
     const name = document.getElementById('guestName').value.trim();
     if(name && link) {
-      const template = weddingDataCache.whatsappTemplate || '';
+      let template = weddingDataCache.whatsappTemplate || document.getElementById('whatsappTemplate')?.value || '';
+      if (!template) {
+        template = 'Assalamu\'alaikum Wr. Wb.\n\nKepada Yth. {nama_tamu}\n\nKami mengundang Anda untuk hadir di pernikahan kami:\n\n{groom_name} & {bride_name}\n\n📅 {wedding_date}\n📍 {venue_name}\n\nLink undangan: {link_undangan}\n\nTerima kasih.';
+      }
+      
       let message = template
-        .replace(/{nama_tamu}/g, encodeURIComponent(name))
-        .replace(/{link_undangan}/g, encodeURIComponent(link))
-        .replace(/{groom_name}/g, encodeURIComponent(weddingDataCache.groomName || 'Fachmi'))
-        .replace(/{bride_name}/g, encodeURIComponent(weddingDataCache.brideName || 'Azizah'))
-        .replace(/{wedding_date}/g, encodeURIComponent(weddingDataCache.weddingDate || '2025-06-15'))
-        .replace(/{venue_name}/g, encodeURIComponent(weddingDataCache.venueName || 'Aula Serbaguna'));
-      window.open(`https://wa.me/?text=${message}`, '_blank');
+        .replace(/{nama_tamu}/g, name)
+        .replace(/{link_undangan}/g, link)
+        .replace(/{groom_name}/g, weddingDataCache.groomName || 'Fachmi')
+        .replace(/{bride_name}/g, weddingDataCache.brideName || 'Azizah')
+        .replace(/{groom_nickname}/g, weddingDataCache.groomNickname || 'Fachmi')
+        .replace(/{bride_nickname}/g, weddingDataCache.brideNickname || 'Azizah')
+        .replace(/{wedding_date}/g, weddingDataCache.weddingDate || '2025-06-15')
+        .replace(/{venue_name}/g, weddingDataCache.venueName || 'Aula Serbaguna');
+      
+      window.open(`https://wa.me/send?text=${encodeURIComponent(message)}`, '_blank');
     } else {
       Swal.fire('Info', 'Generate link terlebih dahulu', 'info');
     }
@@ -1223,18 +1132,6 @@
       new bootstrap.Modal(document.getElementById('previewModal')).show();
     } else {
       Swal.fire('Info', 'Generate link terlebih dahulu', 'info');
-    }
-  });
-  
-  document.getElementById('guestName')?.addEventListener('input', () => { 
-    const name = document.getElementById('guestName').value; 
-    const preview = document.getElementById('previewCard'); 
-    const groomName = document.getElementById('groomName').value || 'Fachmi';
-    const brideName = document.getElementById('brideName').value || 'Azizah';
-    if(name) {
-      preview.innerHTML = '<div class="text-center"><i class="bi bi-envelope-heart-fill fs-1 gold-text"></i><h5>Undangan untuk ' + escapeHtml(name) + '</h5><p class="small text-white-50">Pernikahan ' + escapeHtml(groomName) + ' & ' + escapeHtml(brideName) + '</p></div>';
-    } else {
-      preview.innerHTML = '<i class="bi bi-envelope-paper-heart fs-1 gold-text"></i><p class="mt-2 text-white-50">Isi nama tamu untuk pratinjau</p>';
     }
   });
   
