@@ -29,11 +29,12 @@
       border-radius: 32px; padding: 2.5rem; width: 100%; max-width: 400px;
       border: 1px solid rgba(201,160,61,0.3); text-align: center;
     }
-    .login-card input {
+    .login-card input, .login-card select {
       width: 100%; background: rgba(0,0,0,0.5); border: 1px solid #c9a03d;
       border-radius: 60px; padding: 12px 20px; color: white; margin-bottom: 1rem;
     }
-    .login-card input:focus { outline: none; border-color: #e4c580; }
+    .login-card select option { background: #1a1a1a; }
+    .login-card input:focus, .login-card select:focus { outline: none; border-color: #e4c580; }
     .btn-gold { background: linear-gradient(135deg, #c9a03d, #a67c1e); border: none; border-radius: 60px; padding: 12px; font-weight: 600; width: 100%; color: #0a0a0a; transition: all 0.3s; }
     .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(201,160,61,0.4); }
     .btn-gold:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
@@ -199,10 +200,18 @@
     <i class="bi bi-shield-lock-fill fs-1 gold-text"></i>
     <h3 class="gold-text mt-2">Admin Panel</h3>
     <p class="text-white-50 small">GrowthTogether Wedding</p>
-    <input type="text" id="adminUsername" placeholder="Username" autocomplete="off" value="fachmi">
-    <input type="password" id="adminPassword" placeholder="Password" value="170598">
+    <div class="mb-3">
+      <select id="adminUserSelect" class="form-select text-center" style="background:#1a1a1a; color:#c9a03d; text-align:center;">
+        <option value="FACHMI">👑 FACHMI (Super Admin)</option>
+        <option value="AZIZAH">👑 AZIZAH (Super Admin)</option>
+      </select>
+    </div>
+    <input type="password" id="adminPassword" placeholder="Password">
     <div id="loginError" class="text-danger small mb-2" style="display:none;"></div>
     <button class="btn-gold" id="loginBtn"><i class="bi bi-box-arrow-in-right me-2"></i> Login</button>
+    <div class="mt-3 small text-white-50">
+      <i class="bi bi-info-circle"></i> Gunakan password yang sudah terdaftar di Firebase
+    </div>
   </div>
 </div>
 
@@ -426,9 +435,9 @@
       <div class="setting-card p-0">
         <div class="table-responsive">
           <table class="table table-dark table-hover mb-0">
-            <thead><tr><th>Username</th><th>Nama Lengkap</th><th>Level</th><th>Aksi</th></tr</thead>
+            <thead> <tr><th>Username</th><th>Nama Lengkap</th><th>Level</th><th>Aksi</th></tr> </thead>
             <tbody id="usersTableBody"></tbody>
-           </table>
+          </table>
         </div>
       </div>
     </div>
@@ -570,23 +579,27 @@
   }
   
   async function login(username, password) {
-    const upper = username.toUpperCase().trim();
-    const authSnap = await get(ref(db, "data/auth/" + upper));
-    const userSnap = await get(ref(db, "data/users/" + upper));
+    // Coba dengan uppercase dan lowercase
+    const possibleUsernames = [username.toUpperCase(), username.toLowerCase()];
     
-    if (!authSnap.exists() || !userSnap.exists()) {
-      throw new Error('Username tidak terdaftar');
+    for (const uname of possibleUsernames) {
+      const authSnap = await get(ref(db, "data/auth/" + uname));
+      const userSnap = await get(ref(db, "data/users/" + uname));
+      
+      if (authSnap.exists() && userSnap.exists()) {
+        const hash = await hashPassword(password);
+        if (authSnap.val() === hash) { 
+          currentUser = uname; 
+          sessionStorage.setItem('admin_logged_in', 'true'); 
+          sessionStorage.setItem('admin_user', uname);
+          document.getElementById('adminUserDisplay').innerHTML = uname;
+          return true; 
+        } else {
+          throw new Error('Password salah untuk user ' + uname);
+        }
+      }
     }
-    
-    const hash = await hashPassword(password);
-    if (authSnap.val() === hash) { 
-      currentUser = upper; 
-      sessionStorage.setItem('admin_logged_in', 'true'); 
-      sessionStorage.setItem('admin_user', upper);
-      document.getElementById('adminUserDisplay').innerHTML = upper;
-      return true; 
-    }
-    throw new Error('Password salah');
+    throw new Error('Username tidak terdaftar di Firebase');
   }
   
   function logout() { 
@@ -823,10 +836,10 @@
       tbody.innerHTML += `
         <tr>
           <td><strong>${escapeHtml(inv.guestName)}</strong><br><small class="text-muted"><i class="bi bi-eye"></i> ${viewCount}</small></td>
-          <td>${tierBadge}</td>
-          <td>${inv.phone || '-'}</td>
+          <td>${tierBadge}</span></td>
+          <td>${inv.phone || '-'}</span></td>
           <td class="link-cell"><small>${escapeHtml(link)}</small></td>
-          <td>${inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('id') : '-'}</td>
+          <td>${inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('id') : '-'}</span></td>
           <td>
             <div class="action-buttons">
               <button class="btn btn-sm btn-outline-primary edit-guest" data-id="${inv.id}" data-name="${escapeHtml(inv.guestName)}" data-phone="${inv.phone || ''}" data-note="${inv.note || ''}" data-tier="${inv.tier || 'regular'}"><i class="bi bi-pencil"></i> Edit</button>
@@ -834,7 +847,7 @@
               <button class="btn btn-sm btn-info preview-guest" data-link="${link}"><i class="bi bi-eye"></i> Preview</button>
               <button class="btn btn-sm btn-outline-danger delete-invite" data-id="${inv.id}"><i class="bi bi-trash3"></i> Hapus</button>
             </div>
-          </td>
+          </span>
         </tr>
       `;
     }
@@ -975,7 +988,7 @@
           row.insertCell(1).innerHTML = escapeHtml(data.fullname || uname);
           row.insertCell(2).innerHTML = `<span class="${levelBadge}">${level.toUpperCase()}</span>`;
           
-          if(uname !== 'FACHMI' && uname !== 'AZIZAH') {
+          if(uname !== 'FACHMI' && uname !== 'AZIZAH' && uname !== 'fachmi' && uname !== 'azizah') {
             row.insertCell(3).innerHTML = `<button class="btn btn-sm btn-outline-danger rounded-pill delete-user" data-username="${uname}"><i class="bi bi-trash3 me-1"></i>Hapus</button>`;
           } else {
             row.insertCell(3).innerHTML = '<span class="text-muted small"><i class="bi bi-shield-check"></i> Super Admin</span>';
@@ -1095,6 +1108,18 @@
     document.getElementById('refreshGuestList')?.addEventListener('click', () => { loadInvitations(); });
   }
   
+  // ============ INITIALIZATION ============
+  async function init() {
+    showLoading();
+    try {
+      await checkSession();
+    } catch (error) {
+      console.error('Init error:', error);
+    } finally {
+      hideLoading();
+    }
+  }
+  
   // EVENT LISTENERS
   document.getElementById('loginBtn')?.addEventListener('click', async () => { 
     const btn = document.getElementById('loginBtn');
@@ -1102,7 +1127,9 @@
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Memproses...';
     
     try { 
-      await login(document.getElementById('adminUsername').value, document.getElementById('adminPassword').value); 
+      const selectedUser = document.getElementById('adminUserSelect').value;
+      const password = document.getElementById('adminPassword').value;
+      await login(selectedUser, password); 
       location.reload(); 
     } catch(e) { 
       const errDiv = document.getElementById('loginError');
@@ -1311,7 +1338,9 @@
   
   setupSearchAndFilter();
   document.getElementById('filterAll')?.classList.add('active');
-  checkSession();
+  
+  // Start the app
+  init();
 </script>
 </body>
 </html>
