@@ -15,7 +15,6 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
   
   <style>
-    /* Styling sama seperti sebelumnya */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
       font-family: 'Inter', sans-serif; 
@@ -219,6 +218,18 @@
     
     .preserve-line {
       white-space: pre-line;
+    }
+    
+    /* CSS untuk pesan loading lebih */
+    .skeleton-loading {
+      background: linear-gradient(90deg, rgba(201,160,61,0.1) 25%, rgba(201,160,61,0.2) 50%, rgba(201,160,61,0.1) 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+      border-radius: 8px;
+    }
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
     }
   </style>
 </head>
@@ -463,6 +474,7 @@
   let weddingData = null;
   let guestName = "Tamu Undangan";
   let hasTriggeredConfetti = false;
+  let currentInviteId = inviteId;
   
   function escapeHtml(str) { if(!str) return ''; return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
   
@@ -498,6 +510,7 @@
       
       // Get guest name and update view count
       if (inviteId && !isPreview) {
+        currentInviteId = inviteId;
         const inviteSnap = await get(ref(db, "data/invitations/" + inviteId));
         if (inviteSnap.exists()) {
           guestName = inviteSnap.val().guestName || guestName;
@@ -506,6 +519,8 @@
             viewCount: currentViews + 1,
             viewHistory: [...(inviteSnap.val().viewHistory || []), Date.now()]
           });
+        } else {
+          console.warn("Invite ID not found:", inviteId);
         }
       } else if (isPreview && previewName) {
         guestName = decodeURIComponent(previewName);
@@ -617,8 +632,10 @@
       Swal.fire('Info', 'Mohon isi nama Anda terlebih dahulu untuk konfirmasi kehadiran', 'warning');
       return;
     }
-    const rsvpRef = ref(db, "data/rsvp/" + (inviteId || 'general'));
-    await set(rsvpRef, { nama: nama, status: status, timestamp: Date.now() });
+    // Gunakan inviteId jika ada, jika tidak gunakan 'general'
+    const rsvpKey = currentInviteId || 'general';
+    const rsvpRef = ref(db, "data/rsvp/" + rsvpKey);
+    await set(rsvpRef, { nama: nama, status: status, timestamp: Date.now(), inviteId: rsvpKey });
     const statusText = status === 'hadir' ? 'HADIR' : 'TIDAK HADIR';
     const statusClass = status === 'hadir' ? 'bg-success' : 'bg-secondary';
     document.getElementById('rsvpStatus').innerHTML = `<span class="badge ${statusClass} p-2">✓ Terima kasih! Konfirmasi Anda sebagai ${statusText} telah tersimpan.</span>`;
@@ -722,7 +739,8 @@
   
   async function loadExistingRSVP() {
     try {
-      const rsvpSnap = await get(ref(db, "data/rsvp/" + (inviteId || 'general')));
+      const rsvpKey = currentInviteId || 'general';
+      const rsvpSnap = await get(ref(db, "data/rsvp/" + rsvpKey));
       if(rsvpSnap.exists()) {
         const rsvp = rsvpSnap.val();
         const statusText = rsvp.status === 'hadir' ? 'HADIR' : 'TIDAK HADIR';
@@ -742,10 +760,21 @@
       
       var messagesArray = [];
       for(var key in allMessages) {
-        if(allMessages[key] && ((inviteId && allMessages[key].inviteId === inviteId) || (!inviteId))) {
-          messagesArray.push(allMessages[key]);
+        var msg = allMessages[key];
+        if(msg && msg.inviteId) {
+          // Hanya tampilkan pesan untuk undangan ini
+          if(msg.inviteId === currentInviteId) {
+            messagesArray.push(msg);
+          }
+        } else {
+          // Untuk backward compatibility - pesan lama tanpa inviteId
+          // Tampilkan semua (opsional, bisa dihapus)
+          if(!currentInviteId) {
+            messagesArray.push(msg);
+          }
         }
       }
+      
       messagesArray.sort((a, b) => b.timestamp - a.timestamp);
       messagesArray = messagesArray.slice(0, 30);
       
@@ -775,7 +804,14 @@
       
       const messagesRef = ref(db, "data/messages");
       const newMessageRef = push(messagesRef);
-      await set(newMessageRef, { nama, alamat: alamat || '', doa: doaVal, hadir: '1', inviteId: inviteId || 'general', timestamp: Date.now() });
+      await set(newMessageRef, { 
+        nama, 
+        alamat: alamat || '', 
+        doa: doaVal, 
+        hadir: '1', 
+        inviteId: currentInviteId || 'general', 
+        timestamp: Date.now() 
+      });
       
       form.reset();
       document.getElementById('formSuccessMessage').style.display = 'block';
