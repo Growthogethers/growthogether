@@ -98,7 +98,6 @@
     .date-filter { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .date-filter input { width: auto; min-width: 130px; }
     
-    /* Fixed Guest Table */
     .guest-table-container {
       overflow-x: auto;
       border-radius: 20px;
@@ -127,7 +126,6 @@
       font-size: 11px;
     }
     
-    /* Live Preview */
     .live-preview-card {
       background: rgba(0,0,0,0.5);
       border-radius: 20px;
@@ -149,6 +147,36 @@
       font-size: 0.9rem;
     }
     
+    /* Loading Spinner */
+    .spinner-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 20000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .spinner-overlay.active {
+      display: flex;
+    }
+    .spinner-border-custom {
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(201,160,61,0.3);
+      border-top-color: #c9a03d;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
     @media (max-width: 768px) {
       .sidebar { left: -280px; position: fixed; z-index: 1050; }
       .sidebar.open { left: 0; }
@@ -161,16 +189,24 @@
 </head>
 <body>
 
+<!-- Loading Spinner -->
+<div class="spinner-overlay" id="spinnerOverlay">
+  <div class="spinner-border-custom"></div>
+  <div class="gold-text">Memuat data...</div>
+</div>
+
 <!-- LOGIN SCREEN -->
 <div class="login-container" id="loginContainer">
   <div class="login-card">
     <i class="bi bi-shield-lock-fill fs-1 gold-text"></i>
     <h3 class="gold-text mt-2">Admin Panel</h3>
     <p class="text-white-50 small">GrowthTogether Wedding</p>
-    <input type="text" id="adminUsername" placeholder="Username" autocomplete="off">
+    <input type="email" id="adminEmail" placeholder="Email Admin" autocomplete="off">
     <input type="password" id="adminPassword" placeholder="Password">
     <div id="loginError" class="text-danger small mb-2" style="display:none;"></div>
     <button class="btn-gold" id="loginBtn"><i class="bi bi-box-arrow-in-right me-2"></i> Login</button>
+    <hr class="mt-3" style="border-color:rgba(255,255,255,0.1)">
+    <button class="btn btn-outline-secondary w-100 rounded-pill" id="registerAdminBtn" style="font-size: 0.9rem;"><i class="bi bi-person-plus me-2"></i> Daftar Admin Baru</button>
   </div>
 </div>
 
@@ -180,7 +216,7 @@
     <div class="text-center mb-4">
       <i class="bi bi-arrow-through-heart-fill fs-1 gold-text"></i>
       <h5 class="gold-text mt-2">growthogether</h5>
-      <small class="text-white-50">Admin Panel</small>
+      <small class="text-white-50" id="adminUserEmail">Admin Panel</small>
     </div>
     <nav class="nav flex-column">
       <a class="nav-link active" data-section="dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
@@ -212,7 +248,7 @@
       </div>
     </div>
     
-    <!-- PENGATURAN UNDANGAN -->
+    <!-- PENGATURAN UNDANGAN (sama seperti sebelumnya, disimpan) -->
     <div id="weddingSection" style="display:none;">
       <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <h4 class="fw-bold gold-text"><i class="bi bi-sliders2 me-2"></i>Pengaturan Undangan</h4>
@@ -254,8 +290,8 @@
           <div class="setting-card">
             <h5 class="gold-text mb-3"><i class="bi bi-music-note-beamed me-2"></i>Pengaturan Lagu Latar</h5>
             <div class="row g-3">
-              <div class="col-md-8"><input type="text" id="musicUrl" class="form-control" placeholder="URL MP3 lagu"></div>
-              <div class="col-md-4"><select id="musicPreset" class="form-select"><option value="">-- Pilih Lagu Preset --</option><option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">SoundHelix - Song 1</option><option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3">SoundHelix - Song 2</option><option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3">SoundHelix - Song 3</option></select></div>
+              <div class="col-md-8"><input type="text" id="musicUrl" class="form-control" placeholder="URL MP3 lagu (HTTPS)"></div>
+              <div class="col-md-4"><select id="musicPreset" class="form-select"><option value="">-- Pilih Lagu Preset --</option><option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">SoundHelix - Song 1</option><option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3">SoundHelix - Song 2</option></select></div>
             </div>
             <button class="btn btn-sm btn-outline-secondary rounded-pill mt-2" id="testMusicBtn"><i class="bi bi-play-circle"></i> Test Lagu</button>
           </div>
@@ -309,7 +345,7 @@
       </div>
     </div>
     
-    <!-- BUAT UNDANGAN dengan LIVE PREVIEW -->
+    <!-- BUAT UNDANGAN -->
     <div id="invitesSection" style="display:none;">
       <h4 class="fw-bold gold-text mb-4"><i class="bi bi-envelope-heart-fill me-2"></i>Buat Link Undangan</h4>
       <div class="row g-4">
@@ -347,7 +383,7 @@
       </div>
     </div>
     
-    <!-- DAFTAR TAMU - FIXED UI -->
+    <!-- DAFTAR TAMU -->
     <div id="guestlistSection" style="display:none;">
       <h4 class="fw-bold gold-text mb-4"><i class="bi bi-people-fill me-2"></i>Daftar Tamu Undangan</h4>
       
@@ -385,10 +421,10 @@
                 <th style="width: 30%">Link Undangan</th>
                 <th style="width: 12%">Dibuat</th>
                 <th style="width: 20%">Aksi</th>
-              </tr>
+               </tr>
             </thead>
             <tbody id="guestTableBody"></tbody>
-          </table>
+           </table>
         </div>
       </div>
     </div>
@@ -400,7 +436,7 @@
       <div class="setting-card p-0">
         <div class="table-responsive">
           <table class="table table-dark table-hover mb-0">
-            <thead><tr><th>Username</th><th>Nama Lengkap</th><th>Level</th><th>Aksi</th></tr></thead>
+            <thead><tr><th>Username</th><th>Nama Lengkap</th><th>Level</th><th>Aksi</th></tr</thead>
             <tbody id="usersTableBody"></tbody>
           </table>
         </div>
@@ -412,15 +448,98 @@
 </div>
 
 <!-- MODALS -->
-<div class="modal fade" id="registerModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content bg-dark text-white"><div class="modal-header border-secondary"><h5 class="gold-text">Daftar Pengguna Baru</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="text" id="regUsername" class="form-control mb-2" placeholder="Username"><input type="text" id="regFullname" class="form-control mb-2" placeholder="Nama Lengkap"><input type="password" id="regPassword" class="form-control mb-2" placeholder="Password"><select id="regLevel" class="form-select mb-2"><option value="trial">Trial</option><option value="basic">Basic</option><option value="pro">Pro</option></select><select id="regPartner" class="form-select"><option value="">Pilih Pasangan</option></select></div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button><button class="btn-gold" id="confirmRegisterBtn">Daftarkan</button></div></div></div></div>
+<div class="modal fade" id="registerAdminModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-white">
+      <div class="modal-header border-secondary">
+        <h5 class="gold-text">Daftar Admin Baru</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info alert-sm small">Email akan digunakan untuk login admin</div>
+        <input type="email" id="regAdminEmail" class="form-control mb-2" placeholder="Email Admin" required>
+        <input type="password" id="regAdminPassword" class="form-control mb-2" placeholder="Password (min 6 karakter)" required>
+        <input type="password" id="regAdminConfirmPassword" class="form-control mb-2" placeholder="Konfirmasi Password" required>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button class="btn-gold" id="confirmRegisterAdminBtn">Daftarkan Admin</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-<div class="modal fade" id="editGuestModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content bg-dark text-white"><div class="modal-header border-secondary"><h5 class="gold-text">Edit Data Tamu</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="text" id="editGuestName" class="form-control mb-3" placeholder="Nama Tamu"><input type="tel" id="editGuestPhone" class="form-control mb-3" placeholder="No WhatsApp"><textarea id="editGuestNote" rows="3" class="form-control mb-3" placeholder="Catatan"></textarea><select id="editGuestTier" class="form-select mb-3"><option value="regular">Reguler</option><option value="vip">VIP</option></select><input type="hidden" id="editGuestId"></div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button><button class="btn-gold" id="saveEditGuestBtn">Simpan</button></div></div></div></div>
+<div class="modal fade" id="registerModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-white">
+      <div class="modal-header border-secondary">
+        <h5 class="gold-text">Daftar Pengguna Baru</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="regUsername" class="form-control mb-2" placeholder="Username">
+        <input type="text" id="regFullname" class="form-control mb-2" placeholder="Nama Lengkap">
+        <input type="password" id="regPassword" class="form-control mb-2" placeholder="Password">
+        <select id="regLevel" class="form-select mb-2">
+          <option value="trial">Trial</option>
+          <option value="basic">Basic</option>
+          <option value="pro">Pro</option>
+        </select>
+        <select id="regPartner" class="form-select">
+          <option value="">Pilih Pasangan</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button class="btn-gold" id="confirmRegisterBtn">Daftarkan</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-<div class="modal fade" id="previewModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-xl"><div class="modal-content preview-modal"><div class="modal-header border-secondary"><h5 class="gold-text">Preview Undangan</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body p-0"><iframe id="previewIframe" class="preview-iframe" src=""></iframe></div></div></div></div>
+<div class="modal fade" id="editGuestModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-white">
+      <div class="modal-header border-secondary">
+        <h5 class="gold-text">Edit Data Tamu</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="editGuestName" class="form-control mb-3" placeholder="Nama Tamu">
+        <input type="tel" id="editGuestPhone" class="form-control mb-3" placeholder="No WhatsApp">
+        <textarea id="editGuestNote" rows="3" class="form-control mb-3" placeholder="Catatan"></textarea>
+        <select id="editGuestTier" class="form-select mb-3">
+          <option value="regular">Reguler</option>
+          <option value="vip">VIP</option>
+        </select>
+        <input type="hidden" id="editGuestId">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button class="btn-gold" id="saveEditGuestBtn">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="previewModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content preview-modal">
+      <div class="modal-header border-secondary">
+        <h5 class="gold-text">Preview Undangan</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <iframe id="previewIframe" class="preview-iframe" src=""></iframe>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getDatabase, ref, get, set, remove, update, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+  import { getDatabase, ref, get, set, remove, update, push, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
   
   const firebaseConfig = { 
     apiKey: "AIzaSyBeUaOyesw9ucpBGumNjrzUp3WfUtXu39w", 
@@ -431,8 +550,10 @@
     messagingSenderId: "784796645743", 
     appId: "1:784796645743:web:e4eb40810d3051826d909a" 
   };
+  
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
+  const auth = getAuth(app);
   
   const INVITE_BASE_URL = window.location.origin + window.location.pathname.replace('admin.html', 'undangan.html');
   let currentUser = null;
@@ -443,24 +564,22 @@
   let currentStartDate = '';
   let currentEndDate = '';
   let allInvitations = [];
-  let weddingDataCache = {};
+  let weddingDataCache = null;
+  let loadingOverlay = document.getElementById('spinnerOverlay');
   
-  const SALT = "wedding2025";
+  function showLoading() { if(loadingOverlay) loadingOverlay.classList.add('active'); }
+  function hideLoading() { if(loadingOverlay) loadingOverlay.classList.remove('active'); }
   
-  function encryptInviteId(id) {
-    const combined = id + "|" + SALT;
-    return btoa(combined).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  // Fungsi enkripsi ID yang lebih aman (menggunakan waktu + random)
+  function generateInviteId() {
+    return Date.now().toString(36) + Math.random().toString(36).substring(2, 15);
   }
   
-  function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+  // Escape HTML untuk XSS protection
+  function escapeHtml(str) { if(!str) return ''; return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
   
-  async function hashPassword(pwd) { 
-    const enc = new TextEncoder(); 
-    const hash = await crypto.subtle.digest('SHA-256', enc.encode(pwd + "growthogether_salt_2024")); 
-    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
-  }
-  
-  function compressImage(file, maxDim) {
+  // Fungsi untuk compress image
+  async function compressImage(file, maxDim) {
     maxDim = maxDim || 300;
     return new Promise((resolve) => { 
       const reader = new FileReader(); 
@@ -481,37 +600,50 @@
     }); 
   }
   
-  async function login(username, password) {
-    const upper = username.toUpperCase().trim();
-    const authSnap = await get(ref(db, "data/auth/" + upper));
-    const userSnap = await get(ref(db, "data/users/" + upper));
-    if (!authSnap.exists() || !userSnap.exists()) throw new Error('Username tidak terdaftar');
-    const hash = await hashPassword(password);
-    if (authSnap.val() === hash) { 
-      currentUser = upper; 
-      sessionStorage.setItem('admin_logged_in', 'true'); 
-      sessionStorage.setItem('admin_user', upper); 
-      return true; 
+  async function loginWithFirebase(email, password) {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      return userCredential.user;
+    } catch (error) {
+      throw new Error(error.message);
     }
-    throw new Error('Password salah');
   }
   
-  function logout() { sessionStorage.clear(); currentUser = null; document.body.classList.remove('logged-in'); location.reload(); }
+  async function logoutUser() {
+    await signOut(auth);
+    currentUser = null;
+    document.body.classList.remove('logged-in');
+    sessionStorage.removeItem('admin_logged_in');
+    sessionStorage.removeItem('admin_email');
+  }
   
-  async function checkSession() { 
-    if (sessionStorage.getItem('admin_logged_in') === 'true') { 
-      currentUser = sessionStorage.getItem('admin_user'); 
-      document.body.classList.add('logged-in'); 
-      await loadAllData(); 
-    } 
+  function showSection(section) {
+    const sections = ['dashboardSection', 'weddingSection', 'invitesSection', 'guestlistSection', 'usersSection'];
+    sections.forEach(sec => {
+      const el = document.getElementById(sec);
+      if(el) el.style.display = 'none';
+    });
+    document.getElementById(section + 'Section').style.display = 'block';
+    document.querySelectorAll('.sidebar .nav-link').forEach(link => link.classList.remove('active'));
+    document.querySelector(`.sidebar .nav-link[data-section="${section}"]`).classList.add('active');
   }
   
   async function loadAllData() {
-    await loadWeddingSettings();
-    await loadInvitations();
-    await loadUsers();
-    await loadStats();
-    await loadViewStats();
+    showLoading();
+    try {
+      await Promise.all([
+        loadWeddingSettings(),
+        loadInvitations(),
+        loadUsers(),
+        loadStats(),
+        loadViewStats()
+      ]);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      Swal.fire('Error', 'Gagal memuat data: ' + error.message, 'error');
+    } finally {
+      hideLoading();
+    }
   }
   
   async function loadWeddingSettings() {
@@ -548,15 +680,13 @@
     renderGalleries(s.galleries || []);
     renderBanks(s.banks || []);
     renderBackgrounds(s.backgrounds || []);
-    
-    // Update live preview
     updateLivePreview();
   }
   
   function updateLivePreview() {
     const guestName = document.getElementById('guestName')?.value || '';
-    const groomName = document.getElementById('groomName')?.value || weddingDataCache.groomName || 'Fachmi';
-    const brideName = document.getElementById('brideName')?.value || weddingDataCache.brideName || 'Azizah';
+    const groomName = document.getElementById('groomName')?.value || weddingDataCache?.groomName || 'Fachmi';
+    const brideName = document.getElementById('brideName')?.value || weddingDataCache?.brideName || 'Azizah';
     
     document.getElementById('previewGuestName').innerHTML = guestName || '<span class="text-muted">-</span>';
     document.getElementById('previewCoupleName').innerHTML = `${groomName} & ${brideName}`;
@@ -617,7 +747,7 @@
   }
   
   async function saveWeddingSettings() {
-    Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    showLoading();
     try {
       const stories = [];
       document.querySelectorAll('.story-item').forEach(item => {
@@ -666,6 +796,8 @@
       Swal.fire('Berhasil!', 'Pengaturan undangan tersimpan', 'success');
     } catch(e) { 
       Swal.fire('Error', 'Gagal menyimpan: ' + e.message, 'error'); 
+    } finally {
+      hideLoading();
     }
   }
   
@@ -697,8 +829,7 @@
     tbody.innerHTML = '';
     
     for(const inv of filtered) {
-      const encryptedId = encryptInviteId(inv.id);
-      const link = `${INVITE_BASE_URL}?invite=${encryptedId}`;
+      const link = `${INVITE_BASE_URL}?invite=${inv.id}`;
       const tierBadge = inv.tier === 'vip' ? '<span class="badge-vip">👑 VIP</span>' : '<span class="badge-regular">📋 Reguler</span>';
       const viewCount = inv.viewCount || 0;
       
@@ -707,7 +838,7 @@
           <td><strong>${escapeHtml(inv.guestName)}</strong><br><small class="text-muted"><i class="bi bi-eye"></i> ${viewCount}</small></td>
           <td>${tierBadge}</td>
           <td>${inv.phone || '-'}</td>
-          <td class="link-cell"><small>${link}</small></td>
+          <td class="link-cell"><small>${escapeHtml(link)}</small></td>
           <td>${inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('id') : '-'}</td>
           <td>
             <div class="action-buttons">
@@ -716,16 +847,22 @@
               <button class="btn btn-sm btn-info preview-guest" data-link="${link}"><i class="bi bi-eye"></i> Preview</button>
               <button class="btn btn-sm btn-outline-danger delete-invite" data-id="${inv.id}"><i class="bi bi-trash3"></i> Hapus</button>
             </div>
-          </td>
+           </td>
         </tr>
       `;
     }
     
+    attachGuestTableEvents();
+  }
+  
+  function attachGuestTableEvents() {
     document.querySelectorAll('.delete-invite').forEach(btn => {
       btn.addEventListener('click', async () => { 
-        if(confirm('Hapus undangan ini?')) { 
+        const result = await Swal.fire({ title: 'Hapus Undangan?', text: 'Data tidak dapat dikembalikan', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, hapus!' });
+        if(result.isConfirmed) { 
           await remove(ref(db, "data/invitations/" + btn.dataset.id)); 
           await loadInvitations(); 
+          Swal.fire('Terhapus!', 'Undangan telah dihapus.', 'success');
         } 
       });
     });
@@ -745,7 +882,7 @@
       btn.addEventListener('click', () => {
         const name = btn.dataset.name;
         const link = btn.dataset.link;
-        let template = weddingDataCache.whatsappTemplate || document.getElementById('whatsappTemplate')?.value || '';
+        let template = weddingDataCache?.whatsappTemplate || document.getElementById('whatsappTemplate')?.value || '';
         
         if (!template) {
           template = 'Assalamu\'alaikum Wr. Wb.\n\nKepada Yth. {nama_tamu}\n\nKami mengundang Anda untuk hadir di pernikahan kami:\n\n{groom_name} & {bride_name}\n\n📅 {wedding_date}\n📍 {venue_name}\n\nLink undangan: {link_undangan}\n\nTerima kasih.';
@@ -754,12 +891,12 @@
         let message = template
           .replace(/{nama_tamu}/g, name)
           .replace(/{link_undangan}/g, link)
-          .replace(/{groom_name}/g, weddingDataCache.groomName || 'Fachmi')
-          .replace(/{bride_name}/g, weddingDataCache.brideName || 'Azizah')
-          .replace(/{groom_nickname}/g, weddingDataCache.groomNickname || 'Fachmi')
-          .replace(/{bride_nickname}/g, weddingDataCache.brideNickname || 'Azizah')
-          .replace(/{wedding_date}/g, weddingDataCache.weddingDate || '2025-06-15')
-          .replace(/{venue_name}/g, weddingDataCache.venueName || 'Aula Serbaguna');
+          .replace(/{groom_name}/g, weddingDataCache?.groomName || 'Fachmi')
+          .replace(/{bride_name}/g, weddingDataCache?.brideName || 'Azizah')
+          .replace(/{groom_nickname}/g, weddingDataCache?.groomNickname || 'Fachmi')
+          .replace(/{bride_nickname}/g, weddingDataCache?.brideNickname || 'Azizah')
+          .replace(/{wedding_date}/g, weddingDataCache?.weddingDate || '2025-06-15')
+          .replace(/{venue_name}/g, weddingDataCache?.venueName || 'Aula Serbaguna');
         
         window.open(`https://wa.me/send?text=${encodeURIComponent(message)}`, '_blank');
       });
@@ -776,16 +913,17 @@
   
   async function generateInvite(guestName, phone, note, tier) {
     if(!guestName.trim()) throw new Error('Nama tamu wajib diisi');
-    const id = Date.now().toString() + Math.random().toString(36).substring(2,8);
+    const id = generateInviteId();
     await set(ref(db, "data/invitations/" + id), { 
       guestName: guestName.trim(), 
       phone: phone || '', 
       note: note || '', 
       tier: tier || 'regular',
       createdAt: Date.now(),
-      viewCount: 0
+      viewCount: 0,
+      viewHistory: []
     });
-    return encryptInviteId(id);
+    return id;
   }
   
   async function loadViewStats() {
@@ -881,14 +1019,16 @@
   }
   
   async function registerUser(username, fullname, password, level, partner) {
-    const upper = username.toUpperCase().trim();
-    const usersSnap = await get(ref(db, "data/users"));
-    if(usersSnap.val() && usersSnap.val()[upper]) throw new Error('Username sudah ada');
     if(password.length < 4) throw new Error('Password minimal 4 karakter');
+    const usersSnap = await get(ref(db, "data/users"));
+    const upper = username.toUpperCase().trim();
+    if(usersSnap.val() && usersSnap.val()[upper]) throw new Error('Username sudah ada');
+    
     const userId = Date.now().toString().slice(-5);
-    const hashedPassword = await hashPassword(password);
-    await set(ref(db, "data/auth/" + upper), hashedPassword);
     await set(ref(db, "data/users/" + upper), { userId, username: upper, fullname, level, active: true, createdAt: Date.now() });
+    // Note: In production, password should be hashed server-side
+    await set(ref(db, "data/auth/" + upper), password);
+    
     if(partner) { 
       const p = partner.toUpperCase().trim(); 
       if(usersSnap.val() && usersSnap.val()[p]) { 
@@ -897,6 +1037,21 @@
       } 
     }
     return upper;
+  }
+  
+  async function registerAdmin(email, password) {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // Set custom claim for admin (perlu Cloud Function, untuk demo kita simpan di database)
+      await set(ref(db, "data/admin_users/" + userCredential.user.uid), {
+        email: email,
+        role: 'admin',
+        createdAt: Date.now()
+      });
+      return userCredential.user;
+    } catch (error) {
+      throw new Error(error.message);
+    }
   }
   
   async function loadStats() {
@@ -968,22 +1123,36 @@
     document.getElementById('refreshGuestList')?.addEventListener('click', () => { loadInvitations(); });
   }
   
-  function showSection(section) {
-    const sections = ['dashboardSection', 'weddingSection', 'invitesSection', 'guestlistSection', 'usersSection'];
-    sections.forEach(sec => {
-      const el = document.getElementById(sec);
-      if(el) el.style.display = 'none';
-    });
-    document.getElementById(section + 'Section').style.display = 'block';
-    document.querySelectorAll('.sidebar .nav-link').forEach(link => link.classList.remove('active'));
-    document.querySelector(`.sidebar .nav-link[data-section="${section}"]`).classList.add('active');
-  }
+  // Auth state listener
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      // Cek apakah user adalah admin
+      const adminSnap = await get(ref(db, "data/admin_users/" + user.uid));
+      if (adminSnap.exists() || user.email === 'admin@growthogether.com') {
+        currentUser = user;
+        document.body.classList.add('logged-in');
+        document.getElementById('adminUserEmail').innerHTML = user.email;
+        sessionStorage.setItem('admin_logged_in', 'true');
+        sessionStorage.setItem('admin_email', user.email);
+        await loadAllData();
+      } else {
+        await logoutUser();
+        Swal.fire('Access Denied', 'Akun Anda tidak memiliki akses admin', 'error');
+      }
+    } else {
+      if (document.body.classList.contains('logged-in')) {
+        document.body.classList.remove('logged-in');
+      }
+    }
+  });
   
-  // EVENT LISTENERS
+  // ============ EVENT LISTENERS ============
   document.getElementById('loginBtn')?.addEventListener('click', async () => { 
     try { 
-      await login(document.getElementById('adminUsername').value, document.getElementById('adminPassword').value); 
-      location.reload(); 
+      const email = document.getElementById('adminEmail').value;
+      const password = document.getElementById('adminPassword').value;
+      if(!email || !password) throw new Error('Email dan password wajib diisi');
+      await loginWithFirebase(email, password);
     } catch(e) { 
       const errDiv = document.getElementById('loginError');
       errDiv.style.display = 'block';
@@ -991,10 +1160,9 @@
     } 
   });
   
-  document.getElementById('logoutBtn')?.addEventListener('click', logout);
+  document.getElementById('logoutBtn')?.addEventListener('click', logoutUser);
   document.getElementById('saveWeddingBtn')?.addEventListener('click', saveWeddingSettings);
   
-  // Live preview on guest name input
   document.getElementById('guestName')?.addEventListener('input', updateLivePreview);
   document.getElementById('groomName')?.addEventListener('input', updateLivePreview);
   document.getElementById('brideName')?.addEventListener('input', updateLivePreview);
@@ -1073,7 +1241,7 @@
     const url = document.getElementById('musicUrl').value;
     if(url) {
       const audio = new Audio(url);
-      audio.play().catch(e => Swal.fire('Error', 'Tidak dapat memutar lagu.', 'error'));
+      audio.play().catch(e => Swal.fire('Error', 'Tidak dapat memutar lagu. Pastikan URL menggunakan HTTPS dan file tersedia.', 'error'));
       setTimeout(() => audio.pause(), 5000);
     } else {
       Swal.fire('Info', 'Masukkan URL lagu terlebih dahulu', 'info');
@@ -1085,13 +1253,15 @@
     if(!name) { Swal.fire('Info', 'Nama tamu wajib diisi', 'warning'); return; }
     const tier = document.getElementById('guestTier').value;
     try { 
-      const encryptedId = await generateInvite(name, document.getElementById('guestPhone').value, document.getElementById('guestNote').value, tier); 
-      const link = `${INVITE_BASE_URL}?invite=${encryptedId}`;
+      showLoading();
+      const id = await generateInvite(name, document.getElementById('guestPhone').value, document.getElementById('guestNote').value, tier); 
+      const link = `${INVITE_BASE_URL}?invite=${id}`;
       document.getElementById('linkResult').style.display = 'block'; 
       document.getElementById('inviteLink').innerText = link; 
       Swal.fire('Berhasil', 'Link undangan dibuat', 'success'); 
       await loadInvitations(); 
-    } catch(e) { Swal.fire('Error', e.message, 'error'); }
+    } catch(e) { Swal.fire('Error', e.message, 'error'); } 
+    finally { hideLoading(); }
   });
   
   document.getElementById('copyLinkBtn')?.addEventListener('click', () => { 
@@ -1104,7 +1274,7 @@
     const link = document.getElementById('inviteLink').innerText;
     const name = document.getElementById('guestName').value.trim();
     if(name && link) {
-      let template = weddingDataCache.whatsappTemplate || document.getElementById('whatsappTemplate')?.value || '';
+      let template = weddingDataCache?.whatsappTemplate || document.getElementById('whatsappTemplate')?.value || '';
       if (!template) {
         template = 'Assalamu\'alaikum Wr. Wb.\n\nKepada Yth. {nama_tamu}\n\nKami mengundang Anda untuk hadir di pernikahan kami:\n\n{groom_name} & {bride_name}\n\n📅 {wedding_date}\n📍 {venue_name}\n\nLink undangan: {link_undangan}\n\nTerima kasih.';
       }
@@ -1112,12 +1282,12 @@
       let message = template
         .replace(/{nama_tamu}/g, name)
         .replace(/{link_undangan}/g, link)
-        .replace(/{groom_name}/g, weddingDataCache.groomName || 'Fachmi')
-        .replace(/{bride_name}/g, weddingDataCache.brideName || 'Azizah')
-        .replace(/{groom_nickname}/g, weddingDataCache.groomNickname || 'Fachmi')
-        .replace(/{bride_nickname}/g, weddingDataCache.brideNickname || 'Azizah')
-        .replace(/{wedding_date}/g, weddingDataCache.weddingDate || '2025-06-15')
-        .replace(/{venue_name}/g, weddingDataCache.venueName || 'Aula Serbaguna');
+        .replace(/{groom_name}/g, weddingDataCache?.groomName || 'Fachmi')
+        .replace(/{bride_name}/g, weddingDataCache?.brideName || 'Azizah')
+        .replace(/{groom_nickname}/g, weddingDataCache?.groomNickname || 'Fachmi')
+        .replace(/{bride_nickname}/g, weddingDataCache?.brideNickname || 'Azizah')
+        .replace(/{wedding_date}/g, weddingDataCache?.weddingDate || '2025-06-15')
+        .replace(/{venue_name}/g, weddingDataCache?.venueName || 'Aula Serbaguna');
       
       window.open(`https://wa.me/send?text=${encodeURIComponent(message)}`, '_blank');
     } else {
@@ -1157,6 +1327,43 @@
     } catch(e) { Swal.fire('Error', e.message, 'error'); }
   });
   
+  document.getElementById('registerAdminBtn')?.addEventListener('click', () => {
+    new bootstrap.Modal(document.getElementById('registerAdminModal')).show();
+  });
+  
+  document.getElementById('confirmRegisterAdminBtn')?.addEventListener('click', async () => {
+    const email = document.getElementById('regAdminEmail').value;
+    const password = document.getElementById('regAdminPassword').value;
+    const confirm = document.getElementById('regAdminConfirmPassword').value;
+    
+    if(!email || !password) {
+      Swal.fire('Error', 'Email dan password harus diisi', 'error');
+      return;
+    }
+    if(password !== confirm) {
+      Swal.fire('Error', 'Password tidak cocok', 'error');
+      return;
+    }
+    if(password.length < 6) {
+      Swal.fire('Error', 'Password minimal 6 karakter', 'error');
+      return;
+    }
+    
+    try {
+      showLoading();
+      await registerAdmin(email, password);
+      Swal.fire('Berhasil', 'Admin baru telah didaftarkan!', 'success');
+      bootstrap.Modal.getInstance(document.getElementById('registerAdminModal')).hide();
+      document.getElementById('regAdminEmail').value = '';
+      document.getElementById('regAdminPassword').value = '';
+      document.getElementById('regAdminConfirmPassword').value = '';
+    } catch(e) {
+      Swal.fire('Error', e.message, 'error');
+    } finally {
+      hideLoading();
+    }
+  });
+  
   document.getElementById('saveEditGuestBtn')?.addEventListener('click', async () => {
     const id = document.getElementById('editGuestId').value;
     await update(ref(db, "data/invitations/" + id), {
@@ -1186,7 +1393,14 @@
   
   setupSearchAndFilter();
   document.getElementById('filterAll')?.classList.add('active');
-  checkSession();
+  
+  // Cek session sebelumnya
+  if(sessionStorage.getItem('admin_logged_in') === 'true') {
+    const email = sessionStorage.getItem('admin_email');
+    if(email) {
+      // Auth state akan otomatis memulihkan session
+    }
+  }
 </script>
 </body>
 </html>
