@@ -104,7 +104,6 @@
     .cd-item { background: rgba(255,255,255,0.1); backdrop-filter: blur(12px); border-radius: 20px; padding: 8px 18px; min-width: 75px; border: 1px solid rgba(201,160,61,0.4); text-align: center; }
     .cd-number { font-size: 2rem; font-weight: 700; color: #c9a03d; line-height: 1; font-family: 'Playfair Display', serif; }
     .cd-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.8); }
-    @media (max-width: 576px) { .cd-item { padding: 5px 12px; min-width: 60px; } .cd-number { font-size: 1.3rem; } }
     
     .timeline-wrapper { position: relative; padding-left: 30px; }
     .timeline-wrapper::before { content: ''; position: absolute; left: 20px; top: 10px; bottom: 10px; width: 2px; background: linear-gradient(to bottom, #c9a03d, rgba(201,160,61,0.1)); }
@@ -146,9 +145,6 @@
       line-height: 1.8;
       direction: rtl;
       text-align: center;
-    }
-    @media (max-width: 576px) {
-      .arabic-text { font-size: 1rem; }
     }
     
     .bottom-nav { 
@@ -206,6 +202,16 @@
       transition: opacity 0.5s;
     }
     
+    /* Animasi untuk pesan */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .message-card {
+      animation: fadeIn 0.3s ease-out;
+    }
+    
+    /* Responsive untuk HP kecil */
     @media (max-width: 576px) { 
       .container { padding-left: 16px; padding-right: 16px; } 
       .timeline-wrapper { padding-left: 15px; } 
@@ -214,6 +220,19 @@
       .gallery-grid { gap: 12px; }
       .section-title::before, .section-title::after { display: none; }
       .rsvp-btn { padding: 8px 16px; font-size: 0.9rem; }
+      .countdown-elegant { gap: 6px; }
+      .cd-item { padding: 4px 8px; min-width: 50px; }
+      .cd-number { font-size: 1rem; }
+      .cd-label { font-size: 0.6rem; }
+      .btn-gold { padding: 8px 20px; font-size: 0.9rem; }
+      .guest-badge { padding: 4px 16px; font-size: 0.85rem; }
+    }
+    
+    @media (max-width: 480px) {
+      .countdown-elegant { gap: 4px; }
+      .cd-item { padding: 3px 6px; min-width: 45px; }
+      .cd-number { font-size: 0.8rem; }
+      .cd-label { font-size: 0.5rem; }
     }
     
     .preserve-line {
@@ -480,17 +499,14 @@
     
     console.log('Processing maps URL:', url);
     
-    // Jika sudah dalam format embed, kembalikan langsung
     if (url.includes('/embed?')) {
       return url;
     }
     
-    // Format 1: https://maps.app.goo.gl/xxxxx (short link)
     if (url.includes('maps.app.goo.gl')) {
       return url;
     }
     
-    // Format 2: https://www.google.com/maps/place/Lokasi/@lat,lng,zoomz
     if (url.includes('/place/')) {
       const match = url.match(/@([-\d.]+),([-\d.]+)/);
       if (match) {
@@ -500,7 +516,6 @@
       }
     }
     
-    // Format 3: https://www.google.com/maps/@lat,lng,zoomz
     if (url.includes('/@')) {
       const match = url.match(/@([-\d.]+),([-\d.]+)/);
       if (match) {
@@ -510,7 +525,6 @@
       }
     }
     
-    // Format 4: https://www.google.com/maps/search/?api=1&query=lat,lng
     if (url.includes('query=')) {
       const match = url.match(/query=([-\d.]+),([-\d.]+)/);
       if (match) {
@@ -520,12 +534,49 @@
       }
     }
     
-    // Format 5: Jika tidak ada format yang cocok, gunakan q dengan alamat
     if (url && url !== '#' && url !== 'https://maps.google.com') {
       return `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966!2d0!3d0!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2z${encodeURIComponent(url)}!5e0!3m2!1sen!2sid!4v1`;
     }
     
     return '';
+  }
+  
+  // Fungsi share undangan
+  function addShareButton() {
+    if (document.getElementById('shareInviteBtn')) return;
+    
+    const shareContainer = document.createElement('div');
+    shareContainer.className = 'text-center mt-3';
+    shareContainer.innerHTML = `
+      <button class="btn-outline-gold" id="shareInviteBtn" style="padding: 6px 20px; font-size: 0.85rem;">
+        <i class="bi bi-share-fill me-2"></i> Bagikan Undangan
+      </button>
+    `;
+    
+    const heroContainer = document.querySelector('.hero-overlay .container');
+    if (heroContainer) {
+      heroContainer.appendChild(shareContainer);
+    }
+    
+    const shareBtn = document.getElementById('shareInviteBtn');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', async () => {
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: 'Undangan Pernikahan',
+              text: `Kepada Yth. ${guestName}`,
+              url: window.location.href
+            });
+          } catch(e) {
+            console.log('Share cancelled');
+          }
+        } else {
+          await navigator.clipboard.writeText(window.location.href);
+          Swal.fire('Tersalin!', 'Link undangan telah disalin ke clipboard', 'success');
+        }
+      });
+    }
   }
   
   async function loadWeddingData() {
@@ -550,7 +601,6 @@
         if(!weddingData[key]) weddingData[key] = defaults[key]; 
       }
       
-      // Get guest name and update view count
       if (inviteId && !isPreview) {
         currentInviteId = inviteId;
         const inviteSnap = await get(ref(db, "data/invitations/" + inviteId));
@@ -684,7 +734,6 @@
   }
   
   function renderAllSections() {
-    // Update texts
     document.getElementById('coupleNames').innerHTML = (weddingData.groomNickname || weddingData.groomName) + ' & ' + (weddingData.brideNickname || weddingData.brideName);
     document.getElementById('guestNameDisplay').innerHTML = escapeHtml(guestName);
     document.getElementById('footerText').innerHTML = escapeHtml(weddingData.groomName) + ' & ' + escapeHtml(weddingData.brideName);
@@ -695,7 +744,6 @@
     document.getElementById('weddingClosingText').innerHTML = weddingData.weddingClosingText.replace(/\n/g, '<br>');
     document.getElementById('signatureNames').innerHTML = `Kami yang berbahagia<br>${escapeHtml(weddingData.groomName)} & ${escapeHtml(weddingData.brideName)}`;
     
-    // Mempelai
     document.getElementById('mempelaiContent').innerHTML = 
       '<div class="col-md-6 text-center" data-aos="fade-right"><div class="photo-frame"><img src="' + (weddingData.bridePhoto || 'https://randomuser.me/api/portraits/women/68.jpg') + '"></div><div class="luxury-card mt-4"><h3 class="gold-text">' + escapeHtml(weddingData.brideName) + '</h3><p class="small text-white-50">Putri dari</p><h5>' + escapeHtml(weddingData.brideFather) + ' & ' + escapeHtml(weddingData.brideMother) + '</h5></div></div>' +
       '<div class="col-md-6 text-center" data-aos="fade-left"><div class="photo-frame"><img src="' + (weddingData.groomPhoto || 'https://randomuser.me/api/portraits/men/32.jpg') + '"></div><div class="luxury-card mt-4"><h3 class="gold-text">' + escapeHtml(weddingData.groomName) + '</h3><p class="small text-white-50">Putra dari</p><h5>' + escapeHtml(weddingData.groomFather) + ' & ' + escapeHtml(weddingData.groomMother) + '</h5></div></div>';
@@ -703,7 +751,6 @@
     document.getElementById('weddingInfo').innerHTML = 
       '<i class="bi bi-calendar-heart fs-2 gold-text"></i><p class="mt-2">Insya Allah akan diselenggarakan pada:</p><h4 class="fw-bold">' + formatDate(weddingData.weddingDate) + '</h4><div class="gold-text mt-2">' + escapeHtml(weddingData.venueName) + '<br>' + escapeHtml(weddingData.venueAddress) + '</div>';
     
-    // Stories
     var stories = weddingData.stories || [];
     var storiesHtml = '';
     for(var i = 0; i < stories.length; i++) {
@@ -712,12 +759,10 @@
     }
     document.getElementById('storyList').innerHTML = storiesHtml || '<div class="text-center text-muted py-5"><i class="bi bi-emoji-smile fs-1"></i><p>Belum ada cerita</p></div>';
     
-    // Acara
     document.getElementById('acaraContent').innerHTML = 
       '<div class="col-md-6" data-aos="fade-right"><div class="luxury-card text-center"><i class="bi bi-ring-fill fs-1 gold-text"></i><h4 class="mt-2">Akad Nikah</h4><div>📅 ' + formatDate(weddingData.weddingDate) + '</div><div class="fs-4 fw-semibold mt-2">' + (weddingData.akadTime || '09:00') + ' WIB</div><div class="small mt-2">' + escapeHtml(weddingData.venueName) + '<br>' + escapeHtml(weddingData.venueAddress) + '</div></div></div>' +
       '<div class="col-md-6" data-aos="fade-left"><div class="luxury-card text-center"><i class="bi bi-cake2-fill fs-1 gold-text"></i><h4 class="mt-2">Resepsi</h4><div>📅 ' + formatDate(weddingData.weddingDate) + '</div><div class="fs-4 fw-semibold mt-2">' + (weddingData.receptionTime || '12:00') + ' WIB - Selesai</div><div class="small mt-2">' + escapeHtml(weddingData.venueName) + '<br>' + escapeHtml(weddingData.venueAddress) + '</div></div></div>';
     
-    // Map - Perbaikan untuk membaca Google Maps link
     let mapsEmbedUrl = '';
     let mapsDirectUrl = '';
     
@@ -725,20 +770,15 @@
       mapsDirectUrl = weddingData.mapsLink;
       mapsEmbedUrl = getGoogleMapsEmbedUrl(weddingData.mapsLink);
     } else {
-      // Fallback ke venue address
       const addressQuery = encodeURIComponent(weddingData.venueAddress || weddingData.venueName || '');
       mapsDirectUrl = `https://maps.google.com/?q=${addressQuery}`;
       mapsEmbedUrl = `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966!2d0!3d0!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2z${addressQuery}!5e0!3m2!1sen!2sid!4v1`;
     }
     
-    console.log('Final map embed URL:', mapsEmbedUrl);
-    console.log('Final map direct URL:', mapsDirectUrl);
-    
     const mapIframe = document.getElementById('googleMap');
     if (mapsEmbedUrl && mapsEmbedUrl !== '' && mapsEmbedUrl !== '#') {
       mapIframe.src = mapsEmbedUrl;
     } else {
-      // Fallback jika tidak ada URL yang valid
       const fallbackAddress = encodeURIComponent(weddingData.venueAddress || weddingData.venueName || '');
       mapIframe.src = `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966!2d0!3d0!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2z${fallbackAddress}!5e0!3m2!1sen!2sid!4v1`;
     }
@@ -753,7 +793,6 @@
     };
     document.getElementById('saveCalendarBtn').onclick = saveToCalendar;
     
-    // Gallery
     var galleries = weddingData.galleries || [];
     var galleriesHtml = '';
     for(var j = 0; j < galleries.length; j++) {
@@ -761,7 +800,6 @@
     }
     document.getElementById('galleryList').innerHTML = galleriesHtml || '<div class="text-center text-muted py-5"><i class="bi bi-images fs-1"></i><p>Belum ada foto</p></div>';
     
-    // Gallery click
     var galleryItems = document.querySelectorAll('.gallery-item');
     var modal = new bootstrap.Modal(document.getElementById('galleryModal'));
     var modalImg = document.getElementById('modalGalleryImage');
@@ -769,7 +807,6 @@
       galleryItems[g].addEventListener('click', function() { modalImg.src = this.dataset.img; modal.show(); });
     }
     
-    // Banks
     var banks = weddingData.banks || [];
     var banksHtml = '';
     for(var k = 0; k < banks.length; k++) {
@@ -780,7 +817,7 @@
     
     document.querySelectorAll('.copy-rek').forEach(btn => btn.addEventListener('click', () => { navigator.clipboard.writeText(btn.dataset.rek); Swal.fire('Tersalin!', 'Nomor rekening disalin', 'success'); }));
     
-    // Bottom Nav - Perbaikan icon cerita menggunakan suit-heart-fill (tersedia di Bootstrap Icons)
+    // Bottom Nav dengan icon yang benar
     var navItems = [
       { id: 'pembuka', icon: 'envelope-heart-fill', label: 'Pembuka' },
       { id: 'mempelai', icon: 'people-fill', label: 'Mempelai' },
@@ -797,6 +834,7 @@
     document.getElementById('bottomNav').innerHTML = bottomHtml;
     
     setupSmoothScroll();
+    addShareButton();
     setupFormListener();
     
     document.getElementById('rsvpHadir').onclick = () => sendRSVP('hadir');
@@ -862,27 +900,44 @@
     if (!form) return;
     form.addEventListener('submit', async function(e) {
       e.preventDefault();
-      const nama = document.getElementById('nama').value.trim();
-      const doaVal = document.getElementById('doaText').value.trim();
-      if (!nama || !doaVal) { Swal.fire('Info', 'Mohon isi nama dan doa!', 'warning'); return; }
-      const alamat = document.getElementById('alamat').value;
       
-      const messagesRef = ref(db, "data/messages");
-      const newMessageRef = push(messagesRef);
-      await set(newMessageRef, { 
-        nama, 
-        alamat: alamat || '', 
-        doa: doaVal, 
-        hadir: '1', 
-        inviteId: currentInviteId || 'general', 
-        timestamp: Date.now() 
-      });
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Mengirim...';
       
-      form.reset();
-      document.getElementById('formSuccessMessage').style.display = 'block';
-      setTimeout(() => { document.getElementById('formSuccessMessage').style.display = 'none'; }, 3000);
-      await loadMessagesFromFirebase();
-      Swal.fire('Terima Kasih!', 'Doa dan ucapan Anda telah terkirim ❤️', 'success');
+      try {
+        const nama = document.getElementById('nama').value.trim();
+        const doaVal = document.getElementById('doaText').value.trim();
+        if (!nama || !doaVal) { 
+          Swal.fire('Info', 'Mohon isi nama dan doa!', 'warning'); 
+          return; 
+        }
+        const alamat = document.getElementById('alamat').value;
+        
+        const messagesRef = ref(db, "data/messages");
+        const newMessageRef = push(messagesRef);
+        await set(newMessageRef, { 
+          nama, 
+          alamat: alamat || '', 
+          doa: doaVal, 
+          hadir: '1', 
+          inviteId: currentInviteId || 'general', 
+          timestamp: Date.now() 
+        });
+        
+        form.reset();
+        document.getElementById('formSuccessMessage').style.display = 'block';
+        setTimeout(() => { document.getElementById('formSuccessMessage').style.display = 'none'; }, 3000);
+        await loadMessagesFromFirebase();
+        Swal.fire('Terima Kasih!', 'Doa dan ucapan Anda telah terkirim ❤️', 'success');
+      } catch(err) {
+        console.error('Error sending message:', err);
+        Swal.fire('Error', 'Gagal mengirim pesan', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+      }
     });
   }
   
@@ -900,7 +955,6 @@
     }
   }
   
-  // Music Player
   var isPlaying = false;
   var audio = document.getElementById('bgAudio');
   var muteBtn = document.getElementById('muteBtn');
