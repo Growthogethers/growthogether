@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Undangan Pernikahan - Fachmi & Azizah</title>
+  <title>Undangan Pernikahan - GrowthTogether</title>
   
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c9a03d'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E">
   
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -16,6 +15,7 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
   
   <style>
+    /* Styling sama seperti sebelumnya */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
       font-family: 'Inter', sans-serif; 
@@ -25,7 +25,6 @@
       position: relative;
     }
     
-    /* Disable selection and right click */
     body {
       -webkit-tap-highlight-color: transparent;
       -webkit-user-select: none;
@@ -34,7 +33,6 @@
       user-select: none;
     }
     
-    /* Watermark */
     .watermark {
       position: fixed;
       bottom: 10px;
@@ -46,7 +44,6 @@
       font-family: monospace;
     }
     
-    /* Background pattern */
     body::before {
       content: '';
       position: fixed;
@@ -61,7 +58,6 @@
       z-index: 0;
     }
     
-    /* Corner decorations */
     .corner-decoration {
       position: fixed;
       width: 180px;
@@ -84,7 +80,6 @@
     .btn-outline-gold { background: transparent; border: 1.5px solid #c9a03d; border-radius: 30px; padding: 8px 20px; text-decoration: none; color: #c9a03d; display: inline-block; transition: all 0.3s; }
     .btn-outline-gold:hover { background: #c9a03d; color: #0a0a0a; }
     
-    /* Hero Background Slideshow */
     .hero-wrapper { position: relative; min-height: 100vh; overflow: hidden; border-radius: 0 0 40px 40px; }
     .bg-slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1); filter: brightness(0.45) contrast(1.1); }
     .bg-slide.active { opacity: 1; }
@@ -140,16 +135,12 @@
     .form-luxury:focus { outline: none; border-color: #c9a03d; background: rgba(255,255,255,0.12); box-shadow: 0 0 0 3px rgba(201,160,61,0.2); }
     .form-luxury::placeholder { color: rgba(255,255,255,0.5); }
     
-    /* RSVP Section */
     .rsvp-card { background: rgba(20, 18, 22, 0.85); backdrop-filter: blur(12px); border-radius: 32px; border: 1px solid rgba(201,160,61,0.3); padding: 20px; margin-top: 20px; }
     .rsvp-btn { padding: 10px 25px; font-size: 1rem; margin: 0 8px; }
-    .rsvp-confirmed { background: rgba(16, 185, 129, 0.2); border-color: #10b981; }
     
-    /* Map Container */
     .map-container { border-radius: 20px; overflow: hidden; margin-top: 15px; }
     .map-container iframe { width: 100%; height: 300px; border: none; }
     
-    /* Arabic Text */
     .arabic-text {
       font-family: 'Amiri', serif;
       font-size: 1.3rem;
@@ -161,7 +152,6 @@
       .arabic-text { font-size: 1rem; }
     }
     
-    /* Bottom Navigation */
     .bottom-nav { 
       position: fixed; bottom: 0; left: 0; right: 0; 
       background: rgba(10,10,10,0.95); 
@@ -202,6 +192,21 @@
     .section-title::before { left: -30px; }
     .section-title::after { right: -30px; }
     
+    .loading-spinner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #0a0a0a;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      transition: opacity 0.5s;
+    }
+    
     @media (max-width: 576px) { 
       .container { padding-left: 16px; padding-right: 16px; } 
       .timeline-wrapper { padding-left: 15px; } 
@@ -212,7 +217,6 @@
       .rsvp-btn { padding: 8px 16px; font-size: 0.9rem; }
     }
     
-    /* White space pre-line for text */
     .preserve-line {
       white-space: pre-line;
     }
@@ -225,18 +229,15 @@
 <div class="corner-decoration corner-bottom-left"></div>
 <div class="corner-decoration corner-bottom-right"></div>
 
-<!-- Watermark -->
 <div class="watermark">© GrowthTogether • Undangan Digital</div>
 
 <audio id="bgAudio" loop></audio>
 
-<!-- Loading Screen -->
-<div id="loading" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#0a0a0a; z-index:9999; display:flex; align-items:center; justify-content:center; flex-direction:column;">
+<div class="loading-spinner" id="loading">
   <div style="font-size:2rem; background:linear-gradient(135deg, #e4c580, #c9a03d); -webkit-background-clip:text; background-clip:text; color:transparent; font-family:'Dancing Script', cursive;">✦ Pernikahan ✦</div>
   <div style="width:200px; height:2px; background:linear-gradient(90deg, transparent, #c9a03d, transparent); animation:loadingAnim 1.5s infinite; margin-top:20px;"></div>
 </div>
 
-<!-- Music Control -->
 <div class="music-floating" id="muteBtn"><i class="bi bi-vinyl-fill"></i></div>
 
 <main class="pb-5">
@@ -248,7 +249,7 @@
         <i class="bi bi-suit-heart-fill gold-text fs-1 mx-2"></i>
         <i class="bi bi-star-fill gold-text fs-1"></i>
         <p class="text-white text-uppercase small mt-3" style="letter-spacing: 5px;">The Wedding of</p>
-        <h1 class="display-3 fw-bold" style="font-family:'Playfair Display';" id="coupleNames">Fachmi & Azizah</h1>
+        <h1 class="display-3 fw-bold" style="font-family:'Playfair Display';" id="coupleNames">Loading...</h1>
         <div class="divider-gold my-3"></div>
         
         <div class="countdown-elegant my-4">
@@ -272,27 +273,15 @@
     </div>
   </div>
 
-  <!-- PEMBUKA: AYAT & TEKS PEMBUKA (FITUR BARU) -->
+  <!-- PEMBUKA -->
   <div class="container py-5" id="pembuka">
     <div class="text-center" data-aos="fade-up">
       <div class="luxury-card">
-        <!-- Ayat Al-Qur'an -->
-        <p class="arabic-text" id="weddingAyatText">
-          وَمِنْ اٰيٰتِهٖٓ اَنْ خَلَقَ لَكُمْ مِّنْ اَنْفُسِكُمْ اَزْوَاجًا لِّتَسْكُنُوْٓا اِلَيْهَا وَجَعَلَ بَيْنَكُمْ مَّوَدَّةً وَّرَحْمَةً ۗاِنَّ فِيْ ذٰلِكَ لَاٰيٰتٍ لِّقَوْمٍ يَّتَفَكَّرُوْنَ
-        </p>
-        <!-- Terjemahan Ayat -->
-        <p class="gold-text mt-3" style="font-style: italic;" id="weddingAyatTranslationText">
-          "Dan di antara tanda-tanda kekuasaan-Nya diciptakan-Nya untukmu pasangan hidup dari jenismu sendiri supaya kamu dapat ketenangan hati dan dijadikannya kasih sayang di antara kamu..."
-        </p>
+        <p class="arabic-text" id="weddingAyatText">Loading...</p>
+        <p class="gold-text mt-3" style="font-style: italic;" id="weddingAyatTranslationText">Loading...</p>
         <p class="text-muted small">(Q.S. Ar-Rum: 21)</p>
         <div class="divider-gold my-3"></div>
-        <!-- Teks Pembuka -->
-        <p class="text-white-50 preserve-line" id="weddingOpeningText">
-          بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيْمِ
-
-          Maha suci Allah SWT yang telah menciptakan makhluk-Nya berpasang-pasangan.
-          Tanpa mengurangi rasa hormat, dengan ini kami bermaksud mengundang Bapak/Ibu/Saudara/i untuk hadir pada acara pernikahan kami :
-        </p>
+        <p class="text-white-50 preserve-line" id="weddingOpeningText">Loading...</p>
       </div>
     </div>
   </div>
@@ -318,7 +307,7 @@
     <div class="timeline-wrapper mt-4" id="storyList"></div>
   </div>
 
-  <!-- Acara Section dengan Peta Interaktif -->
+  <!-- Acara Section -->
   <div class="container py-5" id="acara">
     <div class="text-center" data-aos="fade-up">
       <i class="bi bi-bell-fill fs-1 gold-text"></i>
@@ -327,7 +316,6 @@
     </div>
     <div class="row g-4 mt-2" id="acaraContent"></div>
     
-    <!-- Peta Interaktif -->
     <div class="mt-5" data-aos="fade-up">
       <div class="luxury-card text-center">
         <h5 class="gold-text mb-3"><i class="bi bi-geo-alt-fill me-2"></i>Lokasi Acara</h5>
@@ -371,7 +359,6 @@
       <div class="divider-gold"></div>
     </div>
     
-    <!-- RSVP Card -->
     <div class="rsvp-card text-center mb-4" data-aos="fade-up" id="rsvpCard">
       <h5 class="gold-text mb-3"><i class="bi bi-check2-circle me-2"></i>Konfirmasi Kehadiran</h5>
       <p class="small text-white-50">Mohon isi nama Anda terlebih dahulu, lalu konfirmasi kehadiran</p>
@@ -382,7 +369,6 @@
       <div id="rsvpStatus" class="mt-3 small"></div>
     </div>
     
-    <!-- Form Ucapan -->
     <div class="luxury-card p-4 mt-3" data-aos="fade-up">
       <form id="formUcapan">
         <input type="text" id="nama" class="form-luxury mb-3" placeholder="Nama Lengkap *" required>
@@ -398,27 +384,20 @@
     <div class="mt-5" id="messagesList"></div>
   </div>
 
-  <!-- PENUTUP: TEKS PENUTUP & TANDA TANGAN (FITUR BARU) -->
+  <!-- PENUTUP -->
   <div class="container py-4" id="penutup">
     <div class="text-center" data-aos="fade-up">
       <div class="luxury-card">
-        <p class="text-white-50 preserve-line" id="weddingClosingText">
-          Menjadi sebuah kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dalam hari bahagia ini.
-
-          Terima kasih atas segala ucapan, doa, dan perhatian yang diberikan.
-
-          See you on our wedding day!
-        </p>
+        <p class="text-white-50 preserve-line" id="weddingClosingText">Loading...</p>
         <div class="divider-gold my-3"></div>
         <div id="coupleSignature">
           <i class="bi bi-heart-fill gold-text me-2"></i>
-          <p class="gold-text fw-bold mt-2" id="signatureNames">Kami yang berbahagia<br>Fachmi & Azizah</p>
+          <p class="gold-text fw-bold mt-2" id="signatureNames">Loading...</p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Footer -->
   <div class="footer-elegant text-center py-4 border-top mt-4" style="border-color: rgba(201,160,61,0.2) !important;">
     <i class="bi bi-heart-fill gold-text"></i>
     <p class="mt-2 small" id="footerText">Loading...</p>
@@ -426,10 +405,8 @@
   </div>
 </main>
 
-<!-- Bottom Navigation -->
 <div class="bottom-nav" id="bottomNav"></div>
 
-<!-- Modal for Gallery -->
 <div class="modal fade" id="galleryModal" tabindex="-1" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content bg-transparent border-0">
@@ -448,16 +425,15 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getDatabase, ref, get, set, push, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
   
-  // ============ PROTEKSI SCREENSHOT & RIGHT CLICK ============
-  document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; });
-  document.addEventListener('keydown', function(e) {
+  // Proteksi
+  document.addEventListener('contextmenu', (e) => { e.preventDefault(); return false; });
+  document.addEventListener('keydown', (e) => {
     if (e.key === 'PrintScreen') { e.preventDefault(); return false; }
     if (e.ctrlKey && (e.key === 'c' || e.key === 'C' || e.key === 's' || e.key === 'S' || e.key === 'u' || e.key === 'U')) {
       e.preventDefault(); return false;
     }
   });
   
-  // ============ CONFETTI ANIMATION ============
   function triggerConfetti() {
     canvasConfetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#c9a03d', '#e4c580', '#b8860b'] });
     setTimeout(() => {
@@ -466,7 +442,6 @@
     }, 200);
   }
   
-  // ============ FIREBASE CONFIG ============
   const firebaseConfig = { 
     apiKey: "AIzaSyBeUaOyesw9ucpBGumNjrzUp3WfUtXu39w", 
     authDomain: "growthogether.firebaseapp.com", 
@@ -480,95 +455,90 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   
-  // ============ ENKRIPSI ============
-  const SALT = "wedding2025";
-  
-  function decryptInviteId(encrypted) {
-    try {
-      let base64 = encrypted.replace(/-/g, '+').replace(/_/g, '/');
-      while (base64.length % 4) base64 += '=';
-      const decoded = atob(base64);
-      const parts = decoded.split('|');
-      if (parts.length === 2 && parts[1] === SALT) return parts[0];
-      return null;
-    } catch(e) { return null; }
-  }
-  
   const urlParams = new URLSearchParams(window.location.search);
-  const encryptedId = urlParams.get('invite');
-  const inviteId = encryptedId ? decryptInviteId(encryptedId) : null;
+  const inviteId = urlParams.get('invite');
   const isPreview = urlParams.get('preview') === 'true';
   const previewName = urlParams.get('name');
+  
   let weddingData = null;
   let guestName = "Tamu Undangan";
   let hasTriggeredConfetti = false;
   
-  function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
-  function formatDate(dateStr) { if(!dateStr) return ''; var d = new Date(dateStr); return d.toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' }); }
+  function escapeHtml(str) { if(!str) return ''; return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
   
-  // ============ LOAD WEDDING DATA ============
+  function formatDate(dateStr) { 
+    if(!dateStr) return ''; 
+    try {
+      var d = new Date(dateStr); 
+      return d.toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    } catch(e) { return dateStr; }
+  }
+  
   async function loadWeddingData() {
-    const snapshot = await get(ref(db, "data/wedding_settings"));
-    weddingData = snapshot.val() || {};
-    
-    const defaults = {
-      groomName: "Fachmi", brideName: "Azizah", groomNickname: "Fachmi", brideNickname: "Azizah",
-      groomFather: "Bpk. H. Sumarmo", groomMother: "Ibu Hj. Kantun",
-      brideFather: "Bpk. H. Ahmad", brideMother: "Ibu Hj. Siti",
-      weddingDate: "2025-06-15", akadTime: "09:00", receptionTime: "12:00",
-      venueName: "Aula Serbaguna", venueAddress: "Jalan Kebahagiaan No. 123, Jakarta",
-      mapsLink: "https://maps.google.com", musicUrl: "", stories: [], galleries: [], banks: [],
-      weddingAyat: "وَمِنْ اٰيٰتِهٖٓ اَنْ خَلَقَ لَكُمْ مِّنْ اَنْفُسِكُمْ اَزْوَاجًا لِّتَسْكُنُوْٓا اِلَيْهَا وَجَعَلَ بَيْنَكُمْ مَّوَدَّةً وَّرَحْمَةً ۗاِنَّ فِيْ ذٰلِكَ لَاٰيٰتٍ لِّقَوْمٍ يَّتَفَكَّرُوْنَ",
-      weddingAyatTranslation: '"Dan di antara tanda-tanda kekuasaan-Nya diciptakan-Nya untukmu pasangan hidup dari jenismu sendiri supaya kamu dapat ketenangan hati dan dijadikannya kasih sayang di antara kamu..."',
-      weddingOpeningText: "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيْمِ\n\nMaha suci Allah SWT yang telah menciptakan makhluk-Nya berpasang-pasangan.\nTanpa mengurangi rasa hormat, dengan ini kami bermaksud mengundang Bapak/Ibu/Saudara/i untuk hadir pada acara pernikahan kami :",
-      weddingClosingText: "Menjadi sebuah kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dalam hari bahagia ini.\n\nTerima kasih atas segala ucapan, doa, dan perhatian yang diberikan.\n\nSee you on our wedding day!"
-    };
-    for(var key in defaults) { if(!weddingData[key]) weddingData[key] = defaults[key]; }
-    
-    // Get guest name
-    if (inviteId && !isPreview) {
-      const inviteSnap = await get(ref(db, "data/invitations/" + inviteId));
-      if (inviteSnap.exists()) {
-        guestName = inviteSnap.val().guestName || guestName;
-        const currentViews = inviteSnap.val().viewCount || 0;
-        await update(ref(db, "data/invitations/" + inviteId), { 
-          viewCount: currentViews + 1,
-          viewHistory: [...(inviteSnap.val().viewHistory || []), Date.now()]
-        });
+    try {
+      const snapshot = await get(ref(db, "data/wedding_settings"));
+      weddingData = snapshot.val() || {};
+      
+      const defaults = {
+        groomName: "Fachmi", brideName: "Azizah", groomNickname: "Fachmi", brideNickname: "Azizah",
+        groomFather: "Bpk. H. Sumarmo", groomMother: "Ibu Hj. Kantun",
+        brideFather: "Bpk. H. Ahmad", brideMother: "Ibu Hj. Siti",
+        weddingDate: "2025-06-15", akadTime: "09:00", receptionTime: "12:00",
+        venueName: "Aula Serbaguna", venueAddress: "Jalan Kebahagiaan No. 123, Jakarta",
+        mapsLink: "https://maps.google.com", musicUrl: "", stories: [], galleries: [], banks: [],
+        weddingAyat: "وَمِنْ اٰيٰتِهٖٓ اَنْ خَلَقَ لَكُمْ مِّنْ اَنْفُسِكُمْ اَزْوَاجًا لِّتَسْكُنُوْٓا اِلَيْهَا وَجَعَلَ بَيْنَكُمْ مَّوَدَّةً وَّرَحْمَةً ۗاِنَّ فِيْ ذٰلِكَ لَاٰيٰتٍ لِّقَوْمٍ يَّتَفَكَّرُوْنَ",
+        weddingAyatTranslation: '"Dan di antara tanda-tanda kekuasaan-Nya diciptakan-Nya untukmu pasangan hidup..."',
+        weddingOpeningText: "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيْمِ\n\nMaha suci Allah SWT yang telah menciptakan makhluk-Nya berpasang-pasangan.\nTanpa mengurangi rasa hormat, dengan ini kami bermaksud mengundang Bapak/Ibu/Saudara/i untuk hadir pada acara pernikahan kami :",
+        weddingClosingText: "Menjadi sebuah kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dalam hari bahagia ini.\n\nTerima kasih atas segala ucapan, doa, dan perhatian yang diberikan.\n\nSee you on our wedding day!"
+      };
+      
+      for(var key in defaults) { 
+        if(!weddingData[key]) weddingData[key] = defaults[key]; 
       }
-    } else if (isPreview && previewName) {
-      guestName = decodeURIComponent(previewName);
+      
+      // Get guest name and update view count
+      if (inviteId && !isPreview) {
+        const inviteSnap = await get(ref(db, "data/invitations/" + inviteId));
+        if (inviteSnap.exists()) {
+          guestName = inviteSnap.val().guestName || guestName;
+          const currentViews = inviteSnap.val().viewCount || 0;
+          await update(ref(db, "data/invitations/" + inviteId), { 
+            viewCount: currentViews + 1,
+            viewHistory: [...(inviteSnap.val().viewHistory || []), Date.now()]
+          });
+        }
+      } else if (isPreview && previewName) {
+        guestName = decodeURIComponent(previewName);
+      }
+      
+      if (!hasTriggeredConfetti && !isPreview) {
+        hasTriggeredConfetti = true;
+        setTimeout(triggerConfetti, 500);
+      }
+      
+      setupMusic();
+      renderAllSections();
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+      renderBackgroundSlideshow();
+      
+      setTimeout(function() { 
+        var ld = document.getElementById('loading'); 
+        if(ld) { ld.style.opacity = '0'; setTimeout(() => { if(ld && ld.parentNode) ld.parentNode.removeChild(ld); }, 500); } 
+      }, 1200);
+      
+      AOS.init({ duration: 800, once: true });
+    } catch (error) {
+      console.error('Error loading wedding data:', error);
+      document.getElementById('loading').innerHTML = '<div class="text-center"><i class="bi bi-exclamation-triangle-fill fs-1 gold-text"></i><p class="mt-3">Gagal memuat undangan. Silakan refresh halaman.</p></div>';
     }
-    
-    // Trigger confetti on first load
-    if (!hasTriggeredConfetti && !isPreview) {
-      hasTriggeredConfetti = true;
-      setTimeout(triggerConfetti, 500);
-    }
-    
-    // Setup music
-    setupMusic();
-    
-    renderAllSections();
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
-    renderBackgroundSlideshow();
-    
-    setTimeout(function() { 
-      var ld = document.getElementById('loading'); 
-      if(ld) { ld.style.opacity = '0'; setTimeout(function() { if(ld && ld.parentNode) ld.parentNode.removeChild(ld); }, 500); } 
-    }, 1200);
-    
-    AOS.init({ duration: 800, once: true });
   }
   
   function setupMusic() {
     const audio = document.getElementById('bgAudio');
-    if (weddingData.musicUrl) {
+    if (weddingData.musicUrl && weddingData.musicUrl.startsWith('https://')) {
       audio.src = weddingData.musicUrl;
       audio.load();
-    } else {
-      audio.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
     }
   }
   
@@ -592,23 +562,22 @@
       img.alt = 'Wedding Background';
       heroWrapper.insertBefore(img, heroWrapper.firstChild);
     }
-    startBackgroundSlideshow();
-  }
-  
-  function startBackgroundSlideshow() {
-    var bgImages = document.querySelectorAll('.bg-slide');
-    if(bgImages.length > 1) {
+    
+    if(bgList.length > 1) {
       var currentIndex = 0;
       setInterval(function() {
-        bgImages[currentIndex].classList.remove('active');
-        currentIndex = (currentIndex + 1) % bgImages.length;
-        bgImages[currentIndex].classList.add('active');
+        const bgImages = document.querySelectorAll('.bg-slide');
+        if(bgImages.length) {
+          bgImages[currentIndex].classList.remove('active');
+          currentIndex = (currentIndex + 1) % bgImages.length;
+          bgImages[currentIndex].classList.add('active');
+        }
       }, 5000);
     }
   }
   
   function updateCountdown() {
-    if (!weddingData.weddingDate) return;
+    if (!weddingData?.weddingDate) return;
     var target = new Date(weddingData.weddingDate + 'T' + (weddingData.akadTime || '09:00') + ':00');
     var diff = target - new Date();
     if (diff > 0) {
@@ -619,7 +588,6 @@
     }
   }
   
-  // ============ SAVE TO CALENDAR ============
   function saveToCalendar() {
     const startDate = new Date(weddingData.weddingDate + 'T' + (weddingData.akadTime || '09:00') + ':00');
     const endDate = new Date(weddingData.weddingDate + 'T' + (weddingData.receptionTime || '12:00') + ':00');
@@ -643,7 +611,6 @@
     Swal.fire('Berhasil!', 'Acara telah disimpan ke kalender Anda.', 'success');
   }
   
-  // ============ RSVP FUNCTION ============
   async function sendRSVP(status) {
     const nama = document.getElementById('nama').value.trim();
     if(!nama) {
@@ -658,14 +625,12 @@
     Swal.fire('Berhasil!', `Konfirmasi kehadiran Anda sebagai ${statusText} telah tersimpan.`, 'success');
   }
   
-  // ============ RENDER ALL SECTIONS ============
   function renderAllSections() {
-    // Update teks dinamis dari admin
+    // Update texts
     document.getElementById('coupleNames').innerHTML = (weddingData.groomNickname || weddingData.groomName) + ' & ' + (weddingData.brideNickname || weddingData.brideName);
     document.getElementById('guestNameDisplay').innerHTML = escapeHtml(guestName);
     document.getElementById('footerText').innerHTML = escapeHtml(weddingData.groomName) + ' & ' + escapeHtml(weddingData.brideName);
     
-    // Teks Ayat dan Pembuka
     document.getElementById('weddingAyatText').innerHTML = weddingData.weddingAyat;
     document.getElementById('weddingAyatTranslationText').innerHTML = weddingData.weddingAyatTranslation;
     document.getElementById('weddingOpeningText').innerHTML = weddingData.weddingOpeningText.replace(/\n/g, '<br>');
@@ -695,9 +660,12 @@
       '<div class="col-md-6" data-aos="fade-left"><div class="luxury-card text-center"><i class="bi bi-cake2-fill fs-1 gold-text"></i><h4 class="mt-2">Resepsi</h4><div>📅 ' + formatDate(weddingData.weddingDate) + '</div><div class="fs-4 fw-semibold mt-2">' + (weddingData.receptionTime || '12:00') + ' WIB - Selesai</div><div class="small mt-2">' + escapeHtml(weddingData.venueName) + '<br>' + escapeHtml(weddingData.venueAddress) + '</div></div></div>';
     
     // Map
-    const mapsEmbedUrl = weddingData.mapsLink.includes('maps.google.com') ? weddingData.mapsLink.replace('maps.google.com', 'www.google.com/maps/embed?pb=') : weddingData.mapsLink;
+    let mapsEmbedUrl = 'https://maps.google.com/maps?q=' + encodeURIComponent(weddingData.venueAddress || weddingData.venueName) + '&output=embed';
+    if(weddingData.mapsLink && weddingData.mapsLink.includes('google.com')) {
+      mapsEmbedUrl = weddingData.mapsLink.replace('/maps?', '/embed?');
+    }
     document.getElementById('googleMap').src = mapsEmbedUrl;
-    document.getElementById('openMapsBtn').onclick = () => window.open(weddingData.mapsLink, '_blank');
+    document.getElementById('openMapsBtn').onclick = () => window.open(weddingData.mapsLink || mapsEmbedUrl, '_blank');
     document.getElementById('saveCalendarBtn').onclick = saveToCalendar;
     
     // Gallery
@@ -725,7 +693,6 @@
     }
     document.getElementById('bankList').innerHTML = banksHtml || '<div class="text-center text-muted col-12">Belum ada rekening</div>';
     
-    // Copy rekening
     document.querySelectorAll('.copy-rek').forEach(btn => btn.addEventListener('click', () => { navigator.clipboard.writeText(btn.dataset.rek); Swal.fire('Tersalin!', 'Nomor rekening disalin', 'success'); }));
     
     // Bottom Nav
@@ -744,53 +711,56 @@
     }
     document.getElementById('bottomNav').innerHTML = bottomHtml;
     
-    loadMessagesFromFirebase();
+    setupSmoothScroll();
     setupFormListener();
-    setupNavScroll();
     
-    // RSVP Buttons
     document.getElementById('rsvpHadir').onclick = () => sendRSVP('hadir');
     document.getElementById('rsvpTidak').onclick = () => sendRSVP('tidak');
     loadExistingRSVP();
+    loadMessagesFromFirebase();
   }
   
   async function loadExistingRSVP() {
-    const rsvpSnap = await get(ref(db, "data/rsvp/" + (inviteId || 'general')));
-    if(rsvpSnap.exists()) {
-      const rsvp = rsvpSnap.val();
-      const statusText = rsvp.status === 'hadir' ? 'HADIR' : 'TIDAK HADIR';
-      const statusClass = rsvp.status === 'hadir' ? 'bg-success' : 'bg-secondary';
-      document.getElementById('rsvpStatus').innerHTML = `<span class="badge ${statusClass} p-2">✓ Anda telah mengkonfirmasi kehadiran sebagai ${statusText}</span>`;
-    }
+    try {
+      const rsvpSnap = await get(ref(db, "data/rsvp/" + (inviteId || 'general')));
+      if(rsvpSnap.exists()) {
+        const rsvp = rsvpSnap.val();
+        const statusText = rsvp.status === 'hadir' ? 'HADIR' : 'TIDAK HADIR';
+        const statusClass = rsvp.status === 'hadir' ? 'bg-success' : 'bg-secondary';
+        document.getElementById('rsvpStatus').innerHTML = `<span class="badge ${statusClass} p-2">✓ Anda telah mengkonfirmasi kehadiran sebagai ${statusText}</span>`;
+      }
+    } catch(e) { console.error('Error loading RSVP:', e); }
   }
   
   async function loadMessagesFromFirebase() {
-    const messagesRef = ref(db, "data/messages");
-    const snapshot = await get(messagesRef);
-    const allMessages = snapshot.val() || {};
-    const container = document.getElementById('messagesList');
-    if (!container) return;
-    
-    var messagesArray = [];
-    for(var key in allMessages) {
-      if(allMessages[key] && ((inviteId && allMessages[key].inviteId === inviteId) || (!inviteId))) {
-        messagesArray.push(allMessages[key]);
+    try {
+      const messagesRef = ref(db, "data/messages");
+      const snapshot = await get(messagesRef);
+      const allMessages = snapshot.val() || {};
+      const container = document.getElementById('messagesList');
+      if (!container) return;
+      
+      var messagesArray = [];
+      for(var key in allMessages) {
+        if(allMessages[key] && ((inviteId && allMessages[key].inviteId === inviteId) || (!inviteId))) {
+          messagesArray.push(allMessages[key]);
+        }
       }
-    }
-    messagesArray.sort((a, b) => b.timestamp - a.timestamp);
-    messagesArray = messagesArray.slice(0, 30);
-    
-    if (messagesArray.length === 0) {
-      container.innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-chat-quote fs-1"></i><p>Belum ada ucapan. Jadilah yang pertama! 🤍</p></div>';
-      return;
-    }
-    
-    var messagesHtml = '';
-    for(var i = 0; i < messagesArray.length; i++) {
-      var m = messagesArray[i];
-      messagesHtml += '<div class="message-card"><div class="d-flex justify-content-between"><b>' + escapeHtml(m.nama) + '</b><span class="badge ' + (m.hadir === '1' ? 'bg-success' : 'bg-secondary') + '">' + (m.hadir === '1' ? 'Hadir' : 'Tidak Hadir') + '</span></div>' + (m.alamat ? '<small>📍 ' + escapeHtml(m.alamat) + '</small><br>' : '') + '<p class="mt-2">' + escapeHtml(m.doa) + '</p><small>' + new Date(m.timestamp).toLocaleDateString('id-ID') + '</small></div>';
-    }
-    container.innerHTML = messagesHtml;
+      messagesArray.sort((a, b) => b.timestamp - a.timestamp);
+      messagesArray = messagesArray.slice(0, 30);
+      
+      if (messagesArray.length === 0) {
+        container.innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-chat-quote fs-1"></i><p>Belum ada ucapan. Jadilah yang pertama! 🤍</p></div>';
+        return;
+      }
+      
+      var messagesHtml = '';
+      for(var i = 0; i < messagesArray.length; i++) {
+        var m = messagesArray[i];
+        messagesHtml += '<div class="message-card"><div class="d-flex justify-content-between"><b>' + escapeHtml(m.nama) + '</b><span class="badge ' + (m.hadir === '1' ? 'bg-success' : 'bg-secondary') + '">' + (m.hadir === '1' ? 'Hadir' : 'Tidak Hadir') + '</span></div>' + (m.alamat ? '<small>📍 ' + escapeHtml(m.alamat) + '</small><br>' : '') + '<p class="mt-2">' + escapeHtml(m.doa) + '</p><small>' + new Date(m.timestamp).toLocaleDateString('id-ID') + '</small></div>';
+      }
+      container.innerHTML = messagesHtml;
+    } catch(e) { console.error('Error loading messages:', e); }
   }
   
   function setupFormListener() {
@@ -801,26 +771,26 @@
       const nama = document.getElementById('nama').value.trim();
       const doaVal = document.getElementById('doaText').value.trim();
       if (!nama || !doaVal) { Swal.fire('Info', 'Mohon isi nama dan doa!', 'warning'); return; }
-      const hadir = document.querySelector('input[name="hadir"]') ? (document.querySelector('input[name="hadir"]:checked')?.value || '1') : '1';
       const alamat = document.getElementById('alamat').value;
       
       const messagesRef = ref(db, "data/messages");
       const newMessageRef = push(messagesRef);
-      await set(newMessageRef, { nama, alamat: alamat || '', doa: doaVal, hadir, inviteId: inviteId || 'general', timestamp: Date.now() });
+      await set(newMessageRef, { nama, alamat: alamat || '', doa: doaVal, hadir: '1', inviteId: inviteId || 'general', timestamp: Date.now() });
       
-      form.style.display = 'none';
+      form.reset();
       document.getElementById('formSuccessMessage').style.display = 'block';
+      setTimeout(() => { document.getElementById('formSuccessMessage').style.display = 'none'; }, 3000);
       await loadMessagesFromFirebase();
       Swal.fire('Terima Kasih!', 'Doa dan ucapan Anda telah terkirim ❤️', 'success');
     });
   }
   
-  function setupNavScroll() {
+  function setupSmoothScroll() {
     var navLinks = document.querySelectorAll('.bottom-nav a, .btn-gold, a[href^="#"]');
     for(var i = 0; i < navLinks.length; i++) {
       navLinks[i].addEventListener('click', function(e) {
         var href = this.getAttribute('href');
-        if (href && href.indexOf('#') === 0) {
+        if (href && href.indexOf('#') === 0 && href !== '#') {
           e.preventDefault();
           var target = document.querySelector(href);
           if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -840,7 +810,7 @@
       isPlaying = !isPlaying;
     });
     document.body.addEventListener('click', function initAudio() {
-      if(!isPlaying && weddingData && weddingData.musicUrl) {
+      if(!isPlaying && weddingData && weddingData.musicUrl && weddingData.musicUrl.startsWith('https://')) {
         audio.play().catch(e => console.log('Auto-play prevented'));
         isPlaying = true;
         muteBtn.innerHTML = '<i class="bi bi-vinyl-fill"></i>';
