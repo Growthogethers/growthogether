@@ -38,6 +38,8 @@
     .btn-gold { background: linear-gradient(135deg, #c9a03d, #a67c1e); border: none; border-radius: 60px; padding: 12px; font-weight: 600; width: 100%; color: #0a0a0a; transition: all 0.3s; }
     .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(201,160,61,0.4); }
     .btn-gold:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .btn-outline-gold-sm { background: transparent; border: 1px solid #c9a03d; border-radius: 60px; padding: 6px 12px; font-size: 12px; color: #c9a03d; transition: all 0.3s; }
+    .btn-outline-gold-sm:hover { background: #c9a03d; color: #0a0a0a; }
     .gold-text { color: #c9a03d; }
     
     .admin-wrapper { display: none; min-height: 100vh; }
@@ -176,6 +178,36 @@
     }
     @keyframes spin {
       to { transform: rotate(360deg); }
+    }
+    
+    .pagination-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .pagination-btn {
+      background: rgba(201,160,61,0.2);
+      border: 1px solid #c9a03d;
+      border-radius: 8px;
+      padding: 6px 12px;
+      color: #c9a03d;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pagination-btn:hover:not(:disabled) {
+      background: #c9a03d;
+      color: #0a0a0a;
+    }
+    .pagination-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .pagination-info {
+      color: #aaa;
+      font-size: 13px;
     }
     
     @media (max-width: 768px) {
@@ -421,11 +453,12 @@
                 <th style="width: 30%">Link Undangan</th>
                 <th style="width: 12%">Dibuat</th>
                 <th style="width: 20%">Aksi</th>
-               </tr>
+              </tr>
             </thead>
             <tbody id="guestTableBody"></tbody>
-           </table>
+          </table>
         </div>
+        <div id="paginationContainer" class="pagination-container"></div>
       </div>
     </div>
     
@@ -435,7 +468,9 @@
       <div class="setting-card p-0">
         <div class="table-responsive">
           <table class="table table-dark table-hover mb-0">
-            <thead> <tr><th>Username</th><th>Nama Lengkap</th><th>Level</th><th>Aksi</th></tr> </thead>
+            <thead>
+              <tr><th>Username</th><th>Nama Lengkap</th><th>Level</th><th>Aksi</th></tr>
+            </thead>
             <tbody id="usersTableBody"></tbody>
           </table>
         </div>
@@ -542,6 +577,10 @@
   let weddingDataCache = null;
   let loadingOverlay = document.getElementById('spinnerOverlay');
   
+  // Pagination variables
+  let currentPage = 1;
+  let itemsPerPage = 15;
+  
   function showLoading() { if(loadingOverlay) loadingOverlay.classList.add('active'); }
   function hideLoading() { if(loadingOverlay) loadingOverlay.classList.remove('active'); }
   
@@ -579,7 +618,6 @@
   }
   
   async function login(username, password) {
-    // Coba dengan uppercase dan lowercase
     const possibleUsernames = [username.toUpperCase(), username.toLowerCase()];
     
     for (const uname of possibleUsernames) {
@@ -695,9 +733,10 @@
   function renderStories(stories) {
     const container = document.getElementById('storyList');
     container.innerHTML = '';
-    stories.forEach((story) => {
+    stories.forEach((story, idx) => {
       const div = document.createElement('div');
       div.className = 'story-item';
+      div.setAttribute('data-story-idx', idx);
       div.innerHTML = `<input type="text" class="form-control mb-2 story-title" value="${escapeHtml(story.title)}" placeholder="Judul"><textarea class="form-control mb-2 story-desc" rows="2" placeholder="Deskripsi">${escapeHtml(story.desc)}</textarea><input type="date" class="form-control mb-2 story-date" value="${story.date || ''}"><button class="btn btn-sm btn-danger remove-story">Hapus</button>`;
       container.appendChild(div);
     });
@@ -815,9 +854,6 @@
   }
   
   function renderGuestTable() {
-    const tbody = document.getElementById('guestTableBody');
-    if(!tbody) return;
-    
     let filtered = allInvitations.slice();
     if (currentFilter === 'vip') filtered = filtered.filter(inv => inv.tier === 'vip');
     if (currentFilter === 'regular') filtered = filtered.filter(inv => inv.tier !== 'vip');
@@ -825,10 +861,20 @@
     if (currentStartDate) filtered = filtered.filter(inv => inv.createdAt >= new Date(currentStartDate).getTime());
     if (currentEndDate) filtered = filtered.filter(inv => inv.createdAt <= new Date(currentEndDate + 'T23:59:59').getTime());
     
-    filtered.reverse();
+    filtered.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    
+    const totalItems = filtered.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedItems = filtered.slice(startIndex, endIndex);
+    
+    const tbody = document.getElementById('guestTableBody');
+    if(!tbody) return;
+    
     tbody.innerHTML = '';
     
-    for(const inv of filtered) {
+    for(const inv of paginatedItems) {
       const link = `${INVITE_BASE_URL}?invite=${inv.id}`;
       const tierBadge = inv.tier === 'vip' ? '<span class="badge-vip">👑 VIP</span>' : '<span class="badge-regular">📋 Reguler</span>';
       const viewCount = inv.viewCount || 0;
@@ -836,10 +882,10 @@
       tbody.innerHTML += `
         <tr>
           <td><strong>${escapeHtml(inv.guestName)}</strong><br><small class="text-muted"><i class="bi bi-eye"></i> ${viewCount}</small></td>
-          <td>${tierBadge}</span></td>
-          <td>${inv.phone || '-'}</span></td>
+          <td>${tierBadge}</td>
+          <td>${inv.phone || '-'}</td>
           <td class="link-cell"><small>${escapeHtml(link)}</small></td>
-          <td>${inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('id') : '-'}</span></td>
+          <td>${inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('id') : '-'}</td>
           <td>
             <div class="action-buttons">
               <button class="btn btn-sm btn-outline-primary edit-guest" data-id="${inv.id}" data-name="${escapeHtml(inv.guestName)}" data-phone="${inv.phone || ''}" data-note="${inv.note || ''}" data-tier="${inv.tier || 'regular'}"><i class="bi bi-pencil"></i> Edit</button>
@@ -847,12 +893,45 @@
               <button class="btn btn-sm btn-info preview-guest" data-link="${link}"><i class="bi bi-eye"></i> Preview</button>
               <button class="btn btn-sm btn-outline-danger delete-invite" data-id="${inv.id}"><i class="bi bi-trash3"></i> Hapus</button>
             </div>
-          </span>
+          </td>
         </tr>
       `;
     }
     
+    renderPagination(totalPages, totalItems, startIndex, endIndex);
     attachGuestTableEvents();
+  }
+  
+  function renderPagination(totalPages, totalItems, startIndex, endIndex) {
+    const container = document.getElementById('paginationContainer');
+    if (!container) return;
+    
+    if (totalPages <= 1) {
+      container.innerHTML = '';
+      return;
+    }
+    
+    let paginationHtml = `
+      <button class="pagination-btn" id="prevPageBtn" ${currentPage === 1 ? 'disabled' : ''}>◀ Sebelumnya</button>
+      <span class="pagination-info">Halaman ${currentPage} dari ${totalPages} (${totalItems} tamu)</span>
+      <button class="pagination-btn" id="nextPageBtn" ${currentPage === totalPages ? 'disabled' : ''}>Selanjutnya ▶</button>
+    `;
+    
+    container.innerHTML = paginationHtml;
+    
+    document.getElementById('prevPageBtn')?.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderGuestTable();
+      }
+    });
+    
+    document.getElementById('nextPageBtn')?.addEventListener('click', () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderGuestTable();
+      }
+    });
   }
   
   function attachGuestTableEvents() {
@@ -1067,12 +1146,14 @@
     if(searchInput) {
       searchInput.addEventListener('input', (e) => {
         currentSearch = e.target.value;
+        currentPage = 1;
         renderGuestTable();
       });
     }
     
     document.getElementById('filterAll')?.addEventListener('click', () => {
       currentFilter = 'all';
+      currentPage = 1;
       document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
       document.getElementById('filterAll').classList.add('active');
       renderGuestTable();
@@ -1080,6 +1161,7 @@
     
     document.getElementById('filterVip')?.addEventListener('click', () => {
       currentFilter = 'vip';
+      currentPage = 1;
       document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
       document.getElementById('filterVip').classList.add('active');
       renderGuestTable();
@@ -1087,6 +1169,7 @@
     
     document.getElementById('filterRegular')?.addEventListener('click', () => {
       currentFilter = 'regular';
+      currentPage = 1;
       document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
       document.getElementById('filterRegular').classList.add('active');
       renderGuestTable();
@@ -1094,21 +1177,21 @@
     
     const startDate = document.getElementById('filterStartDate');
     const endDate = document.getElementById('filterEndDate');
-    if(startDate) startDate.addEventListener('change', (e) => { currentStartDate = e.target.value; renderGuestTable(); });
-    if(endDate) endDate.addEventListener('change', (e) => { currentEndDate = e.target.value; renderGuestTable(); });
+    if(startDate) startDate.addEventListener('change', (e) => { currentStartDate = e.target.value; currentPage = 1; renderGuestTable(); });
+    if(endDate) endDate.addEventListener('change', (e) => { currentEndDate = e.target.value; currentPage = 1; renderGuestTable(); });
     
     document.getElementById('clearDateFilter')?.addEventListener('click', () => {
       if(startDate) startDate.value = '';
       if(endDate) endDate.value = '';
       currentStartDate = '';
       currentEndDate = '';
+      currentPage = 1;
       renderGuestTable();
     });
     
-    document.getElementById('refreshGuestList')?.addEventListener('click', () => { loadInvitations(); });
+    document.getElementById('refreshGuestList')?.addEventListener('click', () => { currentPage = 1; loadInvitations(); });
   }
   
-  // ============ INITIALIZATION ============
   async function init() {
     showLoading();
     try {
@@ -1232,8 +1315,12 @@
     const name = document.getElementById('guestName').value.trim(); 
     if(!name) { Swal.fire('Info', 'Nama tamu wajib diisi', 'warning'); return; }
     const tier = document.getElementById('guestTier').value;
+    
+    const generateBtn = document.getElementById('generateInviteBtn');
+    generateBtn.disabled = true;
+    generateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Membuat...';
+    
     try { 
-      showLoading();
       const id = await generateInvite(name, document.getElementById('guestPhone').value, document.getElementById('guestNote').value, tier); 
       const link = `${INVITE_BASE_URL}?invite=${id}`;
       document.getElementById('linkResult').style.display = 'block'; 
@@ -1241,7 +1328,10 @@
       Swal.fire('Berhasil', 'Link undangan dibuat', 'success'); 
       await loadInvitations(); 
     } catch(e) { Swal.fire('Error', e.message, 'error'); } 
-    finally { hideLoading(); }
+    finally { 
+      generateBtn.disabled = false;
+      generateBtn.innerHTML = '<i class="bi bi-link-45deg me-2"></i>Generate Link';
+    }
   });
   
   document.getElementById('copyLinkBtn')?.addEventListener('click', () => { 
@@ -1299,14 +1389,20 @@
   });
   
   document.getElementById('confirmRegisterBtn')?.addEventListener('click', async () => { 
+    const registerBtn = document.getElementById('confirmRegisterBtn');
+    registerBtn.disabled = true;
+    registerBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Mendaftar...';
+    
     try { 
-      showLoading();
       await registerUser(document.getElementById('regUsername').value, document.getElementById('regFullname').value, document.getElementById('regPassword').value, document.getElementById('regLevel').value, document.getElementById('regPartner').value); 
       Swal.fire('Berhasil', 'User terdaftar', 'success'); 
       await loadUsers(); 
       bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide(); 
     } catch(e) { Swal.fire('Error', e.message, 'error'); } 
-    finally { hideLoading(); }
+    finally { 
+      registerBtn.disabled = false;
+      registerBtn.innerHTML = 'Daftarkan';
+    }
   });
   
   document.getElementById('saveEditGuestBtn')?.addEventListener('click', async () => {
@@ -1339,7 +1435,6 @@
   setupSearchAndFilter();
   document.getElementById('filterAll')?.classList.add('active');
   
-  // Start the app
   init();
 </script>
 </body>
