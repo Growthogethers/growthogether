@@ -11,6 +11,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0a0a0a; font-family: 'Inter', sans-serif; transition: background 0.2s; }
@@ -210,6 +211,49 @@
       font-size: 13px;
     }
     
+    .upload-area {
+      border: 2px dashed rgba(201,160,61,0.4);
+      border-radius: 16px;
+      padding: 30px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: rgba(201,160,61,0.05);
+    }
+    .upload-area:hover {
+      border-color: #c9a03d;
+      background: rgba(201,160,61,0.1);
+    }
+    .upload-area.dragover {
+      border-color: #c9a03d;
+      background: rgba(201,160,61,0.15);
+    }
+    .upload-area .icon {
+      font-size: 3rem;
+      color: #c9a03d;
+    }
+    .excel-preview {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 15px;
+    }
+    .excel-preview table {
+      width: 100%;
+      font-size: 13px;
+    }
+    .excel-preview th {
+      background: rgba(201,160,61,0.2);
+      color: #c9a03d;
+      padding: 6px 10px;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    .excel-preview td {
+      padding: 5px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    
     @media (max-width: 768px) {
       .sidebar { left: -280px; position: fixed; z-index: 1050; }
       .sidebar.open { left: 0; }
@@ -384,6 +428,7 @@
       <div class="row g-4">
         <div class="col-md-5">
           <div class="setting-card">
+            <h5 class="gold-text mb-3"><i class="bi bi-person-plus me-2"></i>Tambah Satu Per Satu</h5>
             <input type="text" id="guestName" class="form-control mb-2" placeholder="Nama Tamu *">
             <input type="tel" id="guestPhone" class="form-control mb-2" placeholder="No. WhatsApp">
             <textarea id="guestNote" rows="2" class="form-control mb-2" placeholder="Catatan Khusus"></textarea>
@@ -410,6 +455,53 @@
               <div class="preview-name mt-3" id="previewGuestName">-</div>
               <div class="preview-couple" id="previewCoupleName">- & -</div>
               <div class="mt-3 small text-muted">Ketik nama tamu untuk pratinjau</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- FITUR UPLOAD EXCEL -->
+      <div class="row g-4 mt-2">
+        <div class="col-12">
+          <div class="setting-card">
+            <h5 class="gold-text mb-3"><i class="bi bi-file-earmark-excel me-2"></i>Upload Excel / CSV (Banyak Tamu)</h5>
+            <p class="text-muted small">Upload file Excel (.xlsx, .xls) atau CSV dengan kolom: <strong>Nama</strong>, <strong>WA</strong> (opsional), <strong>Catatan</strong> (opsional), <strong>Tier</strong> (vip/regular, opsional)</p>
+            
+            <div class="upload-area" id="uploadArea">
+              <div class="icon"><i class="bi bi-cloud-upload"></i></div>
+              <h6 class="gold-text mt-2">Klik atau drag & drop file di sini</h6>
+              <small class="text-muted">Support .xlsx, .xls, .csv</small>
+              <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" style="display:none;">
+            </div>
+            
+            <div id="excelPreviewContainer" style="display:none;" class="mt-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="gold-text mb-0"><i class="bi bi-table me-2"></i>Data Tamu</h6>
+                <div>
+                  <span class="badge bg-secondary me-2" id="excelCount">0 tamu</span>
+                  <button class="btn btn-sm btn-danger" id="clearExcelBtn"><i class="bi bi-x-circle"></i> Hapus Data</button>
+                </div>
+              </div>
+              <div class="excel-preview" id="excelPreview"></div>
+              <div class="mt-3 d-flex gap-2 flex-wrap">
+                <select id="excelTierDefault" class="form-select" style="width:auto; min-width:150px;">
+                  <option value="regular">Reguler (Biasa)</option>
+                  <option value="vip">VIP (Istimewa)</option>
+                </select>
+                <button class="btn-gold" id="generateBulkInvitesBtn" style="width:auto; padding:8px 24px;">
+                  <i class="bi bi-file-earmark-check me-2"></i>Generate Semua Link
+                </button>
+                <button class="btn btn-outline-secondary" id="downloadTemplateBtn" style="width:auto; padding:8px 24px;">
+                  <i class="bi bi-download me-2"></i>Download Template
+                </button>
+              </div>
+            </div>
+            
+            <div id="bulkResultContainer" style="display:none;" class="mt-3">
+              <div class="bg-dark p-3 rounded-3">
+                <h6 class="gold-text"><i class="bi bi-check-circle-fill me-2"></i>Hasil Generate</h6>
+                <div id="bulkResult" class="small"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -565,13 +657,12 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   
-  // ========== PERBAIKAN: URL Undangan yang benar ==========
-  // Menggunakan path yang benar untuk mengakses undangan.html
+  // URL Undangan
   const currentPath = window.location.pathname;
   const basePath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
   const INVITE_BASE_URL = window.location.origin + basePath + 'undangan';
   
-  console.log('Base URL undangan:', INVITE_BASE_URL); // Untuk debugging
+  console.log('Base URL undangan:', INVITE_BASE_URL);
   
   let currentUser = null;
   let chartInstance = null;
@@ -583,6 +674,7 @@
   let allInvitations = [];
   let weddingDataCache = null;
   let loadingOverlay = document.getElementById('spinnerOverlay');
+  let excelData = []; // Data dari Excel
   
   // Pagination variables
   let currentPage = 1;
@@ -1012,6 +1104,37 @@
     return id;
   }
   
+  async function generateBulkInvites(guests, defaultTier) {
+    const results = [];
+    let successCount = 0;
+    let failCount = 0;
+    
+    for (const guest of guests) {
+      try {
+        const name = guest.Nama || guest.nama || guest.name || '';
+        if (!name.trim()) {
+          failCount++;
+          results.push({ name: '(kosong)', status: '❌ Gagal', error: 'Nama kosong' });
+          continue;
+        }
+        
+        const tier = guest.Tier || guest.tier || guest.TIER || defaultTier || 'regular';
+        const phone = guest.WA || guest.wa || guest.Phone || guest.phone || '';
+        const note = guest.Catatan || guest.catatan || guest.Note || guest.note || '';
+        
+        const id = await generateInvite(name, phone, note, tier.toLowerCase());
+        const link = `${INVITE_BASE_URL}?invite=${id}`;
+        results.push({ name: name, status: '✅ Berhasil', link: link });
+        successCount++;
+      } catch (error) {
+        failCount++;
+        results.push({ name: guest.Nama || guest.nama || guest.name || '(unknown)', status: '❌ Gagal', error: error.message });
+      }
+    }
+    
+    return { results, successCount, failCount };
+  }
+  
   async function loadViewStats() {
     const snap = await get(ref(db, "data/invitations"));
     const invites = snap.val() || {};
@@ -1148,6 +1271,186 @@
     }
   }
   
+  // ========== FUNGSI EXCEL ==========
+  function handleExcelFile(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+        
+        if (jsonData.length === 0) {
+          Swal.fire('Error', 'File kosong atau tidak ada data', 'error');
+          return;
+        }
+        
+        // Cek kolom wajib
+        const firstRow = jsonData[0];
+        const hasName = Object.keys(firstRow).some(key => 
+          ['Nama', 'nama', 'Name', 'name', 'NAMA'].includes(key)
+        );
+        
+        if (!hasName) {
+          Swal.fire('Error', 'Kolom "Nama" tidak ditemukan. Pastikan file memiliki kolom Nama.', 'error');
+          return;
+        }
+        
+        excelData = jsonData;
+        displayExcelPreview(jsonData);
+        
+        document.getElementById('excelPreviewContainer').style.display = 'block';
+        document.getElementById('excelCount').textContent = `${jsonData.length} tamu`;
+        
+        Swal.fire('Berhasil', `File berhasil di-load. ${jsonData.length} data tamu ditemukan.`, 'success');
+      } catch (error) {
+        Swal.fire('Error', 'Gagal membaca file: ' + error.message, 'error');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+  
+  function displayExcelPreview(data) {
+    const container = document.getElementById('excelPreview');
+    let html = '<table class="table table-dark table-sm">';
+    html += '<thead><tr>';
+    
+    // Header
+    const headers = Object.keys(data[0]);
+    headers.forEach(h => {
+      html += `<th>${escapeHtml(h)}</th>`;
+    });
+    html += '</tr></thead><tbody>';
+    
+    // Data (max 20 baris untuk preview)
+    const maxRows = Math.min(data.length, 20);
+    for (let i = 0; i < maxRows; i++) {
+      html += '<tr>';
+      headers.forEach(h => {
+        html += `<td>${escapeHtml(String(data[i][h] || ''))}</td>`;
+      });
+      html += '</tr>';
+    }
+    
+    if (data.length > 20) {
+      html += `<tr><td colspan="${headers.length}" class="text-center text-muted">... dan ${data.length - 20} data lainnya</td></tr>`;
+    }
+    
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  }
+  
+  function downloadTemplate() {
+    const templateData = [
+      { Nama: 'Budi Santoso', WA: '081234567890', Catatan: 'Teman kantor', Tier: 'vip' },
+      { Nama: 'Siti Rahayu', WA: '081298765432', Catatan: 'Keluarga', Tier: 'regular' },
+      { Nama: 'Andi Wijaya', WA: '', Catatan: 'Tetangga', Tier: 'regular' }
+    ];
+    
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(templateData);
+    XLSX.utils.book_append_sheet(wb, ws, 'Tamu');
+    XLSX.writeFile(wb, 'Template_Undangan_Tamu.xlsx');
+    
+    Swal.fire('Berhasil', 'Template Excel berhasil di-download', 'success');
+  }
+  
+  function setupExcelUpload() {
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('excelFileInput');
+    
+    // Klik untuk upload
+    uploadArea.addEventListener('click', () => fileInput.click());
+    
+    // Drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) {
+        handleExcelFile(e.dataTransfer.files[0]);
+      }
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleExcelFile(e.target.files[0]);
+      }
+    });
+    
+    // Clear data
+    document.getElementById('clearExcelBtn').addEventListener('click', () => {
+      excelData = [];
+      document.getElementById('excelPreviewContainer').style.display = 'none';
+      document.getElementById('excelPreview').innerHTML = '';
+      fileInput.value = '';
+      Swal.fire('Data dihapus', 'Data Excel telah dibersihkan', 'info');
+    });
+    
+    // Download template
+    document.getElementById('downloadTemplateBtn').addEventListener('click', downloadTemplate);
+    
+    // Generate bulk invites
+    document.getElementById('generateBulkInvitesBtn').addEventListener('click', async () => {
+      if (excelData.length === 0) {
+        Swal.fire('Info', 'Tidak ada data. Upload file Excel terlebih dahulu.', 'warning');
+        return;
+      }
+      
+      const defaultTier = document.getElementById('excelTierDefault').value;
+      const btn = document.getElementById('generateBulkInvitesBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Memproses...';
+      
+      try {
+        const result = await generateBulkInvites(excelData, defaultTier);
+        
+        // Tampilkan hasil
+        const container = document.getElementById('bulkResultContainer');
+        container.style.display = 'block';
+        
+        let resultHtml = `
+          <div class="d-flex gap-3 mb-2">
+            <span class="text-success">✅ Berhasil: ${result.successCount}</span>
+            <span class="text-danger">❌ Gagal: ${result.failCount}</span>
+            <span class="text-info">📊 Total: ${result.results.length}</span>
+          </div>
+          <div style="max-height:200px; overflow-y:auto; font-size:12px;">
+        `;
+        
+        result.results.forEach(r => {
+          const statusColor = r.status.includes('Berhasil') ? 'text-success' : 'text-danger';
+          const linkText = r.link ? `<a href="${r.link}" target="_blank">${r.link}</a>` : '';
+          resultHtml += `<div class="mb-1"><span class="${statusColor}">${r.status}</span> - <strong>${escapeHtml(r.name)}</strong> ${linkText}</div>`;
+        });
+        
+        resultHtml += '</div>';
+        document.getElementById('bulkResult').innerHTML = resultHtml;
+        
+        if (result.successCount > 0) {
+          await loadInvitations();
+          Swal.fire('Selesai!', `Berhasil membuat ${result.successCount} undangan`, 'success');
+        } else {
+          Swal.fire('Error', 'Tidak ada undangan yang berhasil dibuat', 'error');
+        }
+      } catch (error) {
+        Swal.fire('Error', 'Gagal generate: ' + error.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-file-earmark-check me-2"></i>Generate Semua Link';
+      }
+    });
+  }
+  
   function setupSearchAndFilter() {
     const searchInput = document.getElementById('searchGuestInput');
     if(searchInput) {
@@ -1210,7 +1513,7 @@
     }
   }
   
-  // EVENT LISTENERS
+  // ========== EVENT LISTENERS ==========
   document.getElementById('loginBtn')?.addEventListener('click', async () => { 
     const btn = document.getElementById('loginBtn');
     btn.disabled = true;
@@ -1440,6 +1743,7 @@
   if(localStorage.getItem('adminLight') === 'true') document.body.classList.add('light');
   
   setupSearchAndFilter();
+  setupExcelUpload();
   document.getElementById('filterAll')?.classList.add('active');
   
   init();
