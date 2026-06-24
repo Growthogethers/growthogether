@@ -565,7 +565,14 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   
-  const INVITE_BASE_URL = window.location.origin + window.location.pathname.replace('admin.html', 'undangan.html');
+  // ========== PERBAIKAN: URL Undangan yang benar ==========
+  // Menggunakan path yang benar untuk mengakses undangan.html
+  const currentPath = window.location.pathname;
+  const basePath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
+  const INVITE_BASE_URL = window.location.origin + basePath + 'undangan';
+  
+  console.log('Base URL undangan:', INVITE_BASE_URL); // Untuk debugging
+  
   let currentUser = null;
   let chartInstance = null;
   let viewsChartInstance = null;
