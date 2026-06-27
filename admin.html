@@ -12,6 +12,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0a0a0a; font-family: 'Inter', sans-serif; transition: background 0.2s; }
@@ -74,6 +75,9 @@
     .filter-btn.active, .filter-btn:hover { background: #c9a03d; color: #000; }
     .badge-vip { background: linear-gradient(135deg, #c9a03d, #b8860b); color: #000; padding: 4px 12px; border-radius: 20px; }
     .badge-regular { background: #2a2a2a; color: #aaa; padding: 4px 12px; border-radius: 20px; }
+    .badge-hadir { background: #10b981; color: white; padding: 4px 12px; border-radius: 20px; }
+    .badge-tidak { background: #ef4444; color: white; padding: 4px 12px; border-radius: 20px; }
+    .badge-menunggu { background: #f59e0b; color: white; padding: 4px 12px; border-radius: 20px; }
     .badge-pro { background: #10b981; color: white; }
     .badge-basic { background: #3b82f6; color: white; }
     .badge-trial { background: #f59e0b; color: white; }
@@ -109,7 +113,7 @@
     }
     .guest-table {
       width: 100%;
-      min-width: 800px;
+      min-width: 900px;
     }
     .guest-table th, .guest-table td {
       padding: 12px 16px;
@@ -254,6 +258,43 @@
       border-bottom: 1px solid rgba(255,255,255,0.05);
     }
     
+    .qr-modal .modal-content {
+      background: #0a0a0a;
+      border-radius: 24px;
+      border: 1px solid #c9a03d;
+    }
+    .qr-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    .qr-container #qrcode {
+      background: white;
+      padding: 15px;
+      border-radius: 16px;
+      margin-bottom: 15px;
+    }
+    
+    .rsvp-filter-btn {
+      background: transparent;
+      border: 1px solid rgba(201,160,61,0.3);
+      color: #aaa;
+      border-radius: 60px;
+      padding: 6px 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 13px;
+    }
+    .rsvp-filter-btn.active, .rsvp-filter-btn:hover {
+      background: #c9a03d;
+      color: #000;
+      border-color: #c9a03d;
+    }
+    .rsvp-filter-btn.hadir.active { background: #10b981; color: white; border-color: #10b981; }
+    .rsvp-filter-btn.tidak.active { background: #ef4444; color: white; border-color: #ef4444; }
+    .rsvp-filter-btn.menunggu.active { background: #f59e0b; color: white; border-color: #f59e0b; }
+    
     @media (max-width: 768px) {
       .sidebar { left: -280px; position: fixed; z-index: 1050; }
       .sidebar.open { left: 0; }
@@ -324,6 +365,40 @@
       <div class="row g-4">
         <div class="col-md-6"><div class="setting-card"><canvas id="dashboardChart" style="max-height: 250px;"></canvas></div></div>
         <div class="col-md-6"><div class="setting-card"><h5 class="gold-text mb-3"><i class="bi bi-graph-up"></i> Statistik 7 Hari</h5><canvas id="viewsChart" style="max-height: 200px;"></canvas></div></div>
+      </div>
+      <!-- Statistik RSVP -->
+      <div class="row g-4 mt-2">
+        <div class="col-12">
+          <div class="setting-card">
+            <h5 class="gold-text mb-3"><i class="bi bi-check2-square me-2"></i>Statistik Konfirmasi Kehadiran (RSVP)</h5>
+            <div class="row g-3">
+              <div class="col-md-3 col-6">
+                <div class="stat-card text-center">
+                  <small class="text-white-50">Menunggu</small>
+                  <h3 class="text-warning" id="rsvpMenunggu">0</h3>
+                </div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div class="stat-card text-center">
+                  <small class="text-white-50">Hadir</small>
+                  <h3 class="text-success" id="rsvpHadir">0</h3>
+                </div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div class="stat-card text-center">
+                  <small class="text-white-50">Tidak Hadir</small>
+                  <h3 class="text-danger" id="rsvpTidak">0</h3>
+                </div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div class="stat-card text-center">
+                  <small class="text-white-50">Konfirmasi Total</small>
+                  <h3 class="gold-text" id="rsvpTotal">0</h3>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     
@@ -439,10 +514,11 @@
             <button class="btn-gold w-100" id="generateInviteBtn"><i class="bi bi-link-45deg me-2"></i>Generate Link</button>
             <div id="linkResult" class="mt-3" style="display:none;">
               <div class="bg-dark p-2 rounded-3"><code id="inviteLink" class="small text-break"></code></div>
-              <div class="d-flex gap-2 mt-2">
-                <button class="btn btn-sm btn-outline-secondary w-50" id="copyLinkBtn"><i class="bi bi-files"></i> Salin Link</button>
-                <button class="btn btn-sm btn-success w-50" id="sendWABtn"><i class="bi bi-whatsapp"></i> Kirim WA</button>
-                <button class="btn btn-sm btn-info w-50" id="previewInviteBtn"><i class="bi bi-eye"></i> Preview</button>
+              <div class="d-flex gap-2 mt-2 flex-wrap">
+                <button class="btn btn-sm btn-outline-secondary" id="copyLinkBtn"><i class="bi bi-files"></i> Salin</button>
+                <button class="btn btn-sm btn-success" id="sendWABtn"><i class="bi bi-whatsapp"></i> WA</button>
+                <button class="btn btn-sm btn-info" id="previewInviteBtn"><i class="bi bi-eye"></i> Preview</button>
+                <button class="btn btn-sm btn-warning" id="qrInviteBtn"><i class="bi bi-qr-code"></i> QR</button>
               </div>
             </div>
           </div>
@@ -513,7 +589,7 @@
       
       <div class="setting-card mb-4">
         <div class="row g-3 align-items-center">
-          <div class="col-md-4">
+          <div class="col-md-3">
             <input type="text" id="searchGuestInput" class="search-bar" placeholder="🔍 Cari nama tamu...">
           </div>
           <div class="col-md-3">
@@ -523,13 +599,20 @@
               <button class="filter-btn" data-filter="regular" id="filterRegular">📋 Reguler</button>
             </div>
           </div>
-          <div class="col-md-3 date-filter">
-            <input type="date" id="filterStartDate" class="form-control" placeholder="Dari tgl">
-            <input type="date" id="filterEndDate" class="form-control" placeholder="Sampai tgl">
+          <div class="col-md-3">
+            <div class="d-flex gap-2 flex-wrap">
+              <button class="rsvp-filter-btn" data-rsvp="all" id="rsvpAll">Semua Status</button>
+              <button class="rsvp-filter-btn menunggu" data-rsvp="menunggu" id="rsvpMenungguBtn">⏳ Menunggu</button>
+              <button class="rsvp-filter-btn hadir" data-rsvp="hadir" id="rsvpHadirBtn">✅ Hadir</button>
+              <button class="rsvp-filter-btn tidak" data-rsvp="tidak" id="rsvpTidakBtn">❌ Tidak</button>
+            </div>
           </div>
-          <div class="col-md-2 text-end">
-            <button id="refreshGuestList" class="btn btn-sm btn-outline-secondary rounded-pill w-100 mb-1"><i class="bi bi-arrow-repeat"></i> Refresh</button>
-            <button id="clearDateFilter" class="btn btn-sm btn-outline-danger rounded-pill w-100"><i class="bi bi-x-circle"></i> Hapus Filter</button>
+          <div class="col-md-3 text-end">
+            <div class="d-flex gap-2 flex-wrap justify-content-end">
+              <button class="btn btn-sm btn-outline-success rounded-pill" id="exportDataBtn"><i class="bi bi-file-earmark-excel"></i> Export</button>
+              <button class="btn btn-sm btn-outline-secondary rounded-pill" id="refreshGuestList"><i class="bi bi-arrow-repeat"></i> Refresh</button>
+              <button class="btn btn-sm btn-outline-danger rounded-pill" id="clearDateFilter"><i class="bi bi-x-circle"></i> Reset</button>
+            </div>
           </div>
         </div>
       </div>
@@ -539,12 +622,13 @@
           <table class="table guest-table">
             <thead>
               <tr style="background: rgba(201,160,61,0.1);">
-                <th style="width: 18%">Nama Tamu</th>
+                <th style="width: 15%">Nama Tamu</th>
                 <th style="width: 8%">Status</th>
-                <th style="width: 12%">Telepon</th>
-                <th style="width: 30%">Link Undangan</th>
-                <th style="width: 12%">Dibuat</th>
-                <th style="width: 20%">Aksi</th>
+                <th style="width: 10%">RSVP</th>
+                <th style="width: 10%">Telepon</th>
+                <th style="width: 20%">Link Undangan</th>
+                <th style="width: 10%">Dibuat</th>
+                <th style="width: 27%">Aksi</th>
               </tr>
             </thead>
             <tbody id="guestTableBody"></tbody>
@@ -640,6 +724,25 @@
   </div>
 </div>
 
+<!-- Modal QR Code -->
+<div class="modal fade" id="qrModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content qr-modal">
+      <div class="modal-header border-secondary">
+        <h5 class="gold-text"><i class="bi bi-qr-code me-2"></i>QR Code Undangan</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="qr-container">
+          <div id="qrcode"></div>
+          <p class="text-muted small text-center" id="qrGuestName">-</p>
+          <button class="btn btn-sm btn-outline-secondary mt-2" id="downloadQRBtn"><i class="bi bi-download"></i> Download QR</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getDatabase, ref, get, set, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -671,10 +774,12 @@
   let currentSearch = '';
   let currentStartDate = '';
   let currentEndDate = '';
+  let currentRsvpFilter = 'all';
   let allInvitations = [];
   let weddingDataCache = null;
   let loadingOverlay = document.getElementById('spinnerOverlay');
-  let excelData = []; // Data dari Excel
+  let excelData = [];
+  let rsvpData = {};
   
   // Pagination variables
   let currentPage = 1;
@@ -773,7 +878,8 @@
         loadInvitations(),
         loadUsers(),
         loadStats(),
-        loadViewStats()
+        loadViewStats(),
+        loadRSVPStats()
       ]);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -950,6 +1056,39 @@
     }
     renderGuestTable();
     await loadStats();
+    await loadRSVPStats();
+  }
+  
+  // ========== FITUR RSVP ==========
+  async function loadRSVPStats() {
+    const snap = await get(ref(db, "data/rsvp"));
+    rsvpData = snap.val() || {};
+    
+    let menunggu = 0, hadir = 0, tidak = 0;
+    
+    for (const inviteId in rsvpData) {
+      const status = rsvpData[inviteId]?.status || 'menunggu';
+      if (status === 'hadir') hadir++;
+      else if (status === 'tidak') tidak++;
+      else menunggu++;
+    }
+    
+    document.getElementById('rsvpMenunggu').innerText = menunggu;
+    document.getElementById('rsvpHadir').innerText = hadir;
+    document.getElementById('rsvpTidak').innerText = tidak;
+    document.getElementById('rsvpTotal').innerText = hadir + tidak + menunggu;
+  }
+  
+  function getRsvpStatus(inviteId) {
+    if (!inviteId) return 'menunggu';
+    const data = rsvpData[inviteId];
+    return data?.status || 'menunggu';
+  }
+  
+  function getRsvpBadge(status) {
+    if (status === 'hadir') return '<span class="badge-hadir">✅ Hadir</span>';
+    if (status === 'tidak') return '<span class="badge-tidak">❌ Tidak</span>';
+    return '<span class="badge-menunggu">⏳ Menunggu</span>';
   }
   
   function renderGuestTable() {
@@ -959,6 +1098,11 @@
     if (currentSearch) filtered = filtered.filter(inv => inv.guestName.toLowerCase().indexOf(currentSearch.toLowerCase()) !== -1);
     if (currentStartDate) filtered = filtered.filter(inv => inv.createdAt >= new Date(currentStartDate).getTime());
     if (currentEndDate) filtered = filtered.filter(inv => inv.createdAt <= new Date(currentEndDate + 'T23:59:59').getTime());
+    
+    // Filter RSVP
+    if (currentRsvpFilter !== 'all') {
+      filtered = filtered.filter(inv => getRsvpStatus(inv.id) === currentRsvpFilter);
+    }
     
     filtered.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     
@@ -977,20 +1121,24 @@
       const link = `${INVITE_BASE_URL}?invite=${inv.id}`;
       const tierBadge = inv.tier === 'vip' ? '<span class="badge-vip">👑 VIP</span>' : '<span class="badge-regular">📋 Reguler</span>';
       const viewCount = inv.viewCount || 0;
+      const rsvpStatus = getRsvpStatus(inv.id);
+      const rsvpBadge = getRsvpBadge(rsvpStatus);
       
       tbody.innerHTML += `
         <tr>
           <td><strong>${escapeHtml(inv.guestName)}</strong><br><small class="text-muted"><i class="bi bi-eye"></i> ${viewCount}</small></td>
           <td>${tierBadge}</td>
+          <td>${rsvpBadge}</td>
           <td>${inv.phone || '-'}</td>
           <td class="link-cell"><small>${escapeHtml(link)}</small></td>
           <td>${inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('id') : '-'}</td>
           <td>
             <div class="action-buttons">
-              <button class="btn btn-sm btn-outline-primary edit-guest" data-id="${inv.id}" data-name="${escapeHtml(inv.guestName)}" data-phone="${inv.phone || ''}" data-note="${inv.note || ''}" data-tier="${inv.tier || 'regular'}"><i class="bi bi-pencil"></i> Edit</button>
-              <button class="btn btn-sm btn-success send-wa" data-name="${escapeHtml(inv.guestName)}" data-link="${link}"><i class="bi bi-whatsapp"></i> WA</button>
-              <button class="btn btn-sm btn-info preview-guest" data-link="${link}"><i class="bi bi-eye"></i> Preview</button>
-              <button class="btn btn-sm btn-outline-danger delete-invite" data-id="${inv.id}"><i class="bi bi-trash3"></i> Hapus</button>
+              <button class="btn btn-sm btn-outline-primary edit-guest" data-id="${inv.id}" data-name="${escapeHtml(inv.guestName)}" data-phone="${inv.phone || ''}" data-note="${inv.note || ''}" data-tier="${inv.tier || 'regular'}"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm btn-success send-wa" data-name="${escapeHtml(inv.guestName)}" data-link="${link}"><i class="bi bi-whatsapp"></i></button>
+              <button class="btn btn-sm btn-info preview-guest" data-link="${link}"><i class="bi bi-eye"></i></button>
+              <button class="btn btn-sm btn-warning qr-guest" data-link="${link}" data-name="${escapeHtml(inv.guestName)}"><i class="bi bi-qr-code"></i></button>
+              <button class="btn btn-sm btn-outline-danger delete-invite" data-id="${inv.id}"><i class="bi bi-trash3"></i></button>
             </div>
           </td>
         </tr>
@@ -1039,6 +1187,7 @@
         const result = await Swal.fire({ title: 'Hapus Undangan?', text: 'Data tidak dapat dikembalikan', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, hapus!' });
         if(result.isConfirmed) { 
           await remove(ref(db, "data/invitations/" + btn.dataset.id)); 
+          await remove(ref(db, "data/rsvp/" + btn.dataset.id));
           await loadInvitations(); 
           Swal.fire('Terhapus!', 'Undangan telah dihapus.', 'success');
         } 
@@ -1085,6 +1234,14 @@
         const link = btn.dataset.link;
         document.getElementById('previewIframe').src = link + '&preview=true';
         new bootstrap.Modal(document.getElementById('previewModal')).show();
+      });
+    });
+    
+    document.querySelectorAll('.qr-guest').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const link = btn.dataset.link;
+        const name = btn.dataset.name;
+        showQRCode(link, name);
       });
     });
   }
@@ -1271,6 +1428,76 @@
     }
   }
   
+  // ========== FITUR QR CODE ==========
+  function showQRCode(link, name) {
+    const container = document.getElementById('qrcode');
+    container.innerHTML = '';
+    document.getElementById('qrGuestName').innerText = name || 'Undangan';
+    
+    new QRCode(container, {
+      text: link,
+      width: 200,
+      height: 200,
+      colorDark: '#c9a03d',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+    
+    new bootstrap.Modal(document.getElementById('qrModal')).show();
+  }
+  
+  document.getElementById('qrInviteBtn')?.addEventListener('click', () => {
+    const link = document.getElementById('inviteLink').innerText;
+    const name = document.getElementById('guestName').value.trim() || 'Tamu';
+    if(link) {
+      showQRCode(link, name);
+    } else {
+      Swal.fire('Info', 'Generate link terlebih dahulu', 'info');
+    }
+  });
+  
+  document.getElementById('downloadQRBtn')?.addEventListener('click', () => {
+    const qrContainer = document.querySelector('#qrcode canvas');
+    if (qrContainer) {
+      const link = document.createElement('a');
+      link.download = `QR_Undangan_${document.getElementById('qrGuestName').innerText}.png`;
+      link.href = qrContainer.toDataURL('image/png');
+      link.click();
+    } else {
+      Swal.fire('Info', 'Tidak ada QR Code untuk di-download', 'info');
+    }
+  });
+  
+  // ========== FITUR EKSPORT DATA ==========
+  function exportGuestData() {
+    if (allInvitations.length === 0) {
+      Swal.fire('Info', 'Tidak ada data tamu untuk diekspor', 'info');
+      return;
+    }
+    
+    const data = allInvitations.map(inv => {
+      const rsvpStatus = getRsvpStatus(inv.id);
+      return {
+        'Nama': inv.guestName,
+        'No WA': inv.phone || '-',
+        'Tier': inv.tier || 'regular',
+        'Status RSVP': rsvpStatus === 'hadir' ? 'Hadir' : rsvpStatus === 'tidak' ? 'Tidak Hadir' : 'Menunggu',
+        'Link Undangan': `${INVITE_BASE_URL}?invite=${inv.id}`,
+        'Dibuat': inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('id') : '-',
+        'Views': inv.viewCount || 0
+      };
+    });
+    
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, 'Daftar Tamu');
+    XLSX.writeFile(wb, `Daftar_Tamu_${new Date().toISOString().slice(0,10)}.xlsx`);
+    
+    Swal.fire('Berhasil', `Data ${data.length} tamu berhasil diekspor`, 'success');
+  }
+  
+  document.getElementById('exportDataBtn')?.addEventListener('click', exportGuestData);
+  
   // ========== FUNGSI EXCEL ==========
   function handleExcelFile(file) {
     const reader = new FileReader();
@@ -1286,7 +1513,6 @@
           return;
         }
         
-        // Cek kolom wajib
         const firstRow = jsonData[0];
         const hasName = Object.keys(firstRow).some(key => 
           ['Nama', 'nama', 'Name', 'name', 'NAMA'].includes(key)
@@ -1316,14 +1542,12 @@
     let html = '<table class="table table-dark table-sm">';
     html += '<thead><tr>';
     
-    // Header
     const headers = Object.keys(data[0]);
     headers.forEach(h => {
       html += `<th>${escapeHtml(h)}</th>`;
     });
     html += '</tr></thead><tbody>';
     
-    // Data (max 20 baris untuk preview)
     const maxRows = Math.min(data.length, 20);
     for (let i = 0; i < maxRows; i++) {
       html += '<tr>';
@@ -1360,10 +1584,8 @@
     const uploadArea = document.getElementById('uploadArea');
     const fileInput = document.getElementById('excelFileInput');
     
-    // Klik untuk upload
     uploadArea.addEventListener('click', () => fileInput.click());
     
-    // Drag and drop
     uploadArea.addEventListener('dragover', (e) => {
       e.preventDefault();
       uploadArea.classList.add('dragover');
@@ -1387,7 +1609,6 @@
       }
     });
     
-    // Clear data
     document.getElementById('clearExcelBtn').addEventListener('click', () => {
       excelData = [];
       document.getElementById('excelPreviewContainer').style.display = 'none';
@@ -1396,10 +1617,8 @@
       Swal.fire('Data dihapus', 'Data Excel telah dibersihkan', 'info');
     });
     
-    // Download template
     document.getElementById('downloadTemplateBtn').addEventListener('click', downloadTemplate);
     
-    // Generate bulk invites
     document.getElementById('generateBulkInvitesBtn').addEventListener('click', async () => {
       if (excelData.length === 0) {
         Swal.fire('Info', 'Tidak ada data. Upload file Excel terlebih dahulu.', 'warning');
@@ -1414,7 +1633,6 @@
       try {
         const result = await generateBulkInvites(excelData, defaultTier);
         
-        // Tampilkan hasil
         const container = document.getElementById('bulkResultContainer');
         container.style.display = 'block';
         
@@ -1485,21 +1703,48 @@
       renderGuestTable();
     });
     
-    const startDate = document.getElementById('filterStartDate');
-    const endDate = document.getElementById('filterEndDate');
-    if(startDate) startDate.addEventListener('change', (e) => { currentStartDate = e.target.value; currentPage = 1; renderGuestTable(); });
-    if(endDate) endDate.addEventListener('change', (e) => { currentEndDate = e.target.value; currentPage = 1; renderGuestTable(); });
+    // RSVP Filters
+    document.getElementById('rsvpAll')?.addEventListener('click', () => {
+      currentRsvpFilter = 'all';
+      currentPage = 1;
+      document.querySelectorAll('.rsvp-filter-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('rsvpAll').classList.add('active');
+      renderGuestTable();
+    });
     
+    document.getElementById('rsvpMenungguBtn')?.addEventListener('click', () => {
+      currentRsvpFilter = 'menunggu';
+      currentPage = 1;
+      document.querySelectorAll('.rsvp-filter-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('rsvpMenungguBtn').classList.add('active');
+      renderGuestTable();
+    });
+    
+    document.getElementById('rsvpHadirBtn')?.addEventListener('click', () => {
+      currentRsvpFilter = 'hadir';
+      currentPage = 1;
+      document.querySelectorAll('.rsvp-filter-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('rsvpHadirBtn').classList.add('active');
+      renderGuestTable();
+    });
+    
+    document.getElementById('rsvpTidakBtn')?.addEventListener('click', () => {
+      currentRsvpFilter = 'tidak';
+      currentPage = 1;
+      document.querySelectorAll('.rsvp-filter-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('rsvpTidakBtn').classList.add('active');
+      renderGuestTable();
+    });
+    
+    document.getElementById('refreshGuestList')?.addEventListener('click', () => { currentPage = 1; loadInvitations(); });
     document.getElementById('clearDateFilter')?.addEventListener('click', () => {
-      if(startDate) startDate.value = '';
-      if(endDate) endDate.value = '';
+      document.getElementById('filterStartDate').value = '';
+      document.getElementById('filterEndDate').value = '';
       currentStartDate = '';
       currentEndDate = '';
       currentPage = 1;
       renderGuestTable();
     });
-    
-    document.getElementById('refreshGuestList')?.addEventListener('click', () => { currentPage = 1; loadInvitations(); });
   }
   
   async function init() {
@@ -1745,6 +1990,7 @@
   setupSearchAndFilter();
   setupExcelUpload();
   document.getElementById('filterAll')?.classList.add('active');
+  document.getElementById('rsvpAll')?.classList.add('active');
   
   init();
 </script>
