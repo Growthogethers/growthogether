@@ -1,5 +1,5 @@
 // js/keuangan.js - Shared keuangan per pasangan
-import { db, ref, onValue } from './firebase-config.js';
+import { db, ref, onValue, get, set, push } from './firebase-config.js';
 import { 
   showNotif, formatNumberRp, escapeHtml, showCustomPrompt, showCustomConfirm, 
   getCache, setCache, clearCache, throttle, showLoading, hideLoading,
@@ -25,6 +25,69 @@ let canAddTransactionChecker = null;
 
 export function setKeuanganLimitsChecker(checkerFn) {
   canAddTransactionChecker = checkerFn;
+}
+
+// ============ PERBAIKAN: Ambil kategori dari node yang benar ============
+async function loadKategoriFromCatatan() {
+  try {
+    // Ambil dari data/catatan/bersama/kategori
+    const catatanSnap = await get(ref(db, `data/catatan/bersama/kategori`));
+    const data = catatanSnap.val() || {};
+    kategoriList = Object.entries(data).map(([id, val]) => ({ id, ...val }));
+    dynamicCategories = kategoriList.map(k => k.nama);
+    
+    for (const kat of kategoriList) {
+      targetKategori[kat.nama] = kat.estimasiBiaya || 0;
+    }
+    
+    updateKategoriSelect();
+    return kategoriList;
+  } catch (err) {
+    console.error("Error loading kategori from catatan:", err);
+    return [];
+  }
+}
+
+// ============ BUAT KATEGORI DEFAULT JIKA BELUM ADA ============
+async function ensureDefaultCategories() {
+  try {
+    const snap = await get(ref(db, `data/catatan/bersama/kategori`));
+    const data = snap.val() || {};
+    
+    if (Object.keys(data).length === 0) {
+      console.log("Creating default categories...");
+      const defaultCategories = [
+        { nama: "Pernikahan", icon: "bi-heart-fill", estimasiBiaya: 0 },
+        { nama: "Makanan", icon: "bi-cup-straw", estimasiBiaya: 0 },
+        { nama: "Transportasi", icon: "bi-truck", estimasiBiaya: 0 },
+        { nama: "Lainnya", icon: "bi-folder", estimasiBiaya: 0 }
+      ];
+      
+      for (const kat of defaultCategories) {
+        const newRef = push(ref(db, `data/catatan/bersama/kategori`));
+        await set(newRef, kat);
+      }
+      console.log("Default categories created");
+    }
+  } catch (err) {
+    console.error("Error ensuring default categories:", err);
+  }
+}
+
+function updateKategoriSelect() {
+  const select = document.getElementById('transaksiKategori');
+  if (!select) return;
+  
+  let options = '';
+  if (dynamicCategories.length > 0) {
+    options = dynamicCategories.map(k => `<option value="${escapeHtml(k)}">📁 ${escapeHtml(k)}</option>`).join('');
+  } else {
+    options = `<option value="Pernikahan">💍 Pernikahan</option>
+               <option value="Makanan">🍜 Makanan</option>
+               <option value="Transportasi">🚗 Transportasi</option>
+               <option value="Lainnya">📝 Lainnya</option>`;
+  }
+  select.innerHTML = options;
 }
 
 function initKeuanganChart() {
@@ -184,41 +247,6 @@ window.changeChartPeriod = function(period) {
   updateChartData();
   showNotif(`Menampilkan grafik ${period === 'week' ? 'Mingguan' : period === 'month' ? 'Bulanan' : 'Tahunan'}`, false, 'info');
 };
-
-async function loadKategoriFromCatatan() {
-  try {
-    const catatanSnap = await get(ref(db, `data/catatan/pairs/${currentPairId}/kategori`));
-    const data = catatanSnap.val() || {};
-    kategoriList = Object.entries(data).map(([id, val]) => ({ id, ...val }));
-    dynamicCategories = kategoriList.map(k => k.nama);
-    
-    for (const kat of kategoriList) {
-      targetKategori[kat.nama] = kat.estimasiBiaya || 0;
-    }
-    
-    updateKategoriSelect();
-    return kategoriList;
-  } catch (err) {
-    console.error("Error loading kategori from catatan:", err);
-    return [];
-  }
-}
-
-function updateKategoriSelect() {
-  const select = document.getElementById('transaksiKategori');
-  if (!select) return;
-  
-  let options = '';
-  if (dynamicCategories.length > 0) {
-    options = dynamicCategories.map(k => `<option value="${escapeHtml(k)}">📁 ${escapeHtml(k)}</option>`).join('');
-  } else {
-    options = `<option value="Pernikahan">💍 Pernikahan</option>
-               <option value="Makanan">🍜 Makanan</option>
-               <option value="Transportasi">🚗 Transportasi</option>
-               <option value="Lainnya">📝 Lainnya</option>`;
-  }
-  select.innerHTML = options;
-}
 
 function renderKategoriProgress() {
   const container = document.getElementById('kategoriProgressContainer');
@@ -423,6 +451,7 @@ function applyFilters() {
   renderTransaksiWithFilters();
 }
 
+// ============ PERBAIKAN: Render Transaksi dengan tombol minimalis ============
 function renderTransaksiWithFilters() {
   const container = document.getElementById('transaksiList');
   if (!container) return;
@@ -456,26 +485,27 @@ function renderTransaksiWithFilters() {
   container.innerHTML = sortedList.slice(0, 50).map(t => {
     const authorName = t.createdBy === "FACHMI" ? "Fachmi" : t.createdBy === "AZIZAH" ? "Azizah" : t.createdBy;
     return `
-    <div class="list-group-item d-flex justify-content-between align-items-start" style="border-left: 3px solid ${t.tipe === 'pemasukan' ? '#10b981' : '#ef4444'}; margin-bottom: 8px; border-radius: 12px; background: var(--card-bg);">
-      <div class="flex-grow-1">
-        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-          <span class="badge ${t.tipe === 'pemasukan' ? 'bg-success' : 'bg-danger'}">${t.tipe === 'pemasukan' ? '📥 Pemasukan' : '📤 Pengeluaran'}</span>
-          <span class="fw-medium">${escapeHtml(t.kategori)}</span>
-          <small class="text-muted">oleh: ${escapeHtml(authorName)}</small>
+    <div class="list-group-item d-flex justify-content-between align-items-center" style="border-left: 3px solid ${t.tipe === 'pemasukan' ? '#10b981' : '#ef4444'}; margin-bottom: 6px; border-radius: 10px; background: var(--card-bg); padding: 10px 14px;">
+      <div class="flex-grow-1" style="min-width: 0;">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span class="badge ${t.tipe === 'pemasukan' ? 'bg-success' : 'bg-danger'}" style="font-size: 10px; padding: 2px 8px;">${t.tipe === 'pemasukan' ? '+' : '-'}</span>
+          <span class="fw-medium small">${escapeHtml(t.kategori)}</span>
+          <small class="text-muted" style="font-size: 10px;">${t.tanggal ? new Date(t.tanggal).toLocaleDateString('id-ID') : '-'}</small>
+          ${t.catatan ? `<small class="text-muted" style="font-size: 10px;">📝 ${escapeHtml(t.catatan)}</small>` : ''}
+          <small class="text-muted" style="font-size: 9px;">${escapeHtml(authorName)}</small>
         </div>
-        <small class="d-block text-muted">${t.tanggal ? new Date(t.tanggal).toLocaleDateString('id-ID') : '-'}</small>
-        ${t.catatan ? `<small class="d-block text-muted">📝 ${escapeHtml(t.catatan)}</small>` : ''}
       </div>
-      <div class="text-end ms-2">
-        <span class="fw-bold ${t.tipe === 'pemasukan' ? 'text-success' : 'text-danger'}">
+      <div class="d-flex align-items-center gap-2">
+        <span class="fw-bold small ${t.tipe === 'pemasukan' ? 'text-success' : 'text-danger'}" style="font-size: 13px; white-space: nowrap;">
           ${t.tipe === 'pemasukan' ? '+' : '-'} ${formatNumberRp(t.nominal)}
         </span>
-        <div class="mt-1">
-          <button class="btn-icon btn-sm" onclick="window.editTransaksi('${t.id}')">
-            <i class="bi bi-pencil"></i>
+        <!-- TOMBOL MINIMALIS: 2 ikon kecil -->
+        <div class="d-flex gap-1">
+          <button class="btn btn-sm btn-link text-decoration-none p-0 text-secondary" onclick="window.editTransaksi('${t.id}')" title="Edit">
+            <i class="bi bi-pencil-fill" style="font-size: 12px;"></i>
           </button>
-          <button class="btn-icon btn-sm" onclick="window.deleteTransaksi('${t.id}')">
-            <i class="bi bi-trash3"></i>
+          <button class="btn btn-sm btn-link text-decoration-none p-0 text-danger" onclick="window.deleteTransaksi('${t.id}')" title="Hapus">
+            <i class="bi bi-x-lg" style="font-size: 12px;"></i>
           </button>
         </div>
       </div>
@@ -704,6 +734,9 @@ export async function initKeuangan() {
     keuanganUserName.innerHTML = `Keuangan ${currentUserLogged} & ${partnerName}`;
   }
   
+  // PASTIKAN KATEGORI DEFAULT ADA
+  await ensureDefaultCategories();
+  
   Promise.all([
     loadKategoriFromCatatan(),
     loadAllTransaksiOptimized()
@@ -712,15 +745,15 @@ export async function initKeuangan() {
     initKeuanganChart();
   });
   
-  // Listen for changes in shared keuangan
-  const pairId = currentPairId;
-  onValue(ref(db, `data/pairs/${pairId}/keuangan/transaksi`), () => {
+  // Listener untuk transaksi user saat ini
+  onValue(ref(db, `data/keuangan/${currentUserLogged}/transaksi`), () => {
     loadAllTransaksiOptimized(true);
     updateChartData();
     renderKategoriProgress();
   });
   
-  onValue(ref(db, `data/catatan/pairs/${pairId}/kategori`), () => {
+  // Listener untuk kategori dari catatan (node yang benar)
+  onValue(ref(db, `data/catatan/bersama/kategori`), () => {
     loadKategoriFromCatatan();
     renderKategoriProgress();
   });
