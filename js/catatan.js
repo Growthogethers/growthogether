@@ -1,4 +1,4 @@
-// js/catatan.js - Versi lengkap dengan Search & Export (Tombol Langsung, Tanpa Dropdown)
+// js/catatan.js - Versi lengkap dengan Search & Export (Tombol Minimalis)
 import { db, ref, push, onValue, remove, update, get, set } from './firebase-config.js';
 import { 
   showNotif, escapeHtml, showCustomPrompt, showCustomConfirm, 
@@ -15,7 +15,7 @@ let editItemId = null;
 let isGeneratingAI = false;
 let isInitialized = false;
 
-// Wedding Templates - 3 template untuk setiap kategori
+// Wedding Templates
 const weddingTemplates = {
   basic: [
     {
@@ -145,6 +145,32 @@ const throttledRender = throttle(() => {
   updateProgress();
 }, 300);
 
+// ============ PASTIKAN KATEGORI DEFAULT ADA ============
+async function ensureCategoriesExist() {
+  try {
+    const snap = await get(ref(db, `data/catatan/bersama/kategori`));
+    const data = snap.val() || {};
+    
+    if (Object.keys(data).length === 0) {
+      console.log("Creating default categories in catatan...");
+      const defaultCategories = [
+        { nama: "Pernikahan", icon: "bi-heart-fill", estimasiBiaya: 0 },
+        { nama: "Makanan", icon: "bi-cup-straw", estimasiBiaya: 0 },
+        { nama: "Transportasi", icon: "bi-truck", estimasiBiaya: 0 },
+        { nama: "Lainnya", icon: "bi-folder", estimasiBiaya: 0 }
+      ];
+      
+      for (const kat of defaultCategories) {
+        const newRef = push(ref(db, `data/catatan/bersama/kategori`));
+        await set(newRef, kat);
+      }
+      console.log("Default categories created in catatan");
+    }
+  } catch (err) {
+    console.error("Error ensuring categories:", err);
+  }
+}
+
 // ============ SEARCH FUNCTIONS ============
 function initSearchCatatan() {
   const searchInput = document.getElementById('searchCatatan');
@@ -218,6 +244,9 @@ export async function initCatatan() {
   isInitialized = true;
   
   try {
+    // PASTIKAN KATEGORI DEFAULT ADA
+    await ensureCategoriesExist();
+    
     await Promise.all([
       loadKategoriOptimized(),
       loadChecklistItemsOptimized()
@@ -333,7 +362,7 @@ function updateProgress() {
   }
 }
 
-// ============ RENDER KATEGORI DENGAN TOMBOL LANGSUNG (TANPA DROPDOWN) ============
+// ============ RENDER KATEGORI DENGAN TOMBOL MINIMALIS ============
 function renderKategori() {
   const container = document.getElementById('kategoriContainer');
   if (!container) return;
@@ -343,11 +372,10 @@ function renderKategori() {
       <div class="text-center text-muted py-5">
         <i class="bi bi-folder2-open fs-1"></i>
         <p class="mt-2">Belum ada kategori persiapan pernikahan.</p>
-        <p class="small">Klik salah satu template di bawah untuk memulai:</p>
         <div class="d-flex gap-2 justify-content-center mt-3 flex-wrap">
           <div class="dropdown">
             <button class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle" data-bs-toggle="dropdown">
-              <i class="bi bi-stars me-1"></i> Basic Plan (3 Template)
+              <i class="bi bi-stars me-1"></i> Basic Plan
             </button>
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="#" onclick="window.generateWeddingPlanning('basic', 0)">${escapeHtml(weddingTemplates.basic[0].name)}</a></li>
@@ -357,7 +385,7 @@ function renderKategori() {
           </div>
           <div class="dropdown">
             <button class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle" data-bs-toggle="dropdown">
-              <i class="bi bi-diamond me-1"></i> Premium Plan (3 Template)
+              <i class="bi bi-diamond me-1"></i> Premium Plan
             </button>
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="#" onclick="window.generateWeddingPlanning('premium', 0)">${escapeHtml(weddingTemplates.premium[0].name)}</a></li>
@@ -367,7 +395,7 @@ function renderKategori() {
           </div>
           <div class="dropdown">
             <button class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle" data-bs-toggle="dropdown">
-              <i class="bi bi-globe me-1"></i> Destination Plan (3 Template)
+              <i class="bi bi-globe me-1"></i> Destination
             </button>
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="#" onclick="window.generateWeddingPlanning('destination', 0)">${escapeHtml(weddingTemplates.destination[0].name)}</a></li>
@@ -401,12 +429,13 @@ function renderKategori() {
             </div>
             <span class="badge bg-secondary rounded-pill">${completedCount}/${validItems.length}</span>
           </div>
-          <div class="d-flex gap-2">
-            <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="window.editKategori('${kat.id}')">
-              <i class="bi bi-pencil me-1"></i> Edit
+          <!-- TOMBOL MINIMALIS: Hanya 2 ikon kecil -->
+          <div class="d-flex gap-1">
+            <button class="btn btn-sm btn-link text-decoration-none p-1 text-secondary" onclick="window.editKategori('${kat.id}')" title="Edit">
+              <i class="bi bi-pencil-fill" style="font-size: 14px;"></i>
             </button>
-            <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="window.deleteKategori('${kat.id}')">
-              <i class="bi bi-trash3 me-1"></i> Hapus
+            <button class="btn btn-sm btn-link text-decoration-none p-1 text-danger" onclick="window.deleteKategori('${kat.id}')" title="Hapus">
+              <i class="bi bi-x-lg" style="font-size: 14px;"></i>
             </button>
           </div>
         </div>
@@ -421,12 +450,13 @@ function renderKategori() {
                   <input type="checkbox" class="form-check-input fs-5" id="item_${itemId}" ${item.selesai ? 'checked' : ''} onchange="window.toggleItem('${kat.id}', '${itemId}', this.checked)">
                   <label class="checklist-label mb-0 ${item.selesai ? 'text-decoration-line-through text-muted' : ''}" for="item_${itemId}">${escapeHtml(item.nama)}</label>
                 </div>
+                <!-- TOMBOL MINIMALIS: 2 ikon kecil -->
                 <div class="d-flex gap-1">
-                  <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="window.editItem('${kat.id}', '${itemId}')">
-                    <i class="bi bi-pencil"></i>
+                  <button class="btn btn-sm btn-link text-decoration-none p-1 text-secondary" onclick="window.editItem('${kat.id}', '${itemId}')" title="Edit">
+                    <i class="bi bi-pencil-fill" style="font-size: 12px;"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="window.deleteItem('${kat.id}', '${itemId}')">
-                    <i class="bi bi-trash3"></i>
+                  <button class="btn btn-sm btn-link text-decoration-none p-1 text-danger" onclick="window.deleteItem('${kat.id}', '${itemId}')" title="Hapus">
+                    <i class="bi bi-x-lg" style="font-size: 12px;"></i>
                   </button>
                 </div>
               </div>
@@ -628,7 +658,7 @@ window.toggleItem = async function(kategoriId, itemId, selesai) {
   updateProgress();
 };
 
-// ============ PERBAIKAN: DELETE ITEM (LENGKAP) ============
+// ============ DELETE ITEM ============
 window.deleteItem = async function(kategoriId, itemId) {
   console.log("deleteItem called with kategoriId:", kategoriId, "itemId:", itemId);
   
@@ -669,7 +699,7 @@ window.deleteItem = async function(kategoriId, itemId) {
   }
 };
 
-// ============ PERBAIKAN: DELETE KATEGORI (LENGKAP) ============
+// ============ DELETE KATEGORI ============
 window.deleteKategori = async function(id) {
   console.log("deleteKategori called with id:", id);
   
