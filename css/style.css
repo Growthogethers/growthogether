@@ -1407,3 +1407,100 @@ body.logged-in .sidebar,
 body.logged-in #app-sidebar {
   display: flex;
 }
+
+/* ============ UI MINIMALIS - TOMBOL AKSI ============ */
+
+/* Tombol aksi minimalis - hanya ikon */
+.btn-action-minimal {
+  background: transparent !important;
+  border: none !important;
+  padding: 4px 6px !important;
+  color: var(--text-muted) !important;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.btn-action-minimal:hover {
+  color: var(--text-primary) !important;
+  transform: scale(1.1);
+}
+
+.btn-action-minimal.danger:hover {
+  color: #ef4444 !important;
+}
+
+.btn-action-minimal.success:hover {
+  color: #10b981 !important;
+}
+
+/* Card header lebih ringkas */
+.card-header-minimal {
+  padding: 8px 12px !important;
+  background: transparent !important;
+  border-bottom: 1px solid var(--border-light) !important;
+}
+
+/* List item lebih rapi */
+.list-item-minimal {
+  padding: 8px 12px !important;
+  margin-bottom: 4px !important;
+  border-radius: 8px !important;
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border-light) !important;
+  transition: all 0.15s ease;
+}
+
+.list-item-minimal:hover {
+  border-color: var(--primary) !important;
+  transform: translateX(2px);
+}
+
+/* Badge kecil */
+.badge-sm {
+  font-size: 9px !important;
+  padding: 2px 8px !important;
+  border-radius: 20px !important;
+}
+
+/* Dropdown kategori di keuangan */
+#transaksiKategori {
+  font-size: 14px;
+  padding: 8px 12px;
+}
+
+/* Card di keuangan lebih minimalis */
+.keuangan-card {
+  border: 1px solid var(--border-light) !important;
+  border-radius: 12px !important;
+  padding: 12px 16px !important;
+  background: var(--card-bg) !important;
+}
+
+/* Tombol aksi di list item */
+.list-group-item .btn-link {
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.list-group-item:hover .btn-link {
+  opacity: 1;
+}
+
+/* Responsive mobile untuk tombol aksi */
+@media (max-width: 576px) {
+  .btn-action-minimal {
+    padding: 6px 8px !important;
+  }
+  
+  .btn-action-minimal i {
+    font-size: 16px !important;
+  }
+  
+  .list-item-minimal {
+    padding: 6px 10px !important;
+  }
+  
+  .list-group-item .btn-link i {
+    font-size: 14px !important;
+  }
+}
