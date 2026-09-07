@@ -256,7 +256,7 @@ export async function deleteSharedTransaction(transactionId) {
 export async function getSharedCatatan() {
   if (!currentPairId) return { kategori: {}, items: {} };
   try {
-    const snap = await get(ref(db, `data/catatan/pairs/${currentPairId}`));
+    const snap = await get(ref(db, `data/catatan/bersama`));
     return snap.val() || { kategori: {}, items: {} };
   } catch(err) {
     console.error("Error getting shared catatan:", err);
@@ -267,7 +267,7 @@ export async function getSharedCatatan() {
 export async function saveSharedCatatan(catatan) {
   if (!currentPairId) return false;
   try {
-    await set(ref(db, `data/catatan/pairs/${currentPairId}`), catatan);
+    await set(ref(db, `data/catatan/bersama`), catatan);
     if (currentPairData) currentPairData.catatan = catatan;
     return true;
   } catch(err) {
